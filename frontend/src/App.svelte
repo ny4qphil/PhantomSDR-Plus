@@ -20,6 +20,10 @@
   import { init, audio, waterfall, events, FFTOffsetToFrequency, frequencyToFFTOffset, frequencyToWaterfallOffset, getMaximumBandwidth, waterfallOffsetToFrequency } from "./lib/backend.js";
   import { constructLink, parseLink, storeInLocalStorage } from "./lib/storage.js";
 
+  // Added to create the Site Information area //
+  import { siteSysop, siteSysopEmailAddress, siteInformation, siteGridSquare, siteHardware, siteSoftware, siteNote, siteSDRBaseFrequency, siteSDRBandwidth, siteCountry } from '../site_information.json';
+  // End of Information Area import //
+
   let isRecording = false;
   let canDownload = false;
 
@@ -38,14 +42,14 @@
   let link;
   var chatContentDiv;
  
-  // Added by NY4Q to allow the user to toggle the waterfall on and off //
+  // Added to allow the user to toggle the waterfall on and off //
   function handleWaterfallChange() {
     waterfallDisplay = !waterfallDisplay;
   }
-  // End of waterfall toggle addition from NY4Q //
+  // End of waterfall toggle addition //
 
  
-  // Added by NY4Q to store and restore the waterfall settings //
+  // Declarations for the store and restore of the waterfall settings //
   // when Auto Adjust is enabled. //
   let previous_min_waterfall;
   let previous_max_waterfall;
@@ -53,31 +57,31 @@
   let storeWaterfallSettings = false;
   // End of store and restore variables //
 
-  // Added by NY4Q to create a setBand function to set the amateur radio band, //
-  // then center the spectrum and set the size to the current USA bandplan, then //
-  // set a freq somewhere in the band
-  let band;
-  let span;
-  let centerFrequency;
-  let newFrequency;
-  let newMode;
-  let currentBand = band;
-  // End of setBans additions //
-  // Added by NY4Q to create a fineTune function to use //
+
+  // Definations for handleBandChange function
+  let bandArray = waterfall.bands;
+  let currentBand = 6; // 80m
+
+
+  // Begin Tuning Steps declarations
+  let defaultStep,currentTuneStep = 10; // Default step value / Track current step
+  let tuningsteps = ["10","50","100","500","1000","5000","9000","10000","100000","1000000"];
+
+  
+  // Added to create a fineTune function to use //
   // buttons to click on for mobile users //
   let fineTuneAmount = 0;
-  // End of fineTune addition //
-  let currentAGC = 0;
-  //
-  // Added to create the Site Information area //
-  import { siteSysop, siteSysopEmailAddress, siteInformation, siteGridSquare, siteHardware, siteSoftware, siteNote } from '../site_information.json';
-  // End of Information Area import //
 
-  // Added by NY4Q to allow an adjustment of the dynamic audio //
+  
+  // Set default AGC (0 = Off) //
+  let currentAGC = 0;
+  
+
+  // Added to allow an adjustment of the dynamic audio //
   // buffer function inside audio.js //
   let audioBufferDelayEnabled = false;
   let audioBufferDelay = 1;
-  // End of Audio Buffer Delay //
+
 
   // Function added to toggle the Additional Info menu //
   function toggleMenu() {
@@ -174,6 +178,8 @@
     waterfallDragging = true;
     waterfallBeginX = e.clientX;
   }
+
+
   function handleWindowMouseMove(e) {
     if (waterfallDragging) {
       waterfallDragTotal += Math.abs(e.movementX) + Math.abs(e.movementY);
@@ -182,6 +188,8 @@
       frequencyMarkerComponent.updateFrequencyMarkerPositions();
     }
   }
+
+
   function handleWindowMouseUp(e) {
     if (waterfallDragging) {
       // If mouseup without moving, handle as click
@@ -206,7 +214,9 @@
     waterfall.setWaterfallBig(biggerWaterfall);
   }
 
-  let bandwidth;
+
+// declaration for function handlePassbandChange(passband) //
+let bandwidth;
 
   // Waterfall drawing
   let currentColormap = "gqrx";
@@ -257,7 +267,8 @@
       previous_brightness = brightness;
       storeWaterfallSettings = true;
     }
-    // Added by NY4Q to restore the waterfall settings //
+
+    // Added to restore the waterfall settings //
     // to the previous levels is Auto Adjust is diaabled //
     if(!autoAdjust && storeWaterfallSettings) {
      min_waterfall = previous_min_waterfall;
@@ -268,8 +279,8 @@
      handleMaxMove();
      handleBrightnessMove();
    }
-   // End of mods to store and restore waterfall settings // 
  }
+
 
   // Audio demodulation selection
   let demodulators = ["USB", "LSB", "CW", "CW-L", "AM", "FM"];
@@ -546,12 +557,7 @@
     drawSMeter(activeSegments);
   }
 
-  let defaultStep = 10; // Default step value
-  let currentTuneStep = 10; // Track the current step
 
-  function setStep(step) {
-    currentTuneStep = step;
-  }
   function handleWheel(node) {
     function onWheel(event) {
       event.preventDefault();
@@ -597,7 +603,7 @@
   }
 
   // Bandwidth offset controls
-  let bandwithoffsets = ["-1000", "-100", "+100", "+1000"];
+  let bandwithoffsets = ["-1000", "-500", "-100", "+100", "+500", "+1000"];
   function handleBandwidthOffsetClick(e, bandwidthoffset) {
     bandwidthoffset = parseFloat(bandwidthoffset);
     const demodulationDefault = demodulationDefaults[demodulation].type;
@@ -669,25 +675,13 @@
   // and makes the band buttons track along with frequency //
   // adjustments. //
   function updateBandButton() {
-    if (frequency >= 135.7 && frequency <= 137.8) { currentBand = 2200; }
-      else if (frequency >= 472 && frequency <= 479) { currentBand = 630; }
-      else if (frequency >= 530 && frequency <= 1700) { currentBand = 270; }
-      else if (frequency >= 1800 && frequency <= 2000 ) { currentBand = 160; }
-      else if (frequency >= 3500 && frequency <= 4000) { currentBand = 80; }
-      else if (frequency >= 5330 && frequency <= 5407) { currentBand = 60; }
-      else if (frequency >= 7000 && frequency <= 7300) { currentBand = 40; }
-      else if (frequency >= 10100 && frequency <= 10150) { currentBand = 30; }
-      else if (frequency >= 14000 && frequency <= 14350) { currentBand = 20; }
-      else if (frequency >= 18068 && frequency <= 18168) { currentBand = 17; }
-      else if (frequency >= 21000 && frequency <= 21450) { currentBand = 15; }
-      else if (frequency >= 24890 && frequency <= 24990) { currentBand = 12; }
-      else if (frequency >= 26965 && frequency <= 27405) { currentBand = 11; }
-      else if (frequency >= 28000 && frequency <= 29700) { currentBand = 10; }
-      else { currentBand = 0; }
-  }
-  // End of updateBandButton() //
-
-
+  currentBand = -1;
+  for (var i = 0; i < bandArray.length;) {
+    if (frequency >= (bandArray[i].startFreq / 1000) && frequency <= (bandArray[i].endFreq / 1000)) {
+      currentBand = i; break; }
+      i++;
+    }  
+}
 
   // Regular updating UI elements:
   // Other user tuning displays
@@ -845,7 +839,7 @@
     audio.setSquelch(squelchEnable);
     audio.setSquelchThreshold(squelch);
 
-    // Begin code added by NY4Q to store and restore additional //
+    // Begin code to store and restore additional //
     // WebSDR settings.  
     // Set Audio Buffer
     audioBufferDelayEnabled = false;
@@ -877,7 +871,7 @@
 
     // Set Tuning Step
     currentTuneStep = bookmark.currentTuneStep;
-    setStep(currentTuneStep);
+    handleTuningStep(currentTuneStep);
     // Set Waterfall brightness
     min_waterfall = bookmark.min_waterfall;
     max_waterfall = bookmark.max_waterfall;
@@ -979,6 +973,10 @@
       content: "Use these buttons to choose specific bands.",
     },
     {
+      selector: "#bandwidth-offset-selector",
+      content: "This button is used to select a different bandwidth.",
+    },
+    {
       selector: "#audio-buffer-slider",
       content: "This button/slider allows the user to adjust the limits on the dynamic audio buffer.",
     },
@@ -995,7 +993,7 @@
       content: "Use this Section to change the Demodulation Mode.",
     },
     {
-      selector: "#fine-tuning-selection",
+      selector: "#fine-tuning-selector",
       content: "Use these buttons to fine tune the frequency.",
     },
     {
@@ -1503,114 +1501,60 @@ function handleAGCChange(newAGC) {
   }
 }
 
- // Function created by NY4Q to create a fine tune button //
- // for mobile users //
- function fineTune(fineTuneAmount) {
-  if(fineTuneAmount == 0) { frequency = Math.round(frequency)}
-  frequencyInputComponent.setFrequency((frequency * 1e3)+ fineTuneAmount);
-  handleFrequencyChange({ detail: ((frequency * 1e3) + fineTuneAmount) });
+// This Band Selection function handles band changes sent from the Band Selection section of the main page //
+// The 7.15255 float below is (total_watefall_span / maximum_frequency_sampled) // 
+function handleBandChange(e, newBand) {
+  let centerFreq = parseFloat((((bandArray[newBand].endFreq - bandArray[newBand].startFreq) /2 ) + bandArray[newBand].startFreq)); 
+  let waterfallEndSpan = parseFloat((bandArray[newBand].endFreq / 7.15255));
+  let waterfallStartSpan = parseFloat((bandArray[newBand].startFreq / 7.15255));
+  let waterfallSpan = ((waterfallEndSpan - waterfallStartSpan) / 2);
+  waterfallSpan = waterfallSpan + (waterfallSpan * 0.01); // 10% above band edge
+  frequencyInputComponent.setFrequency(centerFreq);
+  handleFrequencyChange({ detail: centerFreq });
+  let [l, m, r] = audio.getAudioRange();
+  const [waterfallL, waterfallR] = waterfall.getWaterfallRange();
+  const offset = ((m - waterfallL) / (waterfallR - waterfallL)) * waterfall.canvasWidth;
+  m = Math.min(waterfall.waterfallMaxSize - 512, Math.max(512, m));
+  l = Math.floor(m - 512);
+  r = Math.ceil(m + 512);
+  // Below sets the waterfall brightness //
+  max_waterfall = 120;
+  min_waterfall = -70;
+  handleMinMove();
+  handleMaxMove();
+  // End waterfall brightness // 
+  l -= waterfallSpan;
+  r += waterfallSpan;
+  frequencyInputComponent.setFrequency(centerFreq);
+  handleFrequencyChange({ detail: centerFreq });
+  waterfall.setWaterfallRange(l, r);
+  frequencyMarkerComponent.updateFrequencyMarkerPositions();
+  updatePassband();
+  currentBand = newBand;
 }
-//End of addition by NY4Q - fineTune function //
+// End of Band Selection Function //
 
-// SetBand function created by NY4Q to set the band, center the waterfall, adjust the waterall //
-// brightness and contrast, adjust the waterfall width to match the USA bandplan, and pick //
-// a random frequency and mode inside that band. //
- function setBand(band,centerFrequency,newFrequency,newMode,span) {
-  currentBand = band;
-   frequencyInputComponent.setFrequency(centerFrequency * 1e3);
-   handleFrequencyChange({ detail: centerFrequency * 1e3 });
-   let [l, m, r] = audio.getAudioRange();
-   const [waterfallL, waterfallR] = waterfall.getWaterfallRange();
-   const offset = ((m - waterfallL) / (waterfallR - waterfallL)) * waterfall.canvasWidth;
-   m = Math.min(waterfall.waterfallMaxSize - 512, Math.max(512, m));
-   l = Math.floor(m - 512);
-   r = Math.ceil(m + 512);
-   max_waterfall = 120;
-   min_waterfall = -70;
-   handleMinMove();
-   handleMaxMove();
-   switch (band) {
-     case 2200:
-       l -= span;
-       r += span;
-       break;
-     case 630:
-       l -= span;
-       r += span;
-       break;
-     case 270:
-       l -= span;
-       r += span;
-       break;
-     case 160:
-       l -= span;
-       r += span;
-       break;
-     case 80:
-       l -= span;
-       r += span;
-       max_waterfall = 120;
-       min_waterfall = -40;
-       handleMinMove();
-       handleMaxMove();
-       break;
-     case 60:
-       l -= span;
-       r += span;
-       max_waterfall = 120;
-       min_waterfall = -40;
-       handleMinMove();
-       handleMaxMove();
-       break;
-     case 40:
-       l -= span;
-       r += span;
-       break;
-     case 31:
-       l -= span;
-       r += span;
-       break;
-     case 30:
-      l -= span;
-      r += span;
-      max_waterfall = 120;
-      min_waterfall = -40;
-      handleMinMove();
-      handleMaxMove();
-      break;
-     case 20:
-      l -= span;
-      r += span;
-      break;
-     case 17:
-       l -= span;
-       r += span;
-       break;
-     case 15:
-       l -= span;
-       r += span;
-       break;
-     case 12:
-       l -= span;
-       r += span;
-       break;
-     case 11:
-       l -= span;
-       r += span;
-       break;
-     case 10:
-       l -= span;
-       r += span;
-       break;
-    }
-   waterfall.setWaterfallRange(l, r);
-   frequencyMarkerComponent.updateFrequencyMarkerPositions();
-   updatePassband();
-   frequencyInputComponent.setFrequency(newFrequency * 1e3);
-   handleFrequencyChange({ detail: newFrequency * 1e3 });
-   SetMode(newMode);
+// Begin Fine Tuning Steps Function
+//Function created by NY4Q to create a fine tune button //
+// for mobile users //
+let finetuningsteps = ["-10","-5","-1","-0.5","-0.1","0","+0.1","+0.5","+1","+5","+10"];
+
+function handleFineTuningStep(finetuningstep) {
+  finetuningstep = (parseFloat(finetuningstep) * 1e3);
+  if(finetuningstep == 0) { frequency = Math.round(frequency)}
+  frequencyInputComponent.setFrequency((frequency * 1e3)+ finetuningstep);
+  handleFrequencyChange({ detail: ((frequency * 1e3) + finetuningstep) });
+  updatePassband();
 }
-// End of SetBands function
+// End Fine Tuning Steps Function //
+
+// Begin Tuning Steps Function
+  function handleTuningStep(tuningstep) {
+    //parseFloat(tuningstep);
+    currentTuneStep = tuningstep;
+  }
+// End Tuning Steps Function //
+
 
   // Mobile gestures
   // Pinch = Mousewheel = Zoom
@@ -1837,9 +1781,8 @@ function handleAGCChange(newAGC) {
           {/if}
 
 
-<!-- Begin Audio Section -->
+<!-- Begin Waterfall Controls Section  -->
 
-          <!-- alles neu  -->
 	 <div class="flex flex-col xl:flex-row rounded p-5 justify-center rounded w-full mb-2" id="middle-column">
             <div class="p-5 flex flex-col items-center bg-gray-800 lg:border lg:border-gray-700 rounded-none rounded-t-lg lg:rounded-none lg:rounded-l-lg" style="opacity: 0.95;">
 
@@ -2054,178 +1997,63 @@ function handleAGCChange(newAGC) {
  <!-- Added by NY4Q to create a setion of buttons to click -->
  <!-- which is more mobile friendly to users -->              
  <hr class="border-gray-600 my-2" />
- <!-- Tuning Step -->       
- <div class="w-full mt-4">
- <h3 class="text-white text-lg font-semibold mb-2">Fine Tuning Selection (kHz)</h3> 
- <div class="grid grid-cols-2 sm:grid-cols-11 gap-2"> 
- <button id="fine-tuning-selection" class="retro-button text-white font-bold h-10 text-base rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out bg-gray-700 hover:bg-gray-600"
-                        on:click={() => fineTune(-10000)}
-                        title="-10"
-                      >
-                        -10
-                      </button>
-                      <button
-                        class="retro-button text-white font-bold h-10 text-base rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out bg-gray-700 hover:bg-gray-600"
-                        on:click={() => fineTune(-5000)}
-                        title="-5"
-                      >
-                        -5
-                      </button>
-                      <button
-                        class="retro-button text-white font-bold h-10 text-base rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out bg-gray-700 hover:bg-gray-600"
-                        on:click={() => fineTune(-1000)}
-                        title="-1"
-                      >
-                        -1
-                      </button>
-                      <button
-                        class="retro-button text-white font-bold h-10 text-base rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out bg-gray-700 hover:bg-gray-600"
-                        on:click={() => fineTune(-500)}
-                        title="-0.5"
-                      >
-                        -0.5
-                      </button>
-                      <button
-                        class="retro-button text-white font-bold h-10 text-base rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out bg-gray-700 hover:bg-gray-600"
-                        on:click={() => fineTune(-100)}
-                        title="-0.1"
-                      >
-                        -0.1
-                      </button>
-                      <button
-                        class="retro-button text-white font-bold h-10 text-base rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out bg-gray-700 hover:bg-gray-600"
-                        on:click={() => fineTune(0)}
-                        title="Zero"
-                      >
-                        Zero
-                      </button>
-                      <button
-                        class="retro-button text-white font-bold h-10 text-base rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out bg-gray-700 hover:bg-gray-600"
-                        on:click={() => fineTune(100)}
-                        title="+0.1"
-                      >
-                        +0.1
-                      </button>
-                      <button
-                        class="retro-button text-white font-bold h-10 text-base rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out bg-gray-700 hover:bg-gray-600"
-                        on:click={() => fineTune(500)}
-                        title="+0.5"
-                      >
-                        +0.5
-                      </button>
-                      <button
-                        class="retro-button text-white font-bold h-10 text-base rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out bg-gray-700 hover:bg-gray-600"
-                        on:click={() => fineTune(1000)}
-                        title="+1"
-                      >
-                        +1
-                      </button>
-                      <button
-                        class="retro-button text-white font-bold h-10 text-base rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out bg-gray-700 hover:bg-gray-600"
-                        on:click={() => fineTune(5000)}
-                        title="+5"
-                      >
-                        +5
-                      </button>
-                      <button
-                        class="retro-button text-white font-bold h-10 text-base rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out bg-gray-700 hover:bg-gray-600"
-                        on:click={() => fineTune(10000)}
-                        title="+10"
-                      >
-                        +10
-                      </button>
-
+ <!-- Fine Tuning Step -->       
+<div class="w-full mt-4">
+<h3 class="text-white text-lg font-semibold mb-2">Fine Tuning (kHz)</h3>
+<div class="grid grid-cols-1 sm:grid-cols-11 gap-2">
+    {#each finetuningsteps as finetuningstep}
+        <button id="fine-tuning-selector" class="retro-button text-white font-bold h-10 text-base rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out bg-gray-700 hover:bg-gray-600"
+                          on:click={() => handleFineTuningStep(finetuningstep)} title="{finetuningstep} kHz">
+			  {finetuningstep}
+			  </button>
+                      {/each}
                     </div>
 <hr class="border-gray-600 my-2" />
                   </div>
 
 <!-- End of Fine Tuning Section -->
 
-
-
-        <!-- Added by NY4Q - Band Selector for the setBand function -->
-        <div class="w-full mb-6">
-           <h3 class="text-white text-lg font-semibold mb-2">Band Selection</h3>
-              <div class="grid grid-cols-2 sm:grid-cols-5 gap-2">
-
-        <button id="band-selection" class="retro-button text-white font-bold h-7 text-base rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out {currentBand === 2200 ? 'bg-blue-600 pressed scale-95' : 'bg-gray-700 hover:bg-gray-600'}" on:click={() => setBand(2200,136.75,136,"USB",10)} title="2200 meters" >2200m</button>
-
-        <button class="retro-button text-white font-bold h-7 text-base rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out {currentBand === 630 ? 'bg-blue-600 pressed scale-95' : 'bg-gray-700 hover:bg-gray-600'}" on:click={() => setBand(630,475.5,474.2,"USB",60)} title="630 meters" >630m</button>
-
-        <button class="retro-button text-white font-bold h-7 text-base rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out {currentBand === 270 ? 'bg-blue-600 pressed scale-95' : 'bg-gray-700 hover:bg-gray-600'}" on:click={() => setBand(270,1120,550,"AM",85000)} title="AM BCB" >MW</button>
-
-        <button class="retro-button text-white font-bold h-7 text-base rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out {currentBand === 160 ? 'bg-blue-600 pressed scale-95' : 'bg-gray-700 hover:bg-gray-600'}" on:click={() => setBand(160,1900,1910,"LSB",13700)} title="160 meters" >160m</button>
-
-        <button class="retro-button text-white font-bold h-7 text-base rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out {currentBand === 80 ? 'bg-blue-600 pressed scale-95' : 'bg-gray-700 hover:bg-gray-600'}" on:click={() => setBand(80,3750,3905,"LSB",34650)} title="80 meters" >80m</button>
-
-        <button class="retro-button text-white font-bold h-7 text-base rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out {currentBand === 60 ? 'bg-blue-600 pressed scale-95' : 'bg-gray-700 hover:bg-gray-600'}" on:click={() => setBand(60,5368.5,5357,"USB",5000)} title="60 meters" >60m</button>
-
-        <button class="retro-button text-white font-bold h-7 text-base rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out {currentBand === 40 ? 'bg-blue-600 pressed scale-95' : 'bg-gray-700 hover:bg-gray-600'}" on:click={() => setBand(40,7150,7166,"LSB",20800)} title="40 meters" >40m</button>
-
-        <button class="retro-button text-white font-bold h-7 text-base rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out {currentBand === 30 ? 'bg-blue-600 pressed scale-95' : 'bg-gray-700 hover:bg-gray-600'}" on:click={() => setBand(30,10125,10115,"CW",3000)} title="30 meters" >30m</button>
-
-        <button class="retro-button text-white font-bold h-7 text-base rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out {currentBand === 20 ? 'bg-blue-600 pressed scale-95' : 'bg-gray-700 hover:bg-gray-600'}" on:click={() => setBand(20,14175,14295,"USB",24800)} title="20 meters" >20m</button>
-
-        <button class="retro-button text-white font-bold h-7 text-base rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out {currentBand === 17 ? 'bg-blue-600 pressed scale-95' : 'bg-gray-700 hover:bg-gray-600'}" on:click={() => setBand(17,18118,18140,"USB",6600)} title="17 meters" >17m</button>
-
-        <button class="retro-button text-white font-bold h-7 text-base rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out {currentBand === 15 ? 'bg-blue-600 pressed scale-95' : 'bg-gray-700 hover:bg-gray-600'}" on:click={() => setBand(15,21225,21320,"USB",31700)} title="15 meters" >15m</button>
-
-        <button class="retro-button text-white font-bold h-7 text-base rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out {currentBand === 12 ? 'bg-blue-600 pressed scale-95' : 'bg-gray-700 hover:bg-gray-600'}" on:click={() => setBand(12,24940,24920,"USB",6600)} title="12 meters" >12m</button>
-
-        <button class="retro-button text-white font-bold h-7 text-base rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out {currentBand === 11 ? 'bg-blue-600 pressed scale-95' : 'bg-gray-700 hover:bg-gray-600'}" on:click={() => setBand(11,27185,27025,"AM",31750)} title="11 meters" >11m</button>
-
-        <button class="retro-button text-white font-bold h-7 text-base rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out {currentBand === 10 ? 'bg-blue-600 pressed scale-95' : 'bg-gray-700 hover:bg-gray-600'}" on:click={() => setBand(10,28850,28425,"USB",122000)} title="10 meters" >10m</button>
-
-
-<button class="glass-button text-white py-1 px-3 mb-2 lg:mb-0 rounded-lg text-xs sm:text-sm" style="color:rgba(0, 225, 255, 0.993)" on:click={() => window.open('http://vhfsdr.lumpkinschools.com/')}>
-<span class="icon">VHF</span>
-</button>
- <!-- End of setBand section -->
-</div>
-
+<!-- Begin Band Selection Section -->
 <hr class="border-gray-600 my-2" />
-
+<div class="w-full mt-4">
+<h3 class="text-white text-lg font-semibold mb-2">Bands</h3>
+<div class="grid grid-cols-1 sm:grid-cols-5 gap-2">
+    {#each bandArray as bandData, index}
+      {#if bandData.startFreq  > siteSDRBaseFrequency && bandData.endFreq < (siteSDRBandwidth + siteSDRBaseFrequency)} 
+ <button id="band-selector" class="retro-button text-white fontrbold h-7 text-base rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out {currentBand === index ? 'bg-blue-600 pressed scale-95' : 'bg-gray-700 hover:bg-gray-600'}"
+ on:click={(e) => handleBandChange(e, index)} title="{bandData.name}">{bandData.name}
+ </button>
+ {:else}
+ {/if}
+ {/each}
+ </div>
+<hr class="border-gray-600 my-2" />
 </div>
+<!-- End of Band Selection Area -->
 
-
-
-
-
-
-
-
-
-
-
-
-
-<!-- Bandwidth -->
-
-
-                  <!-- Bandwidth -->
-                  <div class="w-full mt-4">
-                    <h3 class="text-white text-lg font-semibold mb-2">Bandwidth</h3>
-                    <div class="grid grid-cols-1 sm:grid-cols-4 gap-2">
-                      {#each bandwithoffsets as bandwidthoffset (bandwidthoffset)}
-                        <button
-                          class="retro-button text-white font-bold h-10 text-base rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out {bandwidth === bandwidthoffset
-                            ? 'bg-blue-600 pressed scale-95'
-                            : 'bg-gray-700 hover:bg-gray-600'}"
-                          on:click={(e) => handleBandwidthOffsetClick(e, bandwidthoffset)}
-                          title="{bandwidthoffset} kHz"
-                        >
-                          {bandwidthoffset}
-                        </button>
-                      {/each}
-                    </div>
+<!-- Begin Bandwidth Selection Area -->
+ <div class="w-full mt-4">
+ <h3 class="text-white text-lg font-semibold mb-2">Bandwidth</h3>
+ <div class="grid grid-cols-1 sm:grid-cols-6 gap-2">
+   {#each bandwithoffsets as bandwidthoffset (bandwidthoffset)}
+   <button id="bandwidth-offset-selector" class="retro-button text-white font-bold h-10 text-base rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out {bandwidth === bandwidthoffset
+? 'bg-blue-600 pressed scale-95'
+: 'bg-gray-700 hover:bg-gray-600'}"
+    on:click={(e) => handleBandwidthOffsetClick(e, bandwidthoffset)}
+     title="{bandwidthoffset} kHz"
+ >
+  {bandwidthoffset}
+ </button>
+  {/each}
+</div>
 <hr class="border-gray-600 my-2" />
                   </div>
+<!-- End of Bandwidth Selection Area -->
 
-
-<!-- End of Bandwidth -->
+<!-- End of Mode Selection Area -->
 
               <div id="frequencyContainer" class="w-full mt-4">
-<h3 class="text-white text-lg font-semibold mb-2">Mode Selection</h3>
+<h3 class="text-white text-lg font-semibold mb-2">Modes</h3>
                 <div class="space-y-3">
                   <!-- Demodulation -->
                   <div class="flex justify-center">
@@ -2239,90 +2067,50 @@ function handleAGCChange(newAGC) {
                         </button>
                       {/each}
                     </div>
-                  </div>
+		    </div>
 <hr class="border-gray-600 my-2" />
-                  <!-- Tuning Step -->
-                  <div>
-                    <h3 class="text-white text-lg font-semibold mb-2">Tuning Step Selection</h3>
-                    <div class="grid grid-cols-2 sm:grid-cols-6 gap-2">
-                      <button
-                        id="tuning-step-selector" class="retro-button text-white font-bold h-10 text-base rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out {currentTuneStep === 10 ? 'bg-blue-600 pressed scale-95' : 'bg-gray-700 hover:bg-gray-600'}"
-                        on:click={() => setStep(10)}
-                        title="10Hz"
-                      >
-                        Default
-                      </button>
-                      <button
-                        class="retro-button text-white font-bold h-10 text-base rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out {currentTuneStep === 50 ? 'bg-blue-600 pressed scale-95' : 'bg-gray-700 hover:bg-gray-600'}"
-                        on:click={() => setStep(50)}
-                        title="50 Hz"
-                      >
-                        50 Hz
-                      </button>
-                      <button
-                        class="retro-button text-white font-bold h-10 text-base rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out {currentTuneStep === 100 ? 'bg-blue-600 pressed scale-95' : 'bg-gray-700 hover:bg-gray-600'}"
-                        on:click={() => setStep(100)}
-                        title="100 Hz"
-                      >
-                        100 Hz
-                      </button>
-                      <button
-                        class="retro-button text-white font-bold h-10 text-base rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out {currentTuneStep === 1000 ? 'bg-blue-600 pressed scale-95' : 'bg-gray-700 hover:bg-gray-600'}"
-                        on:click={() => setStep(1000)}
-                        title="1 kHz"
-                      >
-                        1 kHz
-                      </button>
-                      <button
-                        class="retro-button text-white font-bold h-10 text-base rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out {currentTuneStep === 5000 ? 'bg-blue-600 pressed scale-95' : 'bg-gray-700 hover:bg-gray-600'}"
-                        on:click={() => setStep(5000)}
-                        title="5 kHz"
-                      >
-                        5 kHz
-                      </button>  
-                      <button
-                        class="retro-button text-white font-bold h-10 text-base rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out {currentTuneStep === 10000 ? 'bg-blue-600 pressed scale-95' : 'bg-gray-700 hover:bg-gray-600'}"
-                        on:click={() => setStep(10000)}
-                        title="10 kHz"
-                      >
-                        10 kHz
-                      </button>                      
-                    </div>
-                  </div>                  
+<!-- End of Mode Selection Area -->
 
-                  <hr class="border-gray-600 my-2" />
+ <!-- Tuning Steps -->
+<div class="w-full mt-4">
+<h3 class="text-white text-lg font-semibold mb-2">Tuning Steps</h3>
+<div class="grid grid-cols-1 sm:grid-cols-5 gap-2">
+  {#each tuningsteps as tuningstep (tuningstep)}
+    <button id="tuning-step-selector" class="retro-button text-white font-bold h-10 text-base rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out {currentTuneStep == tuningstep ? 'bg-blue-600 pressed scale-95' : 'bg-gray-700 hover:bg-gray-600'}"
+      on:click={() => handleTuningStep(tuningstep)} title="{tuningstep} Hz">
+      {#if tuningstep == 10}Default
+      {:else if tuningstep == 50}50 Hz
+      {:else if tuningstep == 100}100 Hz
+      {:else if tuningstep == 500}500 Hz
+      {:else if tuningstep == 1000}1 kHz
+      {:else if tuningstep == 5000}5 kHz
+      {:else if tuningstep == 9000}9 kHz
+      {:else if tuningstep == 10000}10 kHz
+      {:else if tuningstep == 100000}100 kHz
+      {:else if tuningstep == 1000000}1 MHz
+      {:else}
+      {tuningstep}
+      {/if}
+</button>
+  {/each}
+</div>
+<hr class="border-gray-600 my-2" />
+</div>
 
-                  <!-- Zoom Controls and Misc in a single row -->
-                  <div class="grid sm:grid-cols-2 gap-4">
+<!-- End of Tuning Step Selection Area -->
 
-
-
-                  </div>
-                </div>
-              </div>
-            </div>
+</div>
+</div>
+</div>
             
 
-
-
-
-
-
-
-
-
-	    <div class="flex flex-col items-center bg-gray-800 p-6 lg:border lg:border-gray-700 rounded-none rounded-b-lg lg:rounded-none lg:rounded-r-lg" style="opacity: 0.95;">
-
-
-
-              <h2 class="text-2xl font-semibold text-gray-100 mb-6">Audio</h2>
-              <div class="control-group" id="volume-slider">
-                <button class="glass-button text-white font-bold rounded-full w-10 h-10 flex items-center justify-center mr-4" on:click={handleMuteChange}>
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5">
-                    {#if mute}
-                      <path
-                        d="M13.5 4.06c0-1.336-1.616-2.005-2.56-1.06l-4.5 4.5H4.508c-1.141 0-2.318.664-2.66 1.905A9.76 9.76 0 001.5 12c0 .898.121 1.768.35 2.595.341 1.24 1.518 1.905 2.659 1.905h1.93l4.5 4.5c.945.945 2.561.276 2.561-1.06V4.06zM17.78 9.22a.75.75 0 10-1.06 1.06L18.44 12l-1.72 1.72a.75.75 0 001.06 1.06L19.5 13.06l1.72 1.72a.75.75 0 101.06-1.06L20.56 12l1.72-1.72a.75.75 0 00-1.06-1.06L19.5 10.94l-1.72-1.72z"
-                      />
+<div class="flex flex-col items-center bg-gray-800 p-6 lg:border lg:border-gray-700 rounded-none rounded-b-lg lg:rounded-none lg:rounded-r-lg" style="opacity: 0.95;">
+<h3 class="text-white text-lg font-semibold mb-4">Audio</h3>
+  <div class="control-group" id="volume-slider">
+  <button class="glass-button text-white font-bold rounded-full w-10 h-10 flex items-center justify-center mr-4" on:click={handleMuteChange}>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5">
+          {#if mute}
+            <path d="M13.5 4.06c0-1.336-1.616-2.005-2.56-1.06l-4.5 4.5H4.508c-1.141 0-2.318.664-2.66 1.905A9.76 9.76 0 001.5 12c0 .898.121 1.768.35 2.595.341 1.24 1.518 1.905 2.659 1.905h1.93l4.5 4.5c.945.945 2.561.276 2.561-1.06V4.06zM17.78 9.22a.75.75 0 10-1.06 1.06L18.44 12l-1.72 1.72a.75.75 0 001.06 1.06L19.5 13.06l1.72 1.72a.75.75 0 101.06-1.06L20.56 12l1.72-1.72a.75.75 0 00-1.06-1.06L19.5 10.94l-1.72-1.72z"  />
                     {:else}
                       <path
                         d="M13.5 4.06c0-1.336-1.616-2.005-2.56-1.06l-4.5 4.5H4.508c-1.141 0-2.318.664-2.66 1.905A9.76 9.76 0 001.5 12c0 .898.121 1.768.35 2.595.341 1.24 1.518 1.905 2.659 1.905h1.93l4.5 4.5c.945.945 2.561.276 2.561-1.06V4.06zM18.584 5.106a.75.75 0 011.06 0c3.808 3.807 3.808 9.98 0 13.788a.75.75 0 11-1.06-1.06 8.25 8.25 0 000-11.668.75.75 0 010-1.06z"
@@ -2338,7 +2126,7 @@ function handleAGCChange(newAGC) {
 
               <div class="control-group mt-4" id="squelch-slider">
                 <button class="glass-button text-white font-bold rounded-full w-10 h-10 flex items-center justify-center mr-4" style="background: {squelchEnable ? 'rgba(16, 185, 129, 0.2)' : 'rgba(255, 255, 255, 0.05)'}" on:click={handleSquelchChange}>
-                  <span class="text-xs font-semibold">SQ</span>
+		  <span class="text-white text-xs font-semibold">SQ</span>
                 </button>
                 <div class="slider-container">
                   <input type="range" bind:value={squelch} on:input={handleSquelchMove} class="glass-slider" min="-150" max="0" step="1" />
@@ -2349,7 +2137,7 @@ function handleAGCChange(newAGC) {
 
 <div class="control-group mt-4" id="audio-buffer-slider">
                 <button class="glass-button text-white font-bold rounded-full w-10 h-10 flex items-center justify-center mr-4" style="background: {audioBufferDelayEnabled ? 'rgba(16, 185, 129, 0.2)' : 'rgba(255, 255, 255, 0.05)'}" on:click={() => handleAudioBufferDelayMove((audioBufferDelay+=1))}>
-                  <span class="text-xs font-semibold">Buffer</span>
+                  <span class="text-white text-xs font-semibold">Buffer</span>
                 </button>
                 <div class="slider-container">
                   <input type="range" bind:value={audioBufferDelay} on:input={handleAudioBufferDelayMove(audioBufferDelay)} class="glass-slider" min="1" max="5" step="1" />
@@ -2357,11 +2145,11 @@ function handleAGCChange(newAGC) {
                 <span class="value-display text-gray-300 ml-4">×{audioBufferDelay}</span>
               <hr class="border-gray-600 my-2" />
               </div>
-              <hr class="border-gray-600 my-2" />
 
 
 <!-- AGC Selection -->
-<h3 class="text-white text-lg font-semibold mb-2">AGC Selection</h3>
+<!--
+<h3 class="text-white text-lg font-semibold mb-4">AGC</h3>
 <div class="w-full mb-6">
 <div class="grid grid-cols-1 sm:grid-cols-4 gap-2">
 <button id="agc-selection" class="retro-button text-white font-bold h-10 text-base rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out {currentAGC === 0 ? 'bg-blue-600 pressed scale-95' : 'bg-gray-700 hover:bg-gray-600'}" on:click={() => handleAGCChange(0)} title="Auto">Auto
@@ -2378,10 +2166,11 @@ function handleAGCChange(newAGC) {
 </div>
 <hr class="border-gray-600 my-2" />
 </div>
+-->
 <!-- End AGC Section -->
 
-
- <h3 class="text-white text-lg font-semibold mb-2">Filter Selection</h3>
+<!-- Begin Filter Selection -->
+ <h3 class="text-white text-lg font-semibold mb-2">Filters</h3>
                     <div class="w-full mb-6">
                       <div id="moreoptions" class="grid grid-cols-4 gap-2">
                         {#each [{ option: "NR", icon: "wave-square", enabled: NREnabled }, { option: "NB", icon: "zap", enabled: NBEnabled }, { option: "AN", icon: "shield", enabled: ANEnabled }, { option: "CTCSS", icon: "filter", enabled: CTCSSSupressEnabled }] as { option, icon, enabled }}
@@ -2411,8 +2200,10 @@ function handleAGCChange(newAGC) {
                       </div>
                       <hr class="border-gray-600 my-2" />
                     </div>
+<!-- End Filter Selection -->
 
 
+<!-- Begin Bookmark / Memories Section -->
               <button id="bookmark-button" class="glass-button text-white font-bold py-2 px-4 rounded-lg flex items-center w-full justify-center" on:click={toggleBookmarkPopup}>
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
                   <path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" />
@@ -2505,7 +2296,9 @@ function handleAGCChange(newAGC) {
                 </div>
               {/if}
             </div>
-          </div>
+</div>
+
+
           <!--Beginn of Chatbox -->
           <!--To disable Chatbox: Delte Code from here to .. -->
           <div class="flex flex-col rounded p-2 justify-center" id="chat-column">
