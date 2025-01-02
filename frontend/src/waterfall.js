@@ -48,7 +48,7 @@ export default class SpectrumWaterfall {
     this.lineResets = 0
 
     this.wfheight = 200 * window.devicePixelRatio
-
+    
     const MODES = {
       AM: 'AM',
       FM: 'FM',
@@ -57,101 +57,107 @@ export default class SpectrumWaterfall {
       CW: 'CW-U',
       DIGITAL: 'DIGITAL'
     };
-    
+
     this.bands = [
-        { name: '2200M HAM', startFreq: 135700, endFreq: 137800, color: 'rgba(50, 168, 72, 0.6)', 
-          modes: [{ mode: MODES.CW, startFreq: 135700, endFreq: 137800 }] },
-        { name: '630M HAM', startFreq: 472000, endFreq: 479000, color: 'rgba(50, 168, 72, 0.6)', 
+	    { name: 'LW', startFreq: 148500, endFreq: 283500, color: 'rgba(199, 12, 193, 0.6)',
+          modes: [{ mode: MODES.AM, startFreq: 148500, endFreq: 283500 }] },
+	    { name: '2200m Ham', startFreq: 135700, endFreq: 137800, color: 'rgba(50, 168, 72, 0.6)',
+          modes: [
+	    { mode: MODES.CW, startFreq: 135700, endFreq: 137800 },
+	    { mode: MODES.USB, startFreq: 135700, endFreq: 137800 }]
+	},
+	{ name: '630m Ham', startFreq: 472000, endFreq: 479000, color: 'rgba(50, 168, 72, 0.6)', 
           modes: [
             { mode: MODES.CW, startFreq: 472000, endFreq: 475000 },
-            { mode: MODES.LSB, startFreq: 475000, endFreq: 479000 }
+            { mode: MODES.USB, startFreq: 475000, endFreq: 479000 }
           ] },
-        { name: '600M HAM', startFreq: 501000, endFreq: 504000, color: 'rgba(50, 168, 72, 0.6)', 
-          modes: [{ mode: MODES.CW, startFreq: 501000, endFreq: 504000 }] },
+        { name: '600m Ham', startFreq: 501000, endFreq: 504000, color: 'rgba(50, 168, 72, 0.6)', 
+	  modes: [{ mode: MODES.CW, startFreq: 501000, endFreq: 504000 }] },
 	{ name: 'MW', startFreq: 530000, endFreq: 1700000, color: 'rgba(199, 12, 193, 0.6)',
           modes: [{ mode: MODES.AM, startFreq: 530000, endFreq: 1700000 }] },
-        { name: '160M HAM', startFreq: 1800000, endFreq: 2000000, color: 'rgba(50, 168, 72, 0.6)', 
+        { name: '160M Ham', startFreq: 1800000, endFreq: 2000000, color: 'rgba(50, 168, 72, 0.6)', 
           modes: [
             { mode: MODES.CW, startFreq: 1800000, endFreq: 1840000 },
             { mode: MODES.LSB, startFreq: 1840000, endFreq: 2000000 }
           ] },
-        { name: '80M HAM', startFreq: 3500000, endFreq: 4000000, color: 'rgba(50, 168, 72, 0.6)', 
-          modes: [
+        { name: '80m Ham', startFreq: 3500000, endFreq: 4000000, color: 'rgba(50, 168, 72, 0.6)', 
+	  modes: [
             { mode: MODES.CW, startFreq: 3500000, endFreq: 3600000 },
             { mode: MODES.LSB, startFreq: 3600000, endFreq: 4000000 }
           ] },
-        { name: '60M HAM', startFreq: 5330500, endFreq: 5406500, color: 'rgba(50, 168, 72, 0.6)', 
-          modes: [{ mode: MODES.USB, startFreq: 5330500, endFreq: 5406500 }] },
-        { name: '49M AM', startFreq: 5900000, endFreq: 6200000, color: 'rgba(199, 12, 193, 0.6)', 
+        { name: '60m Ham', startFreq: 5330500, endFreq: 5406500, color: 'rgba(50, 168, 72, 0.6)', 
+	  modes: [{ mode: MODES.USB, startFreq: 5330500, endFreq: 5406500 }] },
+        { name: '49m AM', startFreq: 5900000, endFreq: 6200000, color: 'rgba(199, 12, 193, 0.6)', 
           modes: [{ mode: MODES.AM, startFreq: 5900000, endFreq: 6200000 }] },
-        { name: '40M HAM', startFreq: 7000000, endFreq: 7300000, color: 'rgba(50, 168, 72, 0.6)', 
-          modes: [
+        { name: '40m Ham', startFreq: 7000000, endFreq: 7300000, color: 'rgba(50, 168, 72, 0.6)', 
+	  modes: [
             { mode: MODES.CW, startFreq: 7000000, endFreq: 7050000 },
             { mode: MODES.LSB, startFreq: 7050000, endFreq: 7300000 }
           ] },
-        { name: '41M AM', startFreq: 7300000, endFreq: 7450000, color: 'rgba(199, 12, 193, 0.6)', 
+        { name: '41m AM', startFreq: 7300000, endFreq: 7450000, color: 'rgba(199, 12, 193, 0.6)', 
           modes: [{ mode: MODES.AM, startFreq: 7300000, endFreq: 7450000 }] },
-        { name: '31M AM', startFreq: 9400000, endFreq: 9900000, color: 'rgba(199, 12, 193, 0.6)', 
+        { name: '31m AM', startFreq: 9400000, endFreq: 9900000, color: 'rgba(199, 12, 193, 0.6)', 
           modes: [{ mode: MODES.AM, startFreq: 9400000, endFreq: 9900000 }] },
-        { name: '30M HAM', startFreq: 10100000, endFreq: 10150000, color: 'rgba(50, 168, 72, 0.6)', 
-          modes: [{ mode: MODES.CW, startFreq: 10100000, endFreq: 10150000 }] },
-        { name: '25M AM', startFreq: 11600000, endFreq: 12100000, color: 'rgba(199, 12, 193, 0.6)', 
+        { name: '30m Ham', startFreq: 10100000, endFreq: 10150000, color: 'rgba(50, 168, 72, 0.6)', 
+	  modes: [{ mode: MODES.CW, startFreq: 10100000, endFreq: 10150000 }] },
+        { name: '25m AM', startFreq: 11600000, endFreq: 12100000, color: 'rgba(199, 12, 193, 0.6)', 
           modes: [{ mode: MODES.AM, startFreq: 11600000, endFreq: 12100000 }] },
-        { name: '22M AM', startFreq: 13570000, endFreq: 13870000, color: 'rgba(199, 12, 193, 0.6)', 
+        { name: '22m AM', startFreq: 13570000, endFreq: 13870000, color: 'rgba(199, 12, 193, 0.6)', 
           modes: [{ mode: MODES.AM, startFreq: 13570000, endFreq: 13870000 }] },
-        { name: '20M HAM', startFreq: 14000000, endFreq: 14350000, color: 'rgba(50, 168, 72, 0.6)', 
-          modes: [
+
+        { name: '20m Ham', startFreq: 14000000, endFreq: 14350000, color: 'rgba(50, 168, 72, 0.6)', 
+	  modes: [
             { mode: MODES.CW, startFreq: 14000000, endFreq: 14070000 },
             { mode: MODES.USB, startFreq: 14070000, endFreq: 14350000 }
           ] },
-        { name: '19M AM', startFreq: 15100000, endFreq: 15800000, color: 'rgba(199, 12, 193, 0.6)', 
+        { name: '19m AM', startFreq: 15100000, endFreq: 15800000, color: 'rgba(199, 12, 193, 0.6)', 
           modes: [{ mode: MODES.AM, startFreq: 15100000, endFreq: 15800000 }] },
-        { name: '16M AM', startFreq: 17480000, endFreq: 17900000, color: 'rgba(199, 12, 193, 0.6)', 
+        { name: '16m AM', startFreq: 17480000, endFreq: 17900000, color: 'rgba(199, 12, 193, 0.6)', 
           modes: [{ mode: MODES.AM, startFreq: 17480000, endFreq: 17900000 }] },
-        { name: '17M HAM', startFreq: 18068000, endFreq: 18168000, color: 'rgba(50, 168, 72, 0.6)', 
-          modes: [
+        { name: '17m Ham', startFreq: 18068000, endFreq: 18168000, color: 'rgba(50, 168, 72, 0.6)', 
+	  modes: [
             { mode: MODES.CW, startFreq: 18068000, endFreq: 18100000 },
             { mode: MODES.USB, startFreq: 18100000, endFreq: 18168000 }
           ] },
-        { name: '15M AM', startFreq: 18900000, endFreq: 19020000, color: 'rgba(199, 12, 193, 0.6)', 
-          modes: [{ mode: MODES.AM, startFreq: 18900000, endFreq: 19020000 }] },
-        { name: '15M HAM', startFreq: 21000000, endFreq: 21450000, color: 'rgba(50, 168, 72, 0.6)', 
-          modes: [
+        { name: '15m AM', startFreq: 18900000, endFreq: 19020000, color: 'rgba(199, 12, 193, 0.6)', 
+	  modes: [{ mode: MODES.AM, startFreq: 18900000, endFreq: 19020000 }] },
+        { name: '15m Ham', startFreq: 21000000, endFreq: 21450000, color: 'rgba(50, 168, 72, 0.6)', 
+	  modes: [
             { mode: MODES.CW, startFreq: 21000000, endFreq: 21070000 },
             { mode: MODES.USB, startFreq: 21070000, endFreq: 21450000 }
           ] },
-        { name: '13M AM', startFreq: 21450000, endFreq: 21850000, color: 'rgba(199, 12, 193, 0.6)', 
+        { name: '13m AM', startFreq: 21450000, endFreq: 21850000, color: 'rgba(199, 12, 193, 0.6)', 
           modes: [{ mode: MODES.AM, startFreq: 21450000, endFreq: 21850000 }] },
-        { name: '12M HAM', startFreq: 24890000, endFreq: 24990000, color: 'rgba(50, 168, 72, 0.6)', 
+        { name: '12m Ham', startFreq: 24890000, endFreq: 24990000, color: 'rgba(50, 168, 72, 0.6)', 
           modes: [
             { mode: MODES.CW, startFreq: 24890000, endFreq: 24920000 },
             { mode: MODES.USB, startFreq: 24920000, endFreq: 24990000 }
           ] },
-        { name: '11M AM', startFreq: 25670000, endFreq: 26100000, color: 'rgba(199, 12, 193, 0.6)', 
-          modes: [{ mode: MODES.AM, startFreq: 25670000, endFreq: 26100000 }] },
+        { name: '11m AM', startFreq: 25670000, endFreq: 26100000, color: 'rgba(199, 12, 193, 0.6)', 
+	  modes: [{ mode: MODES.AM, startFreq: 25670000, endFreq: 26100000 }] },
         { name: 'CB', startFreq: 26965000, endFreq: 27405000, color: 'rgba(3, 227, 252, 0.6)',  
           modes: [{ mode: MODES.AM, startFreq: 26965000, endFreq: 27405000 }] },
-        { name: '10M HAM', startFreq: 28000000, endFreq: 29700000, color: 'rgba(50, 168, 72, 0.6)', 
-          modes: [
+        { name: '10m Ham', startFreq: 28000000, endFreq: 29700000, color: 'rgba(50, 168, 72, 0.6)', 
+	  modes: [
             { mode: MODES.CW, startFreq: 28000000, endFreq: 28070000 },
             { mode: MODES.USB, startFreq: 28070000, endFreq: 29700000 }
           ] },
-        { name: '6M HAM', startFreq: 50000000, endFreq: 54000000, color: 'rgba(50, 168, 72, 0.6)', 
+        { name: '6m Ham', startFreq: 50000000, endFreq: 54000000, color: 'rgba(50, 168, 72, 0.6)', 
           modes: [
             { mode: MODES.CW, startFreq: 50000000, endFreq: 50100000 },
             { mode: MODES.USB, startFreq: 50100000, endFreq: 54000000 }
           ] },
-        { name: '4M HAM', startFreq: 69950000, endFreq: 69950000, color: 'rgba(50, 168, 72, 0.6)', 
+        { name: '4m Ham', startFreq: 69950000, endFreq: 69950000, color: 'rgba(50, 168, 72, 0.6)', 
           modes: [{ mode: MODES.FM, startFreq: 69950000, endFreq: 69950000 }] },
-        { name: '4M HAM', startFreq: 70112500, endFreq: 70412500, color: 'rgba(50, 168, 72, 0.6)', 
+        { name: '4m Ham', startFreq: 70112500, endFreq: 70412500, color: 'rgba(50, 168, 72, 0.6)', 
           modes: [{ mode: MODES.FM, startFreq: 70112500, endFreq: 70412500 }] },
-        { name: '2M HAM', startFreq: 144000000, endFreq: 148000000, color: 'rgba(50, 168, 72, 0.6)', 
+        { name: '2m Ham', startFreq: 144000000, endFreq: 148000000, color: 'rgba(50, 168, 72, 0.6)', 
           modes: [
             { mode: MODES.CW, startFreq: 144000000, endFreq: 144100000 },
             { mode: MODES.USB, startFreq: 144100000, endFreq: 144300000 },
             { mode: MODES.FM, startFreq: 144300000, endFreq: 148000000 }
           ] },
-        { name: '70CM HAM', startFreq: 430000000, endFreq: 440000000, color: 'rgba(50, 168, 72, 0.6)', 
+        { name: '70cm Ham', startFreq: 430000000, endFreq: 440000000, color: 'rgba(50, 168, 72, 0.6)', 
           modes: [
             { mode: MODES.CW, startFreq: 430000000, endFreq: 430100000 },
             { mode: MODES.USB, startFreq: 430100000, endFreq: 432100000 },
@@ -368,8 +374,6 @@ export default class SpectrumWaterfall {
       this.updateGraduation()
       this.updateBandPlan()
       this.resolvePromise(settings)
-
-  
 
       //eventBus.publish('frequencyChange', { detail: 1e6 });
     }
@@ -1128,4 +1132,4 @@ export default class SpectrumWaterfall {
     this.spectrumFreq = undefined
     this.spectrumX = undefined
   }
-} 
+}

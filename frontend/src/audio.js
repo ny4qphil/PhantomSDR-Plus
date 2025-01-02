@@ -7,11 +7,19 @@ import { encode, decode } from "./modules/ft8.js";
 import { AudioContext, ConvolverNode, IIRFilterNode, GainNode, AudioBuffer, AudioBufferSourceNode, DynamicsCompressorNode, MediaStreamAudioDestinationNode } from 'standardized-audio-context'
 import { BiquadFilterNode } from 'standardized-audio-context';
 
+import { fft, ifft } from 'fft-js';
+
 // Added by NY4Q to allow for adjustment of the //
 // dynamic audio buffer //
 let bufferLimit = 0.5;
 let bufferThreshold = 0.1;
 // End of dynamic audio buffer mod //
+// AGC enable and setting added by NY4Q //
+let agcEnabled = false;
+let agcSpeed = 0;
+//
+// End AGC section //
+
 
 export default class SpectrumAudio {
   constructor(endpoint) {
@@ -46,6 +54,22 @@ export default class SpectrumAudio {
     this.ctcss = false
      // Remove the element with id startaudio from the DOM
 
+// C&P from audio.js.new - by NY4Q //
+//
+    // AGC parameters
+    // Speed 0, Fast AGC
+    this.agcAttackTime = 0.05; // 50ms attack time
+    this.agcReleaseTime = 0.05; // 50ms release time
+    this.agcLookaheadTime = 0.1; // 100ms lookahead time
+    this.agcTargetLevel = 0.5; // Target level (0.5 = -6 dBFS)
+    this.agcMaxGain = 1000; // Maximum gain multiplier
+
+    // AGC state variables
+    this.agcGain = 1;
+    this.agcEnvelope = 0;
+    this.agcLookaheadBuffer = [];
+// End import from audio.js.new //
+  
     if (this.audioCtx && this.audioCtx.state == 'running') {
       startaudio = document.getElementById('startaudio')
       if (startaudio) {
@@ -102,6 +126,50 @@ export default class SpectrumAudio {
     this.audioSocket.close()
     this.decoder.free()
   }
+
+// C&P from audio.new.ja by NY4Q //
+  applyAGC(pcmArray) {
+
+    pcmArray = this.applyNoiseBlanker(pcmArray);
+
+
+    const attackCoeff = Math.exp(-1 / (this.agcAttackTime * this.audioOutputSps));
+    const releaseCoeff = Math.exp(-1 / (this.agcReleaseTime * this.audioOutputSps));
+    const lookaheadSamples = Math.floor(this.agcLookaheadTime * this.audioOutputSps);
+
+    const processedArray = new Float32Array(pcmArray.length);
+
+    // Fill lookahead buffer if needed
+    while (this.agcLookaheadBuffer.length < lookaheadSamples) {
+      this.agcLookaheadBuffer.push(0);
+    }
+
+    for (let i = 0; i < pcmArray.length; i++) {
+      // Add current sample to lookahead buffer
+      this.agcLookaheadBuffer.push(pcmArray[i]);
+
+      // Get sample from lookahead buffer
+      const sample = this.agcLookaheadBuffer.shift();
+
+      // Calculate envelope
+      const sampleAbs = Math.abs(sample);
+      if (sampleAbs > this.agcEnvelope) {
+        this.agcEnvelope = attackCoeff * this.agcEnvelope + (1 - attackCoeff) * sampleAbs;
+      } else {
+        this.agcEnvelope = releaseCoeff * this.agcEnvelope + (1 - releaseCoeff) * sampleAbs;
+      }
+
+      // Calculate gain
+      const desiredGain = this.agcTargetLevel / (this.agcEnvelope + 1e-6);
+      this.agcGain = Math.min(desiredGain, this.agcMaxGain) * 0.1;
+
+      // Apply gain
+      processedArray[i] = sample * this.agcGain;
+    }
+
+    return processedArray;
+  }
+// End of C&P by NY4Q //
 
   initAudio(settings) {
     const sampleRate = this.audioOutputSps
@@ -167,16 +235,31 @@ export default class SpectrumAudio {
 
     // Add MediaStreamDestination node
     this.destinationNode = new MediaStreamAudioDestinationNode(this.audioCtx);
-  
+
+// Connect nodes in the correct order, including AGC stages
+    let prevNode = this.convolverNode;
+
+    prevNode.connect(this.highPass);
+    this.highPass.connect(this.bandpass);
+    this.bandpass.connect(this.bassBoost);
+    this.bassBoost.connect(this.presenceBoost);
+    this.presenceBoost.connect(this.compressor);
+    this.compressor.connect(this.gainNode);
+    this.gainNode.connect(this.audioCtx.destination);
+
+    this.audioInputNode = this.convolverNode;
+
+
+
     // Connect nodes in the correct order
-    this.convolverNode.connect(this.highPass)
-    this.highPass.connect(this.bandpass)
-    this.bandpass.connect(this.bassBoost)
-    this.bassBoost.connect(this.presenceBoost)
-    this.presenceBoost.connect(this.compressor)
-    this.compressor.connect(this.gainNode)
-    this.gainNode.connect(this.destinationNode);
-    this.gainNode.connect(this.audioCtx.destination)
+//    this.convolverNode.connect(this.highPass)
+//    this.highPass.connect(this.bandpass)
+//    this.bandpass.connect(this.bassBoost)
+//    this.bassBoost.connect(this.presenceBoost)
+//    this.presenceBoost.connect(this.compressor)
+//    this.compressor.connect(this.gainNode)
+//    this.gainNode.connect(this.destinationNode);
+//    this.gainNode.connect(this.audioCtx.destination)
   
     this.audioInputNode = this.convolverNode
   
@@ -259,6 +342,11 @@ export default class SpectrumAudio {
 	  bufferLimit = newAudioBufferLimit;
   }
 // End of added code by NY4Q //
+  setAGCStateSpeed(newState,newSpeed) {
+	  agcEnabled = newState;
+	  agcSpeed = newSpeed;
+	  console.log("AGC State = " + agcEnabled + " | " + "AGC Speed = " + agcSpeed);
+  }
 	
   setFmDeemph(tau) {
     if (tau === 0) {
@@ -671,7 +759,32 @@ export default class SpectrumAudio {
     if (this.audioCtx.state !== 'running') {
       return
     }
-  
+// C&P from audio.new.js by NY4Q //
+	 // Apply AGC
+      if(agcEnabled) {
+	      pcmArray = this.applyAGC(pcmArray);
+
+	      switch(agcSpeed) {
+		      case 2:
+		      // Mid
+			this.agcAttackTime = 0.05; // 50ms attack time
+                        this.agcReleaseTime = 0.5; // 500ms release time
+                        this.agcLookaheadTime = 0.1; // 100ms lookahead time
+                        this.agcTargetLevel = 0.5; // Target level (0.5 = -6 dBFS)
+                        this.agcMaxGain = 1000; // Maximum gain multiplier
+		       break;
+		      // Slow
+                       case 3:
+                        this.agcAttackTime = 0.05; // 50mS attack time
+                        this.agcReleaseTime = 2.5; // 1.5s release time
+                        this.agcLookaheadTime = 0.1; // 100ms lookahead time
+                        this.agcTargetLevel = 0.5; // Target level (0.5 = -6 dBFS)
+                        this.agcMaxGain = 1000; // Maximum gain multiplier
+                       break;			      
+	      }	      
+      }
+// End of AGC mod
+	  
     if (this.isCollecting && this.decodeFT8) {
       this.accumulator.push(...pcmArray);
     }
