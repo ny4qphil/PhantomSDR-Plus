@@ -32,7 +32,7 @@ We offer more features as we only maintain support for Linux instead of the offi
 ## Screenshots
 
 LCS WebSDR:
-![Screenshot](/docs/websdr.PNG)
+![Screenshot](/docs/WebSDR.png)
 
 (https://sdr-list.xyz)
 
