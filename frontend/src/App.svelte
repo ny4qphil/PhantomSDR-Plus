@@ -1,5 +1,5 @@
 <script>
-// Version 2.0.0 by Manolis SV1BTL
+// Version 2.0.0 by Manolis SV1BTL //
   const VERSION = "1.5.4 with enhancements from ON5HB, NY4Q, HB3XDC, SV1BTL, SV2AMK";
 
   import { onDestroy, onMount, tick } from "svelte";
