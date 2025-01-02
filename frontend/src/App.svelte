@@ -1,5 +1,4 @@
 <script>
-// Version 2.0.0 by Manolis SV1BTL //
   const VERSION = "1.5.4 with enhancements from ON5HB, NY4Q, HB3XDC, SV1BTL, SV2AMK";
 
   import { onDestroy, onMount, tick } from "svelte";
@@ -68,7 +67,8 @@
   // buttons to click on for mobile users //
   let fineTuneAmount = 0;
   // End of fineTune addition //
-  
+  let currentAGC = 0;
+  //
   // Added to create the Site Information area //
   import { siteSysop, siteSysopEmailAddress, siteInformation, siteGridSquare, siteHardware, siteSoftware, siteNote } from '../site_information.json';
   // End of Information Area import //
@@ -547,7 +547,7 @@
   }
 
   let defaultStep = 10; // Default step value
-  let currentTuneStep = 0; // Track the current step
+  let currentTuneStep = 10; // Track the current step
 
   function setStep(step) {
     currentTuneStep = step;
@@ -967,6 +967,18 @@
       content: "Use this Slider to change the Squelch.",
     },
     {
+      selector: "#agc-selector",
+      content: "Use these buttons to choose different AGC speeds.",
+    },
+    {
+      selector: "#tuning-step-selector",
+      content: "Use these buttons to change tuning steps.",
+    },
+    {
+      selector: "#band-selector",
+      content: "Use these buttons to choose specific bands.",
+    },
+    {
       selector: "#audio-buffer-slider",
       content: "This button/slider allows the user to adjust the limits on the dynamic audio buffer.",
     },
@@ -981,6 +993,10 @@
     {
       selector: "#demodulationModes",
       content: "Use this Section to change the Demodulation Mode.",
+    },
+    {
+      selector: "#fine-tuning-selection",
+      content: "Use these buttons to fine tune the frequency.",
     },
     {
       selector: "#zoom-controls",
@@ -1467,6 +1483,26 @@
     }
 }
 
+// This function was added to enable AGC to the client //
+function handleAGCChange(newAGC) {
+
+  currentAGC = newAGC;
+  switch(newAGC) {
+    case 0:
+      audio.setAGCStateSpeed(false,0);
+      break;
+    case 1:
+     audio.setAGCStateSpeed(true,1);
+     break;
+    case 2:
+      audio.setAGCStateSpeed(true,2);
+      break;
+    case 3:
+      audio.setAGCStateSpeed(true,3);
+      break;
+  }
+}
+
  // Function created by NY4Q to create a fine tune button //
  // for mobile users //
  function fineTune(fineTuneAmount) {
@@ -1800,102 +1836,128 @@
             </div>
           {/if}
 
+
+<!-- Begin Audio Section -->
+
           <!-- alles neu  -->
-
-          <div class="flex flex-col xl:flex-row rounded p-5 justify-center rounded" id="middle-column">
+	 <div class="flex flex-col xl:flex-row rounded p-5 justify-center rounded w-full mb-2" id="middle-column">
             <div class="p-5 flex flex-col items-center bg-gray-800 lg:border lg:border-gray-700 rounded-none rounded-t-lg lg:rounded-none lg:rounded-l-lg" style="opacity: 0.95;">
-              <h2 class="text-2xl font-semibold text-gray-100 mb-6">Audio</h2>
-              <div class="control-group" id="volume-slider">
-                <button class="glass-button text-white font-bold rounded-full w-10 h-10 flex items-center justify-center mr-4" on:click={handleMuteChange}>
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5">
-                    {#if mute}
-                      <path
-                        d="M13.5 4.06c0-1.336-1.616-2.005-2.56-1.06l-4.5 4.5H4.508c-1.141 0-2.318.664-2.66 1.905A9.76 9.76 0 001.5 12c0 .898.121 1.768.35 2.595.341 1.24 1.518 1.905 2.659 1.905h1.93l4.5 4.5c.945.945 2.561.276 2.561-1.06V4.06zM17.78 9.22a.75.75 0 10-1.06 1.06L18.44 12l-1.72 1.72a.75.75 0 001.06 1.06L19.5 13.06l1.72 1.72a.75.75 0 101.06-1.06L20.56 12l1.72-1.72a.75.75 0 00-1.06-1.06L19.5 10.94l-1.72-1.72z"
-                      />
-                    {:else}
-                      <path
-                        d="M13.5 4.06c0-1.336-1.616-2.005-2.56-1.06l-4.5 4.5H4.508c-1.141 0-2.318.664-2.66 1.905A9.76 9.76 0 001.5 12c0 .898.121 1.768.35 2.595.341 1.24 1.518 1.905 2.659 1.905h1.93l4.5 4.5c.945.945 2.561.276 2.561-1.06V4.06zM18.584 5.106a.75.75 0 011.06 0c3.808 3.807 3.808 9.98 0 13.788a.75.75 0 11-1.06-1.06 8.25 8.25 0 000-11.668.75.75 0 010-1.06z"
-                      />
-                    {/if}
-                  </svg>
-                </button>
-                <div class="slider-container">
-                  <input type="range" bind:value={volume} on:input={handleVolumeChange} class="glass-slider" disabled={mute} min="0" max="100" step="1" />
+
+<h3 class="text-white text-lg font-semibold mb-4">Waterfall Controls</h3>
+
+              <div class="w-full mb-6">
+                <div id="brightness-controls" class="flex items-center justify-between mb-2">
+                  <span class="text-gray-300 text-sm w-10">Min:</span>
+                  <div class="slider-container w-48 mx-2">
+                    <input type="range" bind:value={min_waterfall} min="-100" max="255" step="1" class="glass-slider w-full" on:input={handleMinMove} />
+                  </div>
+                  <span class="text-gray-300 text-sm w-10 text-right">{min_waterfall}</span>
                 </div>
-                <span class="value-display text-gray-300 ml-4">{volume}%</span>
+                <div class="flex items-center justify-between">
+                  <span class="text-gray-300 text-sm w-10">Max:</span>
+                  <div class="slider-container w-48 mx-2">
+                    <input type="range" bind:value={max_waterfall} min="0" max="255" step="1" class="glass-slider w-full" on:input={handleMaxMove} />
+                  </div>
+                  <span class="text-gray-300 text-sm w-10 text-right">{max_waterfall}</span>
+                </div>
               </div>
 
-              <div class="control-group mt-4" id="squelch-slider">
-                <button class="glass-button text-white font-bold rounded-full w-10 h-10 flex items-center justify-center mr-4" style="background: {squelchEnable ? 'rgba(16, 185, 129, 0.2)' : 'rgba(255, 255, 255, 0.05)'}" on:click={handleSquelchChange}>
-                  <span class="text-xs font-semibold">SQ</span>
-                </button>
-                <div class="slider-container">
-                  <input type="range" bind:value={squelch} on:input={handleSquelchMove} class="glass-slider" min="-150" max="0" step="1" />
+              <div class="w-full mb-6">
+                <div id="colormap-select" class="relative">
+                  <select bind:value={currentColormap} on:change={handleWaterfallColormapSelect} class="glass-select block w-full pl-3 pr-10 py-2 text-sm rounded-lg text-gray-200 appearance-none focus:outline-none">
+                    {#each availableColormaps as colormap}
+                      <option value={colormap}>{colormap}</option>
+                    {/each}
+                  </select>
+                  <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-400">
+                    <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                      <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
+                    </svg>
+                  </div>
                 </div>
-                <span class="value-display text-gray-300 ml-4">{squelch}dB</span>
               </div>
-<!-- Added -->
 
-<div class="control-group mt-4" id="audio-buffer-slider">
-		<button class="glass-button text-white font-bold rounded-full w-10 h-10 flex items-center justify-center mr-4" style="background: {audioBufferDelayEnabled ? 'rgba(16, 185, 129, 0.2)' : 'rgba(255, 255, 255, 0.05)'}" on:click={() => handleAudioBufferDelayMove((audioBufferDelay+=1))}>
-                  <span class="text-xs font-semibold">Buffer</span>
-                </button>
-                <div class="slider-container">
-                  <input type="range" bind:value={audioBufferDelay} on:input={handleAudioBufferDelayMove(audioBufferDelay)} class="glass-slider" min="1" max="5" step="1" />
-                </div>
-                <span class="value-display text-gray-300 ml-4">{audioBufferDelay}X</span>
-              </div>
+
+<div class="w-full mb-6">
+<h3 class="text-white text-lg font-semibold mb-2">Zoom</h3>
+                      <div id="zoom-controls" class="grid grid-cols-4 gap-2">
+                        {#each [{ action: "+", title: "Zoom in", icon: "zoom-in", text: "In" }, { action: "-", title: "Zoom out", icon: "zoom-out", text: "Out" }, { action: "max", title: "Zoom to max", icon: "maximize", text: "Max" }, { action: "min", title: "Zoom to min", icon: "minimize", text: "Min" }] as { action, title, icon, text }}
+                          <button class="retro-button text-white font-bold h-10 text-sm rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out bg-gray-700 hover:bg-gray-600" on:click={(e) => handleWaterfallMagnify(e, action)} {title}>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                              {#if icon === "zoom-in"}
+                                <circle cx="11" cy="11" r="8" />
+                                <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                                <line x1="11" y1="8" x2="11" y2="14" />
+                                <line x1="8" y1="11" x2="14" y2="11" />
+                              {:else if icon === "zoom-out"}
+                                <circle cx="11" cy="11" r="8" />
+                                <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                                <line x1="8" y1="11" x2="14" y2="11" />
+                              {:else if icon === "maximize"}
+                                <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3" />
+                              {:else if icon === "minimize"}
+                                <path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3" />
+                              {/if}
+                            </svg>
+                            <span>{text}</span>
+                          </button>
+                        {/each}
+                      </div>
+                       <hr class="border-gray-600 my-2" />
+                    </div>
 
 <!-- END -->
 
-              <div class="mt-6"><hr class="border-gray-600 my-2" /></div>
-        <!-- Added by NY4Q - Band Selector for the setBand function -->
-        <div>
-           <h3 class="text-white text-lg font-semibold mb-2">Band Selector</h3>
-              <div class="grid grid-cols-2 sm:grid-cols-5 gap-2">
+<!-- This section was added by NY4Q to allow the user to disable the waterfall -->
+              <div class="w-full mb-6">
+                <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
+                 <div id="waterfall-toggle" class="flex flex-col items-center">
+                    <span class="text-sm text-gray-300 mb-1 text-center">Waterfall</span>
+                    <label class="toggle-switch">
+                    {#if (waterfallDisplay)}
+                      <input type="checkbox" checked on:change={handleWaterfallChange} />
+                       {:else}
+                       <input type="checkbox" on:change={handleWaterfallChange} />
+                       {/if}
+                      <span class="toggle-slider"></span>
+                    </label>
+                  </div>
 
-        <button class="retro-button text-white font-bold h-7 text-base rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out {currentBand === 2200 ? 'bg-blue-600 pressed scale-95' : 'bg-gray-700 hover:bg-gray-600'}" on:click={() => setBand(2200,136.75,136,"USB",10)} title="2200 meters" >2200m</button>
+                   <div id="spectrum-toggle" class="flex flex-col items-center">
+                    <span class="text-sm text-gray-300 mb-1">Spectrum</span>
+                    <label class="toggle-switch">
+                     {#if (spectrumDisplay)}
+                      <input type="checkbox" checked on:change={handleSpectrumChange} />
+                       {:else}
+                       <input type="checkbox" on:change={handleSpectrumChange} />
+                       {/if}
+                      <span class="toggle-slider"></span>
+                    </label>
+                  </div>
 
-        <button class="retro-button text-white font-bold h-7 text-base rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out {currentBand === 630 ? 'bg-blue-600 pressed scale-95' : 'bg-gray-700 hover:bg-gray-600'}" on:click={() => setBand(630,475.5,474.2,"USB",60)} title="630 meters" >630m</button>
+<!-- End of added waterfall toggle code -->
+                <div id="auto-adjust" class="flex flex-col items-center">
+                    <span class="text-sm text-gray-300 mb-1">Auto Adjust</span>
+                    <label class="toggle-switch">
+                      <input type="checkbox" bind:checked={autoAdjust} on:change={() => handleAutoAdjust(autoAdjust)} />
+                      <span class="toggle-slider"></span>
+                    </label>
+                  </div>
 
-        <button class="retro-button text-white font-bold h-7 text-base rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out {currentBand === 270 ? 'bg-blue-600 pressed scale-95' : 'bg-gray-700 hover:bg-gray-600'}" on:click={() => setBand(270,1120,550,"AM",85000)} title="AM BCB" >MW</button>
-
-        <button class="retro-button text-white font-bold h-7 text-base rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out {currentBand === 160 ? 'bg-blue-600 pressed scale-95' : 'bg-gray-700 hover:bg-gray-600'}" on:click={() => setBand(160,1900,1910,"LSB",13700)} title="160 meters" >160m</button>
-
-        <button class="retro-button text-white font-bold h-7 text-base rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out {currentBand === 80 ? 'bg-blue-600 pressed scale-95' : 'bg-gray-700 hover:bg-gray-600'}" on:click={() => setBand(80,3750,3905,"LSB",34650)} title="80 meters" >80m</button>
-
-        <button class="retro-button text-white font-bold h-7 text-base rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out {currentBand === 60 ? 'bg-blue-600 pressed scale-95' : 'bg-gray-700 hover:bg-gray-600'}" on:click={() => setBand(60,5368.5,5357,"USB",5000)} title="60 meters" >60m</button>
-
-        <button class="retro-button text-white font-bold h-7 text-base rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out {currentBand === 40 ? 'bg-blue-600 pressed scale-95' : 'bg-gray-700 hover:bg-gray-600'}" on:click={() => setBand(40,7150,7166,"LSB",20800)} title="40 meters" >40m</button>
-
-        <button class="retro-button text-white font-bold h-7 text-base rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out {currentBand === 30 ? 'bg-blue-600 pressed scale-95' : 'bg-gray-700 hover:bg-gray-600'}" on:click={() => setBand(30,10125,10115,"CW",3000)} title="30 meters" >30m</button>
-
-        <button class="retro-button text-white font-bold h-7 text-base rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out {currentBand === 20 ? 'bg-blue-600 pressed scale-95' : 'bg-gray-700 hover:bg-gray-600'}" on:click={() => setBand(20,14175,14295,"USB",24800)} title="20 meters" >20m</button>
-
-        <button class="retro-button text-white font-bold h-7 text-base rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out {currentBand === 17 ? 'bg-blue-600 pressed scale-95' : 'bg-gray-700 hover:bg-gray-600'}" on:click={() => setBand(17,18118,18140,"USB",6600)} title="17 meters" >17m</button>
-
-        <button class="retro-button text-white font-bold h-7 text-base rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out {currentBand === 15 ? 'bg-blue-600 pressed scale-95' : 'bg-gray-700 hover:bg-gray-600'}" on:click={() => setBand(15,21225,21320,"USB",31700)} title="15 meters" >15m</button>
-
-        <button class="retro-button text-white font-bold h-7 text-base rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out {currentBand === 12 ? 'bg-blue-600 pressed scale-95' : 'bg-gray-700 hover:bg-gray-600'}" on:click={() => setBand(12,24940,24920,"USB",6600)} title="12 meters" >12m</button>
-
-        <button class="retro-button text-white font-bold h-7 text-base rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out {currentBand === 11 ? 'bg-blue-600 pressed scale-95' : 'bg-gray-700 hover:bg-gray-600'}" on:click={() => setBand(11,27185,27025,"AM",31750)} title="11 meters" >11m</button>
-
-        <button class="retro-button text-white font-bold h-7 text-base rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out {currentBand === 10 ? 'bg-blue-600 pressed scale-95' : 'bg-gray-700 hover:bg-gray-600'}" on:click={() => setBand(10,28850,28425,"USB",122000)} title="10 meters" >10m</button>
-
-
-<button class="glass-button text-white py-1 px-3 mb-2 lg:mb-0 rounded-lg text-xs sm:text-sm" style="color:rgba(0, 225, 255, 0.993)" on:click={() => window.open('http://vhfsdr.lumpkinschools.com/')}>
-<span class="icon">VHF</span>
-</button>
- <!-- End of setBand section -->
-</div>
-
-<hr class="border-gray-600 my-2" />
-
-</div>
+                  <div id="bigger-waterfall" class="flex flex-col items-center">
+                    <span class="text-sm text-gray-300 mb-1 text-center">Height (+)</span>
+                    <label class="toggle-switch">
+                      <input type="checkbox" on:change={handleWaterfallSizeChange} />
+                      <span class="toggle-slider"></span>
+                    </label>
+                  </div>
+                </div>
+                <hr class="border-gray-600 my-2" />
+              </div>
 
 
               <!-- Decoder Options -->
-              <div class="mt-6">
+              <div class="w-full mt-6">
                 <h3 class="text-white text-lg font-semibold mb-2">Decoder Options</h3>
                 <div class="flex justify-center gap-4">
                   <button class="bg-gray-700 hover:bg-gray-600 text-white font-medium py-2 px-4 rounded-lg flex items-center transition-colors {!ft8Enabled ? 'ring-2 ring-blue-500' : ''}" on:click={(e) => handleFt8Decoder(e, false)}> None </button>
@@ -1990,7 +2052,13 @@
               </div>
               
  <!-- Added by NY4Q to create a setion of buttons to click -->
- <!-- which is more mobile friendly to users -->                                                                                                                                                                                                                                                                                                                                                                 <hr class="border-gray-600 my-2" />                                                                                                                                                  <!-- Tuning Step -->                                                                                                                                                                 <div>                                                                                                                                                                                  <h3 class="text-white text-lg font-semibold mb-2">Fine Tuning Selection (kHz)</h3>                                                                                                         <div class="grid grid-cols-2 sm:grid-cols-11 gap-2">                                                                                                                                    <button                                                                                                                                                                                class="retro-button text-white font-bold h-10 text-base rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out bg-gray-700 hover:bg-gray-600"
+ <!-- which is more mobile friendly to users -->              
+ <hr class="border-gray-600 my-2" />
+ <!-- Tuning Step -->       
+ <div class="w-full mt-4">
+ <h3 class="text-white text-lg font-semibold mb-2">Fine Tuning Selection (kHz)</h3> 
+ <div class="grid grid-cols-2 sm:grid-cols-11 gap-2"> 
+ <button id="fine-tuning-selection" class="retro-button text-white font-bold h-10 text-base rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out bg-gray-700 hover:bg-gray-600"
                         on:click={() => fineTune(-10000)}
                         title="-10"
                       >
@@ -2073,13 +2141,71 @@
 
 <!-- End of Fine Tuning Section -->
 
+
+
+        <!-- Added by NY4Q - Band Selector for the setBand function -->
+        <div class="w-full mb-6">
+           <h3 class="text-white text-lg font-semibold mb-2">Band Selection</h3>
+              <div class="grid grid-cols-2 sm:grid-cols-5 gap-2">
+
+        <button id="band-selection" class="retro-button text-white font-bold h-7 text-base rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out {currentBand === 2200 ? 'bg-blue-600 pressed scale-95' : 'bg-gray-700 hover:bg-gray-600'}" on:click={() => setBand(2200,136.75,136,"USB",10)} title="2200 meters" >2200m</button>
+
+        <button class="retro-button text-white font-bold h-7 text-base rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out {currentBand === 630 ? 'bg-blue-600 pressed scale-95' : 'bg-gray-700 hover:bg-gray-600'}" on:click={() => setBand(630,475.5,474.2,"USB",60)} title="630 meters" >630m</button>
+
+        <button class="retro-button text-white font-bold h-7 text-base rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out {currentBand === 270 ? 'bg-blue-600 pressed scale-95' : 'bg-gray-700 hover:bg-gray-600'}" on:click={() => setBand(270,1120,550,"AM",85000)} title="AM BCB" >MW</button>
+
+        <button class="retro-button text-white font-bold h-7 text-base rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out {currentBand === 160 ? 'bg-blue-600 pressed scale-95' : 'bg-gray-700 hover:bg-gray-600'}" on:click={() => setBand(160,1900,1910,"LSB",13700)} title="160 meters" >160m</button>
+
+        <button class="retro-button text-white font-bold h-7 text-base rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out {currentBand === 80 ? 'bg-blue-600 pressed scale-95' : 'bg-gray-700 hover:bg-gray-600'}" on:click={() => setBand(80,3750,3905,"LSB",34650)} title="80 meters" >80m</button>
+
+        <button class="retro-button text-white font-bold h-7 text-base rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out {currentBand === 60 ? 'bg-blue-600 pressed scale-95' : 'bg-gray-700 hover:bg-gray-600'}" on:click={() => setBand(60,5368.5,5357,"USB",5000)} title="60 meters" >60m</button>
+
+        <button class="retro-button text-white font-bold h-7 text-base rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out {currentBand === 40 ? 'bg-blue-600 pressed scale-95' : 'bg-gray-700 hover:bg-gray-600'}" on:click={() => setBand(40,7150,7166,"LSB",20800)} title="40 meters" >40m</button>
+
+        <button class="retro-button text-white font-bold h-7 text-base rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out {currentBand === 30 ? 'bg-blue-600 pressed scale-95' : 'bg-gray-700 hover:bg-gray-600'}" on:click={() => setBand(30,10125,10115,"CW",3000)} title="30 meters" >30m</button>
+
+        <button class="retro-button text-white font-bold h-7 text-base rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out {currentBand === 20 ? 'bg-blue-600 pressed scale-95' : 'bg-gray-700 hover:bg-gray-600'}" on:click={() => setBand(20,14175,14295,"USB",24800)} title="20 meters" >20m</button>
+
+        <button class="retro-button text-white font-bold h-7 text-base rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out {currentBand === 17 ? 'bg-blue-600 pressed scale-95' : 'bg-gray-700 hover:bg-gray-600'}" on:click={() => setBand(17,18118,18140,"USB",6600)} title="17 meters" >17m</button>
+
+        <button class="retro-button text-white font-bold h-7 text-base rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out {currentBand === 15 ? 'bg-blue-600 pressed scale-95' : 'bg-gray-700 hover:bg-gray-600'}" on:click={() => setBand(15,21225,21320,"USB",31700)} title="15 meters" >15m</button>
+
+        <button class="retro-button text-white font-bold h-7 text-base rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out {currentBand === 12 ? 'bg-blue-600 pressed scale-95' : 'bg-gray-700 hover:bg-gray-600'}" on:click={() => setBand(12,24940,24920,"USB",6600)} title="12 meters" >12m</button>
+
+        <button class="retro-button text-white font-bold h-7 text-base rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out {currentBand === 11 ? 'bg-blue-600 pressed scale-95' : 'bg-gray-700 hover:bg-gray-600'}" on:click={() => setBand(11,27185,27025,"AM",31750)} title="11 meters" >11m</button>
+
+        <button class="retro-button text-white font-bold h-7 text-base rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out {currentBand === 10 ? 'bg-blue-600 pressed scale-95' : 'bg-gray-700 hover:bg-gray-600'}" on:click={() => setBand(10,28850,28425,"USB",122000)} title="10 meters" >10m</button>
+
+
+<button class="glass-button text-white py-1 px-3 mb-2 lg:mb-0 rounded-lg text-xs sm:text-sm" style="color:rgba(0, 225, 255, 0.993)" on:click={() => window.open('http://vhfsdr.lumpkinschools.com/')}>
+<span class="icon">VHF</span>
+</button>
+ <!-- End of setBand section -->
+</div>
+
+<hr class="border-gray-600 my-2" />
+
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
 <!-- Bandwidth -->
 
 
                   <!-- Bandwidth -->
-                  <div>
+                  <div class="w-full mt-4">
                     <h3 class="text-white text-lg font-semibold mb-2">Bandwidth</h3>
-                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    <div class="grid grid-cols-1 sm:grid-cols-4 gap-2">
                       {#each bandwithoffsets as bandwidthoffset (bandwidthoffset)}
                         <button
                           class="retro-button text-white font-bold h-10 text-base rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out {bandwidth === bandwidthoffset
@@ -2120,9 +2246,9 @@
                     <h3 class="text-white text-lg font-semibold mb-2">Tuning Step Selection</h3>
                     <div class="grid grid-cols-2 sm:grid-cols-6 gap-2">
                       <button
-                        class="retro-button text-white font-bold h-10 text-base rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out {currentTuneStep === null ? 'bg-blue-600 pressed scale-95' : 'bg-gray-700 hover:bg-gray-600'}"
-                        on:click={() => setStep(null)}
-                        title="Off"
+                        id="tuning-step-selector" class="retro-button text-white font-bold h-10 text-base rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out {currentTuneStep === 10 ? 'bg-blue-600 pressed scale-95' : 'bg-gray-700 hover:bg-gray-600'}"
+                        on:click={() => setStep(10)}
+                        title="10Hz"
                       >
                         Default
                       </button>
@@ -2168,38 +2294,96 @@
 
                   <!-- Zoom Controls and Misc in a single row -->
                   <div class="grid sm:grid-cols-2 gap-4">
-                    <!-- Zoom Controls -->
-                    <div>
-                      <h3 class="text-white text-lg font-semibold mb-2">Zoom</h3>
-                      <div id="zoom-controls" class="grid grid-cols-2 gap-2">
-                        {#each [{ action: "+", title: "Zoom in", icon: "zoom-in", text: "In" }, { action: "-", title: "Zoom out", icon: "zoom-out", text: "Out" }, { action: "max", title: "Zoom to max", icon: "maximize", text: "Max" }, { action: "min", title: "Zoom to min", icon: "minimize", text: "Min" }] as { action, title, icon, text }}
-                          <button class="retro-button text-white font-bold h-10 text-sm rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out bg-gray-700 hover:bg-gray-600" on:click={(e) => handleWaterfallMagnify(e, action)} {title}>
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                              {#if icon === "zoom-in"}
-                                <circle cx="11" cy="11" r="8" />
-                                <line x1="21" y1="21" x2="16.65" y2="16.65" />
-                                <line x1="11" y1="8" x2="11" y2="14" />
-                                <line x1="8" y1="11" x2="14" y2="11" />
-                              {:else if icon === "zoom-out"}
-                                <circle cx="11" cy="11" r="8" />
-                                <line x1="21" y1="21" x2="16.65" y2="16.65" />
-                                <line x1="8" y1="11" x2="14" y2="11" />
-                              {:else if icon === "maximize"}
-                                <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3" />
-                              {:else if icon === "minimize"}
-                                <path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3" />
-                              {/if}
-                            </svg>
-                            <span>{text}</span>
-                          </button>
-                        {/each}
-                      </div>
-                    </div>
 
-                    <!-- Misc -->
-                    <div>
-                      <h3 class="text-white text-lg font-semibold mb-2">Misc</h3>
-                      <div id="moreoptions" class="grid grid-cols-2 gap-2">
+
+
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+
+
+
+
+
+
+
+
+
+	    <div class="flex flex-col items-center bg-gray-800 p-6 lg:border lg:border-gray-700 rounded-none rounded-b-lg lg:rounded-none lg:rounded-r-lg" style="opacity: 0.95;">
+
+
+
+              <h2 class="text-2xl font-semibold text-gray-100 mb-6">Audio</h2>
+              <div class="control-group" id="volume-slider">
+                <button class="glass-button text-white font-bold rounded-full w-10 h-10 flex items-center justify-center mr-4" on:click={handleMuteChange}>
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5">
+                    {#if mute}
+                      <path
+                        d="M13.5 4.06c0-1.336-1.616-2.005-2.56-1.06l-4.5 4.5H4.508c-1.141 0-2.318.664-2.66 1.905A9.76 9.76 0 001.5 12c0 .898.121 1.768.35 2.595.341 1.24 1.518 1.905 2.659 1.905h1.93l4.5 4.5c.945.945 2.561.276 2.561-1.06V4.06zM17.78 9.22a.75.75 0 10-1.06 1.06L18.44 12l-1.72 1.72a.75.75 0 001.06 1.06L19.5 13.06l1.72 1.72a.75.75 0 101.06-1.06L20.56 12l1.72-1.72a.75.75 0 00-1.06-1.06L19.5 10.94l-1.72-1.72z"
+                      />
+                    {:else}
+                      <path
+                        d="M13.5 4.06c0-1.336-1.616-2.005-2.56-1.06l-4.5 4.5H4.508c-1.141 0-2.318.664-2.66 1.905A9.76 9.76 0 001.5 12c0 .898.121 1.768.35 2.595.341 1.24 1.518 1.905 2.659 1.905h1.93l4.5 4.5c.945.945 2.561.276 2.561-1.06V4.06zM18.584 5.106a.75.75 0 011.06 0c3.808 3.807 3.808 9.98 0 13.788a.75.75 0 11-1.06-1.06 8.25 8.25 0 000-11.668.75.75 0 010-1.06z"
+                      />
+                    {/if}
+                  </svg>
+                </button>
+                <div class="slider-container">
+                  <input type="range" bind:value={volume} on:input={handleVolumeChange} class="glass-slider" disabled={mute} min="0" max="100" step="1" />
+                </div>
+                <span class="value-display text-gray-300 ml-4">{volume}%</span>
+              </div>
+
+              <div class="control-group mt-4" id="squelch-slider">
+                <button class="glass-button text-white font-bold rounded-full w-10 h-10 flex items-center justify-center mr-4" style="background: {squelchEnable ? 'rgba(16, 185, 129, 0.2)' : 'rgba(255, 255, 255, 0.05)'}" on:click={handleSquelchChange}>
+                  <span class="text-xs font-semibold">SQ</span>
+                </button>
+                <div class="slider-container">
+                  <input type="range" bind:value={squelch} on:input={handleSquelchMove} class="glass-slider" min="-150" max="0" step="1" />
+                </div>
+                <span class="value-display text-gray-300 ml-4">{squelch}dB</span>
+              </div>
+<!-- Added -->
+
+<div class="control-group mt-4" id="audio-buffer-slider">
+                <button class="glass-button text-white font-bold rounded-full w-10 h-10 flex items-center justify-center mr-4" style="background: {audioBufferDelayEnabled ? 'rgba(16, 185, 129, 0.2)' : 'rgba(255, 255, 255, 0.05)'}" on:click={() => handleAudioBufferDelayMove((audioBufferDelay+=1))}>
+                  <span class="text-xs font-semibold">Buffer</span>
+                </button>
+                <div class="slider-container">
+                  <input type="range" bind:value={audioBufferDelay} on:input={handleAudioBufferDelayMove(audioBufferDelay)} class="glass-slider" min="1" max="5" step="1" />
+                </div>
+                <span class="value-display text-gray-300 ml-4">×{audioBufferDelay}</span>
+              <hr class="border-gray-600 my-2" />
+              </div>
+              <hr class="border-gray-600 my-2" />
+
+
+<!-- AGC Selection -->
+<h3 class="text-white text-lg font-semibold mb-2">AGC Selection</h3>
+<div class="w-full mb-6">
+<div class="grid grid-cols-1 sm:grid-cols-4 gap-2">
+<button id="agc-selection" class="retro-button text-white font-bold h-10 text-base rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out {currentAGC === 0 ? 'bg-blue-600 pressed scale-95' : 'bg-gray-700 hover:bg-gray-600'}" on:click={() => handleAGCChange(0)} title="Auto">Auto
+</button>
+
+<button class="retro-button text-white font-bold h-10 text-base rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out {currentAGC === 1 ? 'bg-blue-600 pressed scale-95' : 'bg-gray-700 hover:bg-gray-600'}" on:click={() => handleAGCChange(1)} title="Fast AGC">Fast
+</button>
+
+<button class="retro-button text-white font-bold h-10 text-base rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out {currentAGC === 2 ? 'bg-blue-600 pressed scale-95' : 'bg-gray-700 hover:bg-gray-600'}" on:click={() => handleAGCChange(2)} title="Mid AGC">Mid
+</button>
+
+<button class="retro-button text-white font-bold h-10 text-base rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out {currentAGC === 3 ? 'bg-blue-600 pressed scale-95' : 'bg-gray-700 hover:bg-gray-600'}" on:click={() => handleAGCChange(3)} title="Slow AGC">Slow
+</button>
+</div>
+<hr class="border-gray-600 my-2" />
+</div>
+<!-- End AGC Section -->
+
+
+ <h3 class="text-white text-lg font-semibold mb-2">Filter Selection</h3>
+                    <div class="w-full mb-6">
+                      <div id="moreoptions" class="grid grid-cols-4 gap-2">
                         {#each [{ option: "NR", icon: "wave-square", enabled: NREnabled }, { option: "NB", icon: "zap", enabled: NBEnabled }, { option: "AN", icon: "shield", enabled: ANEnabled }, { option: "CTCSS", icon: "filter", enabled: CTCSSSupressEnabled }] as { option, icon, enabled }}
                           <button
                             class="retro-button text-white font-bold h-10 text-sm rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out {enabled ? 'bg-blue-600 pressed scale-95' : 'bg-gray-700 hover:bg-gray-600'}"
@@ -2225,92 +2409,8 @@
                           </button>
                         {/each}
                       </div>
+                      <hr class="border-gray-600 my-2" />
                     </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div class="flex flex-col items-center bg-gray-800 p-6 lg:border lg:border-gray-700 rounded-none rounded-b-lg lg:rounded-none lg:rounded-r-lg" style="opacity: 0.95;">
-              <h3 class="text-white text-lg font-semibold mb-4">Waterfall Controls</h3>
-
-              <div class="w-full mb-6">
-                <div id="brightness-controls" class="flex items-center justify-between mb-2">
-                  <span class="text-gray-300 text-sm w-10">Min:</span>
-                  <div class="slider-container w-48 mx-2">
-                    <input type="range" bind:value={min_waterfall} min="-100" max="255" step="1" class="glass-slider w-full" on:input={handleMinMove} />
-                  </div>
-                  <span class="text-gray-300 text-sm w-10 text-right">{min_waterfall}</span>
-                </div>
-                <div class="flex items-center justify-between">
-                  <span class="text-gray-300 text-sm w-10">Max:</span>
-                  <div class="slider-container w-48 mx-2">
-                    <input type="range" bind:value={max_waterfall} min="0" max="255" step="1" class="glass-slider w-full" on:input={handleMaxMove} />
-                  </div>
-                  <span class="text-gray-300 text-sm w-10 text-right">{max_waterfall}</span>
-                </div>
-              </div>
-
-              <div class="w-full mb-6">
-                <div id="colormap-select" class="relative">
-                  <select bind:value={currentColormap} on:change={handleWaterfallColormapSelect} class="glass-select block w-full pl-3 pr-10 py-2 text-sm rounded-lg text-gray-200 appearance-none focus:outline-none">
-                    {#each availableColormaps as colormap}
-                      <option value={colormap}>{colormap}</option>
-                    {/each}
-                  </select>
-                  <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-400">
-                    <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-                      <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
-                    </svg>
-                  </div>
-                </div>
-              </div>
-
-<!-- This section was added by NY4Q to allow the user to disable the waterfall -->
-              <div class="w-full mb-6">
-                <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
-                 <div id="waterfall-toggle" class="flex flex-col items-center">
-                    <span class="text-sm text-gray-300 mb-1 text-center">Waterfall</span>
-                    <label class="toggle-switch">
-                    {#if (waterfallDisplay)}
-                      <input type="checkbox" checked on:change={handleWaterfallChange} />
-                       {:else}
-                       <input type="checkbox" on:change={handleWaterfallChange} />
-                       {/if}
-                      <span class="toggle-slider"></span>
-                    </label>
-                  </div>
-                  
-                   <div id="spectrum-toggle" class="flex flex-col items-center">
-                    <span class="text-sm text-gray-300 mb-1">Spectrum</span>
-                    <label class="toggle-switch">
-                     {#if (spectrumDisplay)}
-                      <input type="checkbox" checked on:change={handleSpectrumChange} />
-                       {:else}
-                       <input type="checkbox" on:change={handleSpectrumChange} />
-                       {/if}
-                      <span class="toggle-slider"></span>
-                    </label>
-                  </div>
-
-<!-- End of added waterfall toggle code -->
-                <div id="auto-adjust" class="flex flex-col items-center">
-                    <span class="text-sm text-gray-300 mb-1">Adjust</span>
-                    <label class="toggle-switch">
-                      <input type="checkbox" bind:checked={autoAdjust} on:change={() => handleAutoAdjust(autoAdjust)} />
-                      <span class="toggle-slider"></span>
-                    </label>
-                  </div>
-
-                  <div id="bigger-waterfall" class="flex flex-col items-center">
-                    <span class="text-sm text-gray-300 mb-1 text-center">Size+</span>
-                    <label class="toggle-switch">
-                      <input type="checkbox" on:change={handleWaterfallSizeChange} />
-                      <span class="toggle-slider"></span>
-                    </label>
-                  </div>
-                </div>
-              </div>
 
 
               <button id="bookmark-button" class="glass-button text-white font-bold py-2 px-4 rounded-lg flex items-center w-full justify-center" on:click={toggleBookmarkPopup}>
@@ -2645,7 +2745,7 @@
   /* Here you can Change the Background of WebSDR, Picture must be in assets folder*/
   .bg-custom-dark {
     /* background-color: #1c1c1c; /* Original: A very dark gray with a tiny hint of warmth */
-    background: url("./assets/background.jpg") no-repeat center center fixed;
+    background: url("./assets/bg6.jpg") no-repeat center center fixed;
     background-size: cover;
   }
 
