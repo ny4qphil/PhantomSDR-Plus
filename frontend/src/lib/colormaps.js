@@ -1,3 +1,5 @@
+// Colormap v. 2.0 by SV1BTL. New added color schemes "Spectrum" and "custom".
+
 import colormap from 'colormap'
 import colorScale from 'colormap/colorScale.js'
 
@@ -792,7 +794,7 @@ for (let i = 0; i < 256; i++) {
     gqrxData.push([0, 0, 140 * (i - 20) / 50])
   } else if ((i >= 70) && (i < 100)) {
     // level 2: blue -> light-blue / greenish
-    gqrxData.push([60 * (i - 70) / 30, 125 * (i - 70) / 30, 115 * (i - 70) / 30 + 140])
+    gqrxData.push([60 * (i - 70) / 30, 125 * (i - 70) / 30, 115 * (i - 70) / 60 + 140])
   } else if ((i >= 100) && (i < 150)) {
     // level 3: light blue -> yellow
     gqrxData.push([195 * (i - 100) / 50 + 60, 130 * (i - 100) / 50 + 125, 255 - (255 * (i - 100) / 50)])
@@ -865,18 +867,80 @@ for (let i = 0; i < 256; i++) {
   spectraVUData[i] = spectraVUData[i].map(x => Math.min(x, 255) / 255);
 }
 
+// Spectrum Colormap
+const spectrumData = [];
+
+for (let i = 0; i < 256; i++) {
+  if (i < 20) {
+    // level 0: black background
+    spectrumData.push([0, 0, 0])
+  } else if ((i >= 20) && (i < 30)) {
+    // level 1: black -> blue
+    spectrumData.push([0, 0, 100 * (i - 100) / 50])
+  } else if ((i >= 30) && (i < 120)) {
+    // level 2: blue -> light-blue / greenish
+    spectrumData.push([60 * (i - 100) / 30, 100 * (i - 70) / 30, 100 * (i - 60) / 30 + 140])
+  } else if ((i >= 120) && (i < 160)) {
+    // level 3: light blue -> yellow
+    spectrumData.push([100 * (i - 30) / 50 + 60, 100 * (i - 60) / 50 + 125, 255 - (255 * (i - 100) / 50)])
+  } else if ((i >= 160) && (i < 250)) {
+    // level 4: yellow -> red
+    spectrumData.push([255, 255 - 255 * (i - 140) / 100, 0])
+  } else if (i >= 250) {
+    // level 5: red -> white
+    spectrumData.push([255, 255 * (i - 250) / 5, 255 * (i - 100) / 5])
+  }
+  spectrumData[i] = spectrumData[i].map(x => x / 255)
+}
+
+// Custom Colormap
+const customData = [];
+
+for (let i = 0; i < 256; i++) {
+  if (i < 64) {
+    // Dark blue to blue
+    const r = 0;
+    const g = 0;
+    const b = 50 + (i * 1);
+    customData.push([r, g, b]);
+  } else if (i < 128) {
+    // Blue to green
+    const r = 0;
+    const g = (i - 64) * 4;
+    const b = 255 - ((i - 128) * 8);
+    customData.push([r, g, b]);
+  } else if (i < 192) {
+    // Green to yellow
+    const r = (i - 64) * 8;
+    const g = 230;
+    const b = 0;
+    customData.push([r, g, b]);
+  } else {
+    // Yellow to red
+    const r = 255;
+    const g = 255 - ((i - 128) * 8);
+    const b = 0;
+    customData.push([r, g, b]);
+  }
+  // Normalize RGB values to the range 0-1
+  customData[i] = customData[i].map(x => Math.min(x, 255) / 255);
+}
 
 
 const definedColormaps = {
   turbo: turboColormap,
-  gqrx: gqrxData,
+  gqrx: gqrxData,  
   twente: twenteData,
   twentev2: twenteColorMapFull,
   SpectraVU: spectraVUData,
-}
+  Spectrum: spectrumData,
+  custom: customData,  
+  }
+
+
 
 export const availableColormaps = [
-  'turbo', 'gqrx', 'twente', 'twentev2','SpectraVU'
+  'turbo', 'gqrx', 'twente', 'twentev2', 'SpectraVU', 'Spectrum', 'custom',
 ]
 
 
