@@ -1,0 +1,29 @@
+[server]
+port=9002 # Server port
+html_root="frontend/dist/" # HTML files to be hosted
+otherusers=1 # Send where other users are listening, 0 to disable
+
+[websdr]
+register_online=false # If the SDR should be registered on https://sdr-list.xyz then put it to true
+name="ChangeThis" # Name that is shown on https://sdr-list.xyz
+antenna="ChangeThis" # Antenna that is shown on https://sdr-list.xyz
+grid_locator="ChangeThis" # 4 or 6 length Grid Locatlr shown on https://sdr-list.xyz and for the Distance of FT8 Signals
+hostname="" # If you use ddns or something to host with a domain enter it here for https://sdr-list.xyzv
+
+[input]
+sps=2880000 # Input Sample Rate
+fft_size=131072 # FFT bins
+brightness_offset=0 # Waterfall brightness offset. Reduce to negative if you see black regions in the waterfall
+frequency=145000000 # Baseband frequency
+signal="iq" # real or iq
+accelerator="none" # Accelerator: none, cuda, opencl
+audio_sps=12000 # Audio Sample Rate
+smeter_offset=0
+
+[input.driver]
+name="stdin" # Driver name
+format="u8" # Sample format: u8, s8, u16, s16, u32, s32, f32, f64
+
+[input.defaults]
+frequency=145500000 # Default frequency to show user
+modulation="FM" # Default modulation
