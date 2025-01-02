@@ -1,4 +1,5 @@
-# PhantomSDR-Plus WebSDR
+# PhantomSDR-Plus WebSDR - **** Community version! ****
+
 ## Note: Please dont use Ubuntu 24.04, stick to Ubuntu 22.04 as it wont compile on 24.04!
 This is different Repo than the Official PhantomSDR Repo
 In case you want to use Debian, it has been tested on Bookworm.
