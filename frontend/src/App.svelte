@@ -1,4 +1,5 @@
 <script>
+// Version 2.0.0 by Manolis SV1BTL
   const VERSION = "1.5.4 with enhancements from ON5HB, NY4Q, HB3XDC, SV1BTL, SV2AMK";
 
   import { onDestroy, onMount, tick } from "svelte";
@@ -2294,7 +2295,7 @@
 
 <!-- End of added waterfall toggle code -->
                 <div id="auto-adjust" class="flex flex-col items-center">
-                    <span class="text-sm text-gray-300 mb-1">Auto Adjust</span>
+                    <span class="text-sm text-gray-300 mb-1">Adjust</span>
                     <label class="toggle-switch">
                       <input type="checkbox" bind:checked={autoAdjust} on:change={() => handleAutoAdjust(autoAdjust)} />
                       <span class="toggle-slider"></span>
@@ -2302,7 +2303,7 @@
                   </div>
 
                   <div id="bigger-waterfall" class="flex flex-col items-center">
-                    <span class="text-sm text-gray-300 mb-1 text-center">Increase Size</span>
+                    <span class="text-sm text-gray-300 mb-1 text-center">Size+</span>
                     <label class="toggle-switch">
                       <input type="checkbox" on:change={handleWaterfallSizeChange} />
                       <span class="toggle-slider"></span>
