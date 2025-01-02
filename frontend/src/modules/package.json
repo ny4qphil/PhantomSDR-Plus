@@ -1,0 +1,19 @@
+{
+  "name": "phantomsdrdsp",
+  "collaborators": [
+    "media"
+  ],
+  "version": "0.1.0",
+  "files": [
+    "phantomsdrdsp_bg.wasm",
+    "phantomsdrdsp.js",
+    "phantomsdrdsp_bg.js",
+    "phantomsdrdsp.d.ts"
+  ],
+  "module": "phantomsdrdsp.js",
+  "types": "phantomsdrdsp.d.ts",
+  "sideEffects": [
+    "./phantomsdrdsp.js",
+    "./snippets/*"
+  ]
+}

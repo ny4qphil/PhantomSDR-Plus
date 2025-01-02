@@ -1,0 +1,9 @@
+{
+	"siteSysop": "Sysop, Call ----- see /frontend/site_information.json",
+	"siteSysopEmailAddress": "email.address@sameple",
+	"siteGridSquare": "EM84an",
+	"siteInformation": "Name of the website and location at ",
+        "siteHardware": "Intel Xeon E5-1620, NVIDIA GTX 1060 3GB, RX888MKII Receiver, and a fan dipole (80,40,20,10).",
+	"siteSoftware": "Ubuntu 22 Server, PhantomSDR+ v1.5.4, compiled with OpenCL Support.",
+	"siteNote": "Why I chose PhantomSDR+ over KiwiSDR/OpenWebRX, etc. While those other applications offer more trinkets than PhantomSDR+, I needed an application that would access all of the SDR's ADC, and also allow more than 4 or 5 users at a time. Both Kiwi & OpenWebRX faceplant above 5 users. PhantomSDR+ when compiled with CUDA or OpenCL, will handle hundreds of users. This software is new, but it is open source, so as additional people help develop, then these other trinkets will start showing up."
+}
