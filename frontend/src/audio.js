@@ -7,7 +7,7 @@ import { encode, decode } from "./modules/ft8.js";
 import { AudioContext, ConvolverNode, IIRFilterNode, GainNode, AudioBuffer, AudioBufferSourceNode, DynamicsCompressorNode, MediaStreamAudioDestinationNode } from 'standardized-audio-context'
 import { BiquadFilterNode } from 'standardized-audio-context';
 
-import { fft, ifft } from 'fft-js';
+//import { fft, ifft } from 'fft-js'; taken out for now else it won't compile Bas.// 
 
 // Added by NY4Q to allow for adjustment of the //
 // dynamic audio buffer //
