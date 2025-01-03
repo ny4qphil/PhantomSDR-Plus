@@ -1,0 +1,13 @@
+{
+	"siteSysop": "Sysop Information",
+	"siteSysopEmailAddress": "sysop e_mail address",
+	"siteGridSquare": "Site Grid Squaren",
+	"siteInformation": "Name of the SDR site ",
+        "siteHardware": "Site hardware information",
+	"siteSoftware": "Site software information",
+	"siteNote": "A note about the site",
+	"siteSDRBaseFrequency": SDR_receiver_base_frequency,
+	"siteSDRBandwidth": SDR_bandwidth,
+	"siteCountry": "Site_Country",
+	"siteChatEnabled": true
+}
