@@ -67,6 +67,11 @@ cd PhantomSDR-Plus
 meson build --optimization 3
 meson compile -C build
 ```
+### Compiling the frontend, you need to follow the information here
+```
+https://linuxize.com/post/how-to-install-node-js-on-ubuntu-20-04/#installing-nodejs-and-npm-using-nvm
+```
+Else 'npm audit fix' and 'npm run build' will not function as should.
 
 ## Examples
 Remember to set the frequency and sample rate correctly. Default html directory is 'html/', change it with the `htmlroot` option in config.toml.
