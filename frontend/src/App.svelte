@@ -2085,7 +2085,6 @@ function handleFineTuningStep(finetuningstep) {
 <!-- End of Fine Tuning Section -->
 
 <!-- Begin Band Selection Section -->
-<hr class="border-gray-600 my-2" />
 <div class="w-full mt-4">
 <h3 class="text-white text-lg font-semibold mb-2">Bands</h3>
 <div class="grid grid-cols-1 sm:grid-cols-5 gap-2">
