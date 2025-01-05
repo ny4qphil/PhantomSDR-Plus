@@ -88,7 +88,7 @@ export default class SpectrumWaterfall {
         modes: [{ mode: MODES.AM, startFreq: 530000, endFreq: 1700000 }]
 	},
     { ITU: 123,
-        name: '160M', startFreq: 1800000, endFreq: 2000000, color: 'rgba(50, 168, 72, 0.6)', 
+        name: '160m', startFreq: 1800000, endFreq: 2000000, color: 'rgba(50, 168, 72, 0.6)', 
         modes: [
             { mode: MODES.CW, startFreq: 1800000, endFreq: 1840000 },
             { mode: MODES.LSB, startFreq: 1840000, endFreq: 2000000 }]
