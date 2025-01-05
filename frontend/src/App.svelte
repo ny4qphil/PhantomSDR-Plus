@@ -1657,7 +1657,7 @@ function handleFineTuningStep(finetuningstep) {
 	      <span class="text-white text-xs sm:text-sm mr-4 mb-2 sm:mb-0">
 		{siteSysop} e-mail:
 		<a href="mailto:{siteSysopEmailAddress}?subject=WebSDR" style="color:rgba(0, 225, 255, 0.993)">{siteSysopEmailAddress}</a> - Visit other PhantomSDR+ WebSDR servers at:&nbsp;
-		<a href="https://sdr-list.xyz/ _blank" style="color:#FF0000;">sdr-list.xyz</a>
+		<a href="https://sdr-list.xyz/" target="_blank" style="color:#FF0000;">sdr-list.xyz</a>
 	      </span>
 
 <span>&nbsp;</span>
