@@ -83,12 +83,6 @@
   
   // Set default AGC (0 = Off) //
   let currentAGC = 0;
-  
-  // Muted, NB, NR, AN fix
-  const colorVariants = {
-    audioRed: 'text-red-500',
-    green: 'text-green-500',
-  }
 
   // Added to allow an adjustment of the dynamic audio //
   // buffer function inside audio.js //
