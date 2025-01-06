@@ -224,11 +224,11 @@ export default class SpectrumWaterfall {
         name: '11m AM', startFreq: 25600000, endFreq: 26100000, color: 'rgba(199, 12, 193, 0.6)', 
 	    modes: [{ mode: MODES.AM, startFreq: 25600000, endFreq: 26100000 }]
 	},
-	{ ITU: 12,
+	{ ITU: 1,
         name: 'CB', startFreq: 26965000, endFreq: 27405000, color: 'rgba(3, 227, 252, 0.6)',  
         modes: [{ mode: MODES.AM, startFreq: 26965000, endFreq: 27405000 }]
 	},
-        { ITU: 12,
+        { ITU: 2,
           name: 'CB', startFreq: 26965000, endFreq: 27405000, color: 'rgba(3, 227, 252, 0.6)',
           modes: [{ mode: MODES.AM, startFreq: 26965000, endFreq: 27405000 }]
         },
