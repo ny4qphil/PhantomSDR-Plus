@@ -346,10 +346,8 @@ let bandwidth;
 // This function checks the siteSDRBasebandFrequency siteSDRBandwidth and //
   // compares it to the startFreq & endFreq from waterfall.js and if all that //
   // passes, then a Band Button is printed to the SDR inttrface. //
-  function printBandButtons(startFreq,endFreq) {
-    if (startFreq >= siteSDRBaseFrequency && endFreq <= (siteSDRBaseFrequency + siteSDRBandwidth)) {
-      return true; }
-    else { return false; }
+  function printBandButtons(siteSDRBaseFrequency,startFreq,endFreq) {
+    return siteSDRBaseFrequency >= startFreq && siteSDRBaseFrequency <= endFreq;
   }
 
 
