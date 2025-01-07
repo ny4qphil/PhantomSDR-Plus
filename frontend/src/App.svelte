@@ -2173,7 +2173,7 @@ Frequency Lookup :&nbsp;
 <div class="grid grid-cols-1 sm:grid-cols-8 gap-2">
     {#each bandArray as bandData, index}
       {#if verifyRegion(bandData.ITU)}
-        {#if printBandButtons(bandData.startFreq,bandData.endFreq)}
+        {#if (bandData.startFreq  > siteSDRBaseFrequency) && (bandData.endFreq < (siteSDRBandwidth + siteSDRBaseFrequency))}
 	  <button id="band-selector" class="retro-button text-sm text-white fontrbold h-7 text-base rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out {currentBand === index ? 'bg-blue-600 pressed scale-95' : 'bg-gray-700 hover:bg-gray-600'}" 
 	    on:click={() => handleBandChange(index)} title="{bandData.name}">{bandData.name} 
 	  </button>
