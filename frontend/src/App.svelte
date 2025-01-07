@@ -343,11 +343,13 @@ let bandwidth;
     return false;
   }
 
-// This function checks the siteSDRBasebandFrequency siteSDRBandwidth and //
+ // This function checks the siteSDRBasebandFrequency siteSDRBandwidth and //
   // compares it to the startFreq & endFreq from waterfall.js and if all that //
   // passes, then a Band Button is printed to the SDR inttrface. //
-  function printBandButtons(siteSDRBaseFrequency,startFreq,endFreq) {
-    return siteSDRBaseFrequency >= startFreq && siteSDRBaseFrequency <= endFreq;
+  function printBandButton(startFreq,endFreq) {
+    let sdrStartFreq = siteSDRBaseFrequency;
+    let sdrBandwidth = siteSDRBandwidth;
+    return (endFreq >= sdrStartFreq && endFreq <= (sdrStartFreq + sdrBandwidth));
   }
 
 
@@ -2173,7 +2175,7 @@ Frequency Lookup :&nbsp;
 <div class="grid grid-cols-1 sm:grid-cols-8 gap-2">
     {#each bandArray as bandData, index}
       {#if verifyRegion(bandData.ITU)}
-        {#if (bandData.startFreq  > siteSDRBaseFrequency) && (bandData.endFreq < (siteSDRBandwidth + siteSDRBaseFrequency))}
+        {#if printBandButton(bandData.startFreq,bandData.endFreq)}
 	  <button id="band-selector" class="retro-button text-sm text-white fontrbold h-7 text-base rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out {currentBand === index ? 'bg-blue-600 pressed scale-95' : 'bg-gray-700 hover:bg-gray-600'}" 
 	    on:click={() => handleBandChange(index)} title="{bandData.name}">{bandData.name} 
 	  </button>
