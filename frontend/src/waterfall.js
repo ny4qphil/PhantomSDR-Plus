@@ -898,61 +898,62 @@ export default class SpectrumWaterfall {
     const bandHeight = 10 * scale;
     const bandOffset = 25 * scale;
 
-    // Loop through each band and draw it
     this.bands.forEach(band => {
-        const startIdx = this.freqToIdx(band.startFreq);
-        const endIdx = this.freqToIdx(band.endFreq);
-        const startX = this.idxToCanvasX(startIdx);
-        const endX = this.idxToCanvasX(endIdx);
-        const bandWidth = endX - startX;
 
-        // Calculate the y-position for the band
-        const bandY = this.bandPlanCanvasElem.height - bandHeight - bandOffset;
-
-        // Draw the band line with improved styling
-        this.bandPlanCtx.strokeStyle = band.color;
-        this.bandPlanCtx.lineWidth = 2 * scale;
-        this.bandPlanCtx.lineCap = 'round';
-        this.bandPlanCtx.beginPath();
-        this.bandPlanCtx.moveTo(startX, bandY);
-        this.bandPlanCtx.lineTo(endX, bandY);
-        
-        // Add a subtle glow effect
-        this.bandPlanCtx.shadowColor = band.color;
-        this.bandPlanCtx.shadowBlur = 3 * scale;
-        this.bandPlanCtx.stroke();
-
-        // Reset shadow for text
-        this.bandPlanCtx.shadowColor = 'transparent';
-        this.bandPlanCtx.shadowBlur = 0;
-
-        // Set the font for the band label
-        let fontSize = this.mobile ? 12 * scale : 10 * scale;
-        this.bandPlanCtx.font = `${fontSize}px Inter`;
-        this.bandPlanCtx.fillStyle = 'white';
-        this.bandPlanCtx.textAlign = 'center';
-        this.bandPlanCtx.textBaseline = 'top';
-
-        // Only draw text if it fits fully within the band width 
-        if (this.bandPlanCtx.measureText(band.name).width <= bandWidth - 4 * scale) {
-            const textY = bandY + bandHeight + 2 * scale;
-
-            // Draw the text with a subtle shadow for better visibility
-            this.bandPlanCtx.shadowColor = 'rgba(0, 0, 0, 0.5)';
-            this.bandPlanCtx.shadowBlur = 2 * scale;
-            this.bandPlanCtx.shadowOffsetY = 1 * scale;
-// This mod will fix an issue of printing the band name multiple times //
-// because of the ITU regions added in the this.bands[] array //
-// I import the region from site_information and do a comparison against //
-// the site ITU region and the band.ITU value. //
-            if (band.ITU === siteRegion || band.ITU == 123) { this.bandPlanCtx.fillText(band.name, (startX + endX) / 2, textY); } 
-	 	else {}
-		// Reset shadow
-            this.bandPlanCtx.shadowColor = 'transparent';
-            this.bandPlanCtx.shadowBlur = 0;
-            this.bandPlanCtx.shadowOffsetY = 0;
-        }
-    });
+      // This comparator will fix an issue of printing the band name multiple times //
+      // because of the ITU regions added in the this.bands[] array //
+      // I import the region from site_information and do a comparison against //
+      // the site ITU region and the band.ITU value. //
+            if (band.ITU === siteRegion || band.ITU == 123) {
+                const startIdx = this.freqToIdx(band.startFreq);
+                const endIdx = this.freqToIdx(band.endFreq);
+                const startX = this.idxToCanvasX(startIdx);
+                const endX = this.idxToCanvasX(endIdx);
+                const bandWidth = endX - startX;
+      
+                // Calculate the y-position for the band
+                const bandY = this.bandPlanCanvasElem.height - bandHeight - bandOffset;
+      
+                // Draw the band line with improved styling
+                this.bandPlanCtx.strokeStyle = band.color;
+                this.bandPlanCtx.lineWidth = 2 * scale;
+                this.bandPlanCtx.lineCap = 'round';
+                this.bandPlanCtx.beginPath();
+                this.bandPlanCtx.moveTo(startX, bandY);
+                this.bandPlanCtx.lineTo(endX, bandY);
+      
+                // Add a subtle glow effect
+                this.bandPlanCtx.shadowColor = band.color;
+                this.bandPlanCtx.shadowBlur = 3 * scale;
+                this.bandPlanCtx.stroke();
+      
+                // Reset shadow for text
+                this.bandPlanCtx.shadowColor = 'transparent';
+                this.bandPlanCtx.shadowBlur = 0;
+      
+                // Set the font for the band label
+                let fontSize = this.mobile ? 12 * scale : 10 * scale;
+                this.bandPlanCtx.font = `${fontSize}px Inter`;
+                this.bandPlanCtx.fillStyle = 'white';
+                this.bandPlanCtx.textAlign = 'center';
+                this.bandPlanCtx.textBaseline = 'top';
+      
+                // Only draw text if it fits fully within the band width
+                if (this.bandPlanCtx.measureText(band.name).width <= bandWidth - 4 * scale) {
+                    const textY = bandY + bandHeight + 2 * scale;
+      
+                    // Draw the text with a subtle shadow for better visibility
+                    this.bandPlanCtx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+                    this.bandPlanCtx.shadowBlur = 2 * scale;
+                    this.bandPlanCtx.shadowOffsetY = 1 * scale;
+                    this.bandPlanCtx.fillText(band.name, (startX + endX) / 2, textY);
+                      // Reset shadow
+                    this.bandPlanCtx.shadowColor = 'transparent';
+                    this.bandPlanCtx.shadowBlur = 0;
+                    this.bandPlanCtx.shadowOffsetY = 0;
+             }
+            }
+          });
 
 }
 
