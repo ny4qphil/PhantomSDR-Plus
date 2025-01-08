@@ -101,7 +101,8 @@
 
   // Getting The Current Date & Time And Setting It
   let currentDateTime = new Date();
-   
+  
+  // SMeter Clock
   onMount(() => {
       const interval = setInterval(() => {
        currentDateTime = new Date();
@@ -292,7 +293,7 @@ let bandwidth;
     waterfall.setMaxOffset(max_waterfall);
   }
   
- 
+
   function handleAutoAdjust() {
     autoAdjustEnabled = !autoAdjustEnabled;
     waterfall.autoAdjust = autoAdjustEnabled;
@@ -2113,17 +2114,33 @@ Frequency Lookup :&nbsp;
                   </div>
 
 
-                  <div class="flex flex-col items-center">{formatter.format(currentDateTime)}
-                    <div><br></div><div class="flex space-x-1 mb-1">
-                      {#each [{ label: "MUTED", enabled: mute, color: 'red' }, { label: "NR", enabled: NREnabled, color: 'green' }, { label: "NB", enabled: NBEnabled, color: 'green' }, { label: "AN", enabled: ANEnabled, color: 'green' }] as indicator}
-                        <div class="px-1 py-0.5 flex items-center justify-center w-12 h-5 relative overflow-hidden">
-<!--<span class={`text-xs font-mono ${indicator.enabled ? `text-${indicator.color}-500` : `text-${indicator.color}-500 opacity-20`} relative z-10`}>-->
-			  <span class={`text-xs font-mono ${indicator.enabled ? `text-${indicator.color}-500` : `text-${indicator.color}-500 opacity-20`} relative z-10`}>
-			    {indicator.label}
-                          </span>
-                        </div>
-                      {/each}
-                    </div>
+
+<div class="flex flex-col items-center">{formatter.format(currentDateTime)}
+<div><br></div><div class="flex space-x-1 mb-1">
+
+<div class="px-1 py-0.5 flex items-center justify-center w-12 h-5 relative overflow-hidden">
+<span class="text-xs font-mono {mute ? 'text-red-500' : 'text-red-500 opacity-20 relative z-10'}">MUTED</span>
+</div>
+
+<div class="px-1 py-0.5 flex items-center justify-center w-12 h-5 relative overflow-hidden">
+<span class="text-xs font-mono {NREnabled ? `text-green-500` : `text-green-500 opacity-20 relative z-10`}">NR</span>
+</div>
+
+<div class="px-1 py-0.5 flex items-center justify-center w-12 h-5 relative overflow-hidden">
+<span class="text-xs font-mono {NBEnabled ? `text-green-500` : `text-green-500 opacity-20 relative z-10`}">NB<span>
+</div>
+
+<div class="px-1 py-0.5 flex items-center justify-center w-12 h-5 relative overflow-hidden">
+<span class="text-xs font-mono {ANEnabled ? `text-green-500` : `text-green-500 opacity-20 relative z-10`}">AN</span>
+</div>
+
+<div class="px-1 py-0.5 flex items-center justify-center w-12 h-5 relative overflow-hidden">
+<span class="text-xs font-mono {CTCSSSupressEnabled ? `text-yellow-500` : `text-yellow-500 opacity-20 relative z-10`}">CTCSS</span>
+</div>
+</div>
+
+
+
                     <!-- SMeter -->
                     <canvas id="sMeter" width="250" height="40"></canvas>
                   </div>
