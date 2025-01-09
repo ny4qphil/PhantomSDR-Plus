@@ -743,17 +743,17 @@ let bandwidth;
     audio.setCTCSSFilter(CTCSSSupressEnabled);
   }
 
-  // This function was added to track band changes //
+   // This function was added to track band changes //
   // and makes the band buttons track along with frequency //
   // adjustments. //
   function updateBandButton() {
-  currentBand = -1;
-  for (var i = 0; i < bandArray.length;) {
-    if (frequency >= (bandArray[i].startFreq / 1000) && frequency <= (bandArray[i].endFreq / 1000)) {
-      currentBand = i; break; }
-      i++;
-    }  
-}
+    currentBand = -1;
+    for (var i = 0; i < bandArray.length; i++) {
+        if(frequency >= (bandArray[i].startFreq / 1000) && frequency <= (bandArray[i].endFreq / 1000) && ((bandArray[i].ITU === siteRegion) || bandArray[i].ITU === 123)) {
+          currentBand = i;
+        }
+    }
+  }
 
   // Regular updating UI elements:
   // Other user tuning displays
