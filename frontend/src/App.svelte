@@ -2115,8 +2115,9 @@ Frequency Lookup :&nbsp;
 
 
 
-<div class="flex flex-col items-center">{formatter.format(currentDateTime)}
-<div><br></div><div class="flex space-x-1 mb-1">
+<div class="flex flex-col items-center"><span class="date-time" style="color:rgba(0, 225, 255, 0.993)" >{formatter.format(currentDateTime)}
+</span><div></div><div class="flex space-x-1 mb-1">
+
 
 <div class="px-1 py-0.5 flex items-center justify-center w-12 h-5 relative overflow-hidden">
 <span class="text-xs font-mono {mute ? 'text-red-500' : 'text-red-500 opacity-20 relative z-10'}">MUTED</span>
