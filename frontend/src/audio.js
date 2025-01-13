@@ -812,14 +812,26 @@ constructor(endpoint) {
       this.audioCtx.decodeAudioData(arrayBuffer).then(audioBuffer => {
         // Create WAV file
         const wavFile = this.createWavFile(audioBuffer);
-        
+        // Create a timestamp for the audio file to be saved //
+        const audioDate = new Date();
+        const audioYear = audioDate.getFullYear();
+        const audioMonth = (audioDate.getMonth() + 1);
+        const audioDay = audioDate.getDate();
+        //
+        const audioHour = audioDate.getHours();
+        const audioMinute = audioDate.getMinutes();
+	const audioSeconds = audioDate.getSeconds();
+        //
+        const audioFullDate = audioYear + '-' + audioDay + '-' + audioMonth;
+        const audioTime = audioHour + '-' + audioMinute + '-' + audioSeconds;
+        const timeStamp = audioFullDate + '_' + audioTime;
         // Create download link
         const url = URL.createObjectURL(new Blob([wavFile], { type: 'audio/wav' }));
         const a = document.createElement('a');
         document.body.appendChild(a);
         a.style.display = 'none';
         a.href = url;
-        a.download = 'recorded_audio.wav';
+        a.download = 'recorded_audio_' + timeStamp + '_.wav';
         a.click();
         window.URL.revokeObjectURL(url);
       });
@@ -874,3 +886,4 @@ constructor(endpoint) {
   }
   
 }
+
