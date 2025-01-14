@@ -1066,7 +1066,7 @@ let bandwidth;
       vfoAMode = demodulation;
       frequencyInputComponent.setFrequency(vfoBFrequency);
       handleFrequencyChange({ detail: vfoBFrequency });
-      SetMode(vfoBmode);
+      SetMode(vfoBMode);
       updatePassband();
     }
       if(!vfoModeA) {
