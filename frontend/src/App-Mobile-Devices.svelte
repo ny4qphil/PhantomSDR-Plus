@@ -261,7 +261,7 @@
   let vfoAFrequency = 3645000;
   let vfoBFrequency = 7150000;
   let vfoAMode = "LSB";
-  let vfoBMode = "LSB;
+  let vfoBMode = "LSB";
 
 // declaration for function handlePassbandChange(passband) //
 let bandwidth;
@@ -1066,7 +1066,7 @@ let bandwidth;
       vfoAMode = demodulation;
       frequencyInputComponent.setFrequency(vfoBFrequency);
       handleFrequencyChange({ detail: vfoBFrequency });
-      SetMode(vfoBMode);
+      SetMode(vfoBmode);
       updatePassband();
     }
       if(!vfoModeA) {
@@ -1076,7 +1076,7 @@ let bandwidth;
 	frequencyInputComponent.setFrequency(vfoAFrequency);
         handleFrequencyChange({ detail: vfoAFrequency });
         SetMode(vfoAMode);
-	updatePassband();
+        updatePassband();
      }
      vfoModeA = !vfoModeA;
   }
@@ -1103,10 +1103,6 @@ let bandwidth;
     {
       selector: "#squelch-slider",
       content: "Use this Slider to change the Squelch.",
-    },
-    {
-      selector: "#IF-adjust-slider",
-      content: "This control dynamically adjusts the IF bandwidth.",
     },
     {
       selector: "#agc-selector",
@@ -1141,8 +1137,16 @@ let bandwidth;
       content: "Use this Section to change the Demodulation Mode.",
     },
     {
+      selector: "#mobile-fine-tuning-selector",
+      content: "Use these buttons to fine tune the frequency.",
+    },
+    {
       selector: "#fine-tuning-selector",
       content: "Use these buttons to fine tune the frequency.",
+    },
+    {
+      selector: "#static-bandwidth-selector",
+      content: "Use these buttons to choose static IF filtering.",
     },
     {
       selector: "#zoom-controls",
@@ -2212,7 +2216,7 @@ Frequency Lookup :&nbsp;
   {#if Device.isMobile}
     {#each mobilefinetuningsteps as finetuningstep}
 
-        <button id="fine-tuning-selector" class="retro-button text-white font-bold h-10 text-base rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out bg-gray-700 hover:bg-gray-600"
+        <button id="mobile-fine-tuning-selector" class="retro-button text-white font-bold h-10 text-base rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out bg-gray-700 hover:bg-gray-600"
                           on:click={() => handleFineTuningStep(finetuningstep)} title="{finetuningstep} kHz">
                           {finetuningstep}
                           </button>
@@ -2252,7 +2256,7 @@ Frequency Lookup :&nbsp;
 
 
 
-<button id="mode-popup-menu" class="glass-button text-white font-bold py-2 px-4 rounded-lg flex items-center w-full justify-center"
+<button id="mode-popup-button" class="glass-button text-white font-bold py-2 px-4 rounded-lg flex items-center w-full justify-center"
                 on:click={toggleModePopup}
               >
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
@@ -2367,7 +2371,7 @@ Frequency Lookup :&nbsp;
 <div class="w-full mt-4">
   <div class="grid grid-cols-4 sm:grid-cols-6 gap-2">
     {#each newBandwidth as newbandwidth}
-      <button id="fine-tuning-selector" class="retro-button text-sm text-white font-bold h-10 text-base rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out {currentBandwidth === newbandwidth ? 'bg-blue-600 pressed scale-95' : 'bg-gray-700 hover:bg-gray-600'}" on:click={() => handleBandwidthChange(newbandwidth)} title="{newbandwidth}">
+      <button id="static-bandwidth-selector" class="retro-button text-sm text-white font-bold h-10 text-base rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out {currentBandwidth === newbandwidth ? 'bg-blue-600 pressed scale-95' : 'bg-gray-700 hover:bg-gray-600'}" on:click={() => handleBandwidthChange(newbandwidth)} title="{newbandwidth}">
         {#if newbandwidth == 250}250 Hz
 	{:else if newbandwidth == 500}500 Hz
 	{:else if newbandwidth == 1800}1.8 kHz
@@ -2583,59 +2587,96 @@ Frequency Lookup :&nbsp;
 <hr class="border-gray-600 my-2" />
 
 
+<!-- PHIL START -->
 
 
 
-
-<!-- Begin Bookmark / Memories Section -->
-              <button id="bookmark-button" class="glass-button text-white font-bold py-2 px-4 rounded-lg flex items-center w-full justify-center" on:click={toggleBookmarkPopup}>
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
-                  <path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" />
-                </svg>
-                Bookmarks
-              </button>
-
+<button id="bookmark-button" class="glass-button text-white font-bold py-2 px-4 rounded-lg flex items-center w-full justify-center"
+ on:click={toggleBookmarkPopup}>
+   <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+     <path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" />
+   </svg>
+   Bookmarks
+</button>
+            
               <div id="user_count_container" class="w-full mt-4 bg-gradient-to-r from-purple-600 to-blue-600 rounded-lg p-1">
                 <div id="total_user_count" class="bg-gray-800 rounded-md p-2 text-center flex justify-between items-center">
                   <!-- Content will be populated by JavaScript -->
                 </div>
               </div>
+            
 
-              <!-- Bookmark Popup Window -->
-              {#if showBookmarkPopup}
-                <div class="relative inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                <!-- Bookmark Popup -->
+                {#if showBookmarkPopup}
+                <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
                   <div class="bg-gray-800 p-6 rounded-lg max-w-lg w-full max-h-[80vh] flex flex-col">
-                    <div class="flex justify-between items-center mb-3">
-                      <h2 class="text-lg font-bold text-white">Bookmarks</h2>
+                    <div class="flex justify-between items-center mb-4">
+                      <h2 class="text-xl font-bold text-white">Bookmarks</h2>
                       <button class="text-gray-400 hover:text-white" on:click={toggleBookmarkPopup}>
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                        </svg>                       
+                        </svg>
                       </button>
                     </div>
-
-                    <!-- Add Bookmark Section -->
-                    <div class="mb-4">
-                      <label class="block text-sm font-medium text-gray-300 mb-4">Add New Bookmark</label>
+					
+					<!-- Add Bookmark Section -->
+                    <div class="mb-6">
+                      <label class="block text-sm font-medium text-gray-300 mb-2">Add New Bookmark</label>
                       <div class="flex items-center gap-2">
-                        <input class="glass-input text-white text-sm rounded-lg focus:outline-none px-3 py-2 flex-grow" bind:value={newBookmarkName} placeholder="Bookmark name" />
-                        <button class="glass-button text-white py-1 px-3 mb-2 lg:mb-0 rounded-lg text-xs sm:text-sm" style="color:#ffffff" on:click={addBookmark}>                         
+                        <input
+                          class="glass-input text-white text-sm rounded-lg focus:outline-none px-3 py-2 flex-grow"
+                          bind:value={newBookmarkName}
+                          placeholder="Bookmark name"
+                        />
+                        <button
+                          class="glass-button text-white font-bold py-2 px-4 rounded-lg flex items-center"
+                          on:click={addBookmark}
+                        >
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            class="h-5 w-5 mr-2"
+                            viewBox="0 0 20 20"
+                            fill="currentColor"
+                          >
+                            <path
+                              fill-rule="evenodd"
+                              d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
+                              clip-rule="evenodd"
+                            />
+                          </svg>
                           Add
                         </button>
                       </div>
                     </div>
-
+              
                     <!-- Current Link Section -->
-                    <div class="mb-4">
+                    <div class="mb-6">
                       <label class="block text-sm font-medium text-gray-300 mb-2">Current Link</label>
                       <div class="flex items-center gap-2">
-                        <input type="text" class="glass-input text-white text-sm rounded-lg focus:outline-none px-3 py-2 flex-grow" value={link} readonly />
-                        <button class="glass-button text-white py-1 px-3 mb-2 lg:mb-0 rounded-lg text-xs sm:text-sm" style="color:#ffffff" on:click={handleLinkCopyClick}>                         
+                        <input
+                          type="text"
+                          class="glass-input text-white text-sm rounded-lg focus:outline-none px-3 py-2 flex-grow"
+                          value={link}
+                          readonly
+                        />
+                        <button
+                          class="glass-button text-white font-bold py-2 px-4 rounded-lg flex items-center"
+                          on:click={handleLinkCopyClick}
+                        >
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            class="h-5 w-5 mr-2"
+                            viewBox="0 0 20 20"
+                            fill="currentColor"
+                          >
+                            <path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" />
+                            <path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z" />
+                          </svg>
                           Copy
                         </button>
                       </div>
                     </div>
-
+              
                     <!-- Bookmarks List -->
                     <div class="overflow-y-auto flex-grow h-80">
                       <label class="block text-sm font-medium text-gray-300 mb-2">Saved Bookmarks</label>
@@ -2646,13 +2687,55 @@ Frequency Lookup :&nbsp;
                             <span class="text-gray-400 text-xs">{(bookmark.frequency / 1000).toFixed(3)} kHz</span>
                           </div>
                           <div class="flex gap-2">
-                            <button class="glass-button text-white py-1 px-3 mb-2 lg:mb-0 rounded-lg text-xs sm:text-sm" style="color:#ffffff" on:click={() => goToBookmark(bookmark)}>                             
+                            <button
+                              class="glass-button text-white font-bold py-1 px-3 rounded-lg flex items-center"
+                              on:click={() => goToBookmark(bookmark)}
+                            >
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                class="h-4 w-4 mr-1"
+                                viewBox="0 0 20 20"
+                                fill="currentColor"
+                              >
+                                <path
+                                  fill-rule="evenodd"
+                                  d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z"
+                                  clip-rule="evenodd"
+                                />
+                              </svg>
                               Go
                             </button>
-                            <button class="glass-button text-white py-1 px-3 mb-2 lg:mb-0 rounded-lg text-xs sm:text-sm" style="color:#ffffff" on:click={() => copy(bookmark.link)}>                             
+                            <button
+                              class="glass-button text-white font-bold py-1 px-3 rounded-lg flex items-center"
+                              on:click={() => copy(bookmark.link)}
+                            >
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                class="h-4 w-4 mr-1"
+                                viewBox="0 0 20 20"
+                                fill="currentColor"
+                              >
+                                <path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" />
+                                <path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z" />
+                              </svg>
                               Copy
                             </button>
-                            <button class="glass-button text-white py-1 px-3 mb-2 lg:mb-0 rounded-lg text-xs sm:text-sm" style="color:#ffffff" on:click={() => deleteBookmark(index)}>                             
+                            <button
+                              class="glass-button text-white font-bold py-1 px-3 rounded-lg flex items-center"
+                              on:click={() => deleteBookmark(index)}
+                            >
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                class="h-4 w-4 mr-1"
+                                viewBox="0 0 20 20"
+                                fill="currentColor"
+                              >
+                                <path
+                                  fill-rule="evenodd"
+                                  d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
+                                  clip-rule="evenodd"
+                                />
+                              </svg>
                               Delete
                             </button>
                           </div>
@@ -2662,11 +2745,33 @@ Frequency Lookup :&nbsp;
                   </div>
                 </div>
               {/if}
+			  
+			  
+			  
+					
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
 </div>
 </div>
+
+
+
+
+<!-- PHIL END -->
 
 {#if siteChatEnabled}
 
