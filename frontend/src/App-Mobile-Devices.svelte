@@ -260,7 +260,8 @@
   let vfoModeA = true;
   let vfoAFrequency = 3645000;
   let vfoBFrequency = 7150000;
-  let vfoAMode,vfoBMode;
+  let vfoAMode = "LSB";
+  let vfoBMode = "LSB;
 
 // declaration for function handlePassbandChange(passband) //
 let bandwidth;
@@ -1065,6 +1066,7 @@ let bandwidth;
       vfoAMode = demodulation;
       frequencyInputComponent.setFrequency(vfoBFrequency);
       handleFrequencyChange({ detail: vfoBFrequency });
+      SetMode(vfoBMode);
       updatePassband();
     }
       if(!vfoModeA) {
@@ -1073,6 +1075,7 @@ let bandwidth;
 	vfoBMode = demodulation;
 	frequencyInputComponent.setFrequency(vfoAFrequency);
         handleFrequencyChange({ detail: vfoAFrequency });
+        SetMode(vfoAMode);
 	updatePassband();
      }
      vfoModeA = !vfoModeA;
