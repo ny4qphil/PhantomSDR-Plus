@@ -53,7 +53,7 @@ These settings are very important because the GUI bands and waterfall settings a
 
 Once, these are correct, you can move on to compiling the frontend (GUI).
 
-### Compiling the Frontend, you need to follow the information here
+### Compiling the Frontend: You need to follow the information here
 ```
 https://linuxize.com/post/how-to-install-node-js-on-ubuntu-20-04/#installing-nodejs-and-npm-using-nvm
 ```
