@@ -70,7 +70,7 @@ If you have trouble, hit the forum and we will help all we can
 
 ```
 https://www.phantomsdr.fun/
-'''
+```
 
 73,
 The PhantonSDR+ Community
