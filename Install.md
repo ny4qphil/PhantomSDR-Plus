@@ -58,7 +58,7 @@ https://linuxize.com/post/how-to-install-node-js-on-ubuntu-20-04/#installing-nod
 Else 'npm audit fix' and 'npm run build' will not function as should.
 
 To build the frontend, simply change to the frontend directory and enter the following commands :
-'''
+```
 npm install
 npm audit fix
 npm run build
