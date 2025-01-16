@@ -68,9 +68,7 @@ If all goes well, you are ready to start your receiver and websdr instances and 
 
 If you have trouble, hit the forum and we will help all we can
 
-```
 https://www.phantomsdr.fun/
-```
 
 73,
 The PhantonSDR+ Community
