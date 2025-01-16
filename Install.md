@@ -6,6 +6,8 @@ Install the OS and dependancies.
 
 We recommend you use Ubuntu 22 Server (Jammy) and after install running all available updates for this version of Ubuntu.
 
+https://releases.ubuntu.com/jammy/
+
 Next item is to get OpenCL support installed. This will take some research on your part. You must first find out how your system will
 support OpenCL (either by CPU or GPU). We leave this up to you to find out and get working. We have a forum for questions so use Google
 the forum to get this squared away before moving forward.
