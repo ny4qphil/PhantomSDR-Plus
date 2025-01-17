@@ -16,9 +16,22 @@ and the forum to get this squared away before moving forward.
 ```
 apt install build-essential cmake pkg-config meson libfftw3-dev libwebsocketpp-dev libflac++-dev zlib1g-dev libzstd-dev libboost-all-dev libopus-dev libliquid-dev git psmisc
 ```
+### Note concerning OpenCL :
+After you get OpenCL support working, do not forget to enable that in your TOML file. Another place we see errors often is people 
+not matching the SPS and frequency that are in the TOLM file and their receiver startup script. Below is an example of the startup and 
+TOML from the LCS WebSDR, and remember, you will need to find your receiver and antenna's sweet spot - it most-likely will not be the
+same as the example below.
 
-### Pick a folder to install to: We suggest /opt because of other helper scripts that are posted in the forums.
-
+start-rx888mkii2.sh
+```
+rx888_stream -f ./rx888_stream/SDDC_FX3.img -s 60000000 -g 30 -m low --pga -r -o - | build/spectrumserver --config config-rx888mk2.toml > /dev/null 2>&1 &
+```
+config-rx888mk2.toml
+```
+[input]
+sps=60000000 # Input Sample Rate
+frequency=0 # Baseband frequency
+```
 ### Building the binary automatically
 Pick a folder to install to, we suggest /opt because of other scripts that are posted in the forums.
 
