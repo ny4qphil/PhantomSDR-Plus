@@ -17,7 +17,7 @@ and the forum to get this squared away before moving forward.
 apt install build-essential cmake pkg-config meson libfftw3-dev libwebsocketpp-dev libflac++-dev zlib1g-dev libzstd-dev libboost-all-dev libopus-dev libliquid-dev git psmisc
 ```
 
-## Pick a folder to install to, we suggest /opt because of other scripts that are posted in the forums.
+## Pick a folder to install to: We suggest /opt because of other helper scripts that are posted in the forums.
 
 ### Building the binary automatically
 Pick a folder to install to, we suggest /opt because of other scripts that are posted in the forums.
