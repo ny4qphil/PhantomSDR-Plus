@@ -51,13 +51,13 @@ For example, for my LCS site, I want to publish 0-30MHz and I am in ITU region 2
 ```
 These settings are very important because the GUI bands and waterfall settings are created using these variables.
 
-Once, these are correct, you can move on to compiling the frontend (GUI).
+Once these are correct, you can move on to compiling the frontend (GUI).
 
 ### Compiling the Frontend: You need to follow the information here
 ```
 https://linuxize.com/post/how-to-install-node-js-on-ubuntu-20-04/#installing-nodejs-and-npm-using-nvm
 ```
-Else 'npm audit fix' and 'npm run build' will not function as should.
+Otherwise, 'npm audit fix' and 'npm run build' will not function as they should.
 
 To build the frontend, simply change to the frontend directory and enter the following commands :
 ```
