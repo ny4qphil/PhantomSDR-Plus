@@ -66,9 +66,9 @@ npm audit fix
 npm run build
 ```
 
-If all goes well, you are ready to start your receiver and websdr instances and publish your Phantom+ WebSDR.
+If all goes well, you are ready to start your receiver and WebSDR instances and publish your Phantom+ WebSDR.
 
-If you have trouble, hit the forum and we will help all we can
+If you have trouble, hit the forum and we will help all we can.
 
 https://www.phantomsdr.fun/
 
