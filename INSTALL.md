@@ -1,6 +1,6 @@
 # PhantomSDR+ (Community Version)
 
-## Installation
+### Installation
 
 Install the OS and dependancies.
 
@@ -12,7 +12,7 @@ Next item is to get OpenCL support installed. This will take some research on yo
 support OpenCL (either by CPU or GPU). We leave this up to you to find out and get working. We have a forum for questions so use Google
 and the forum to get this squared away before moving forward.
 
-## Building
+### Building
 ```
 apt install build-essential cmake pkg-config meson libfftw3-dev libwebsocketpp-dev libflac++-dev zlib1g-dev libzstd-dev libboost-all-dev libopus-dev libliquid-dev git psmisc
 ```
@@ -43,7 +43,7 @@ sudo ./install.sh
 ```
 Restart your Terminal after you ran install.sh otherwise it wont work..
 
-## Entering your site information
+### Entering your site information
 There is a file in the frontend folder entitled 'site_information_template.json' This will need to be modified before you compile the frontend.
 
 First copy the template to the file name we use which is site_information.json
