@@ -3,6 +3,8 @@
 	"siteSysopEmailAddress": "sysop e_mail address",
 	"siteGridSquare": "Site Grid Squaren",
 	"siteInformation": "Name of the SDR site ",
+	"siteCity": "Your city",
+	"siteAntenna": "Your antenna",
         "siteHardware": "Site hardware information",
 	"siteSoftware": "Site software information",
 	"siteNote": "A note about the site",
