@@ -252,6 +252,14 @@
     waterfall.setWaterfallBig(biggerWaterfall);
   }
 
+  // Declaration for the VFO A/B system //
+  let vfo = "VFO A";
+  let vfoModeA = true;
+  let vfoAFrequency = 3645000;
+  let vfoBFrequency = 7150000;
+  let vfoAMode = "LSB";
+  let vfoBMode = "LSB";
+
 
 // declaration for function handlePassbandChange(passband) //
 let bandwidth;
@@ -1030,6 +1038,28 @@ let bandwidth;
 
   function toggleBookmarkPopup() {
     showBookmarkPopup = !showBookmarkPopup;
+  }
+
+  function toggleVFO() {
+    if (vfoModeA) {
+      vfo = "VFO B";
+      vfoAFrequency = (frequency * 1000);
+      vfoAMode = demodulation;
+      frequencyInputComponent.setFrequency(vfoBFrequency);
+      handleFrequencyChange({ detail: vfoBFrequency });
+      SetMode(vfoBMode);
+      updatePassband();
+    }
+      if(!vfoModeA) {
+        vfo = "VFO A";
+        vfoBFrequency = (frequency * 1000);
+        vfoBMode = demodulation;
+        frequencyInputComponent.setFrequency(vfoAFrequency);
+        handleFrequencyChange({ detail: vfoAFrequency });
+        SetMode(vfoAMode);
+        updatePassband();
+     }
+     vfoModeA = !vfoModeA;
   }
 
   let currentStep = 0;
@@ -2091,36 +2121,52 @@ Frequency Lookup :&nbsp;
                       }}
                       use:handleWheel
                     />
+
+<div class="flex items-center justify-center text-xs w-48">
+<span class="text-yellow-400 px-1">{vfo}</span>
+<span class="text-gray-400 px-1">|</span>
+<span class="text-green-400 px-1">{demodulation}</span>
+<span class="text-gray-400 px-1">|</span>
+<span class="text-cyan-300 px-1">{bandwidth} kHz</span>
+</div>
+</div>
+
+
+<!--
                     <div class="flex items-center justify-center text-sm w-48">
                       <span class="text-green-400 px-2">{demodulation}</span>
                       <span class="text-gray-400 px-2">|</span>
                       <span class="text-cyan-300 px-2">BW {bandwidth} kHz</span>
 		    </div>
                   </div>
-
+-->
 
 
 <div class="flex flex-col items-center"><span class="date-time" style="color:rgba(0, 225, 255, 0.993)" >{formatter.format(currentDateTime)}
 </span><div></div><div class="flex space-x-1 mb-1">
 
 
-<div class="px-1 py-0.5 flex items-center justify-center w-12 h-5 relative overflow-hidden">
+<div class="px-1 py-0.5 flex items-center justify-center w-10 h-5 relative overflow-hidden">
 <span class="text-xs font-mono {mute ? 'text-red-500' : 'text-red-500 opacity-20 relative z-10'}">MUTED</span>
 </div>
 
-<div class="px-1 py-0.5 flex items-center justify-center w-12 h-5 relative overflow-hidden">
+<div class="px-1 py-0.5 flex items-center justify-center w-10 h-5 relative overflow-hidden">
+<span class="text-xs font-mono {squelchEnable ? `text-orange-500` : `text-orange-500 opacity-20 relative z-10`}">SQ</span>
+</div>
+
+<div class="px-1 py-0.5 flex items-center justify-center w-10 h-5 relative overflow-hidden">
 <span class="text-xs font-mono {NREnabled ? `text-green-500` : `text-green-500 opacity-20 relative z-10`}">NR</span>
 </div>
 
-<div class="px-1 py-0.5 flex items-center justify-center w-12 h-5 relative overflow-hidden">
+<div class="px-1 py-0.5 flex items-center justify-center w-10 h-5 relative overflow-hidden">
 <span class="text-xs font-mono {NBEnabled ? `text-green-500` : `text-green-500 opacity-20 relative z-10`}">NB<span>
 </div>
 
-<div class="px-1 py-0.5 flex items-center justify-center w-12 h-5 relative overflow-hidden">
+<div class="px-1 py-0.5 flex items-center justify-center w-10 h-5 relative overflow-hidden">
 <span class="text-xs font-mono {ANEnabled ? `text-green-500` : `text-green-500 opacity-20 relative z-10`}">AN</span>
 </div>
 
-<div class="px-1 py-0.5 flex items-center justify-center w-12 h-5 relative overflow-hidden">
+<div class="px-1 py-0.5 flex items-center justify-center w-10 h-5 relative overflow-hidden">
 <span class="text-xs font-mono {CTCSSSupressEnabled ? `text-yellow-500` : `text-yellow-500 opacity-20 relative z-10`}">CTCSS</span>
 </div>
 </div>
@@ -2139,7 +2185,7 @@ Frequency Lookup :&nbsp;
                 <div class="space-y-3">
                   <!-- Demodulation -->
                   <div class="flex justify-center">
-                    <div id="demodulationModes" class="grid grid-cols-3 sm:grid-cols-5 gap-2 w-full max-w-md">
+                    <div id="demodulationModes" class="grid grid-cols-3 sm:grid-cols-6 gap-2 w-full max-w-md">
                       {#each ["USB", "LSB", "CW", "AM", "FM"] as mode}
                         <button on:click={() => SetMode(mode)}
                           class="retro-button text-white font-bold h-10 text-sm rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out {demodulation === mode ? 'bg-blue-600 pressed scale-95' : 'bg-gray-700 hover:bg-gray-600'}"
@@ -2147,6 +2193,15 @@ Frequency Lookup :&nbsp;
                           {mode}
                         </button>
                       {/each}
+		      <button
+on:click={() => toggleVFO(vfo)}
+class="retro-button text-white font-bold h-10 w-20 text-xs rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out {toggleVFO === vfo ? 'bg-green-600 pressed scale-95' : 'bg-blue-700 hover:bg-gray-600'}">
+<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+<path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" />
+</svg>
+{vfo}
+</button>
+
                     </div>
                     </div>
 <hr class="border-gray-600 my-2" />
@@ -2391,34 +2446,41 @@ Frequency Lookup :&nbsp;
                       <hr class="border-gray-600 my-2" />
 <!-- End Filter Selection -->
 
-              <!-- Recording Options -->
-              <div class="mt-6 w-full">
-                <h3 class="text-white text-lg font-semibold mb-2">Recording Options</h3>
-                <div class="flex justify-center gap-4">
-                  <button class="bg-gray-700 hover:bg-gray-600 text-white font-medium py-2 px-4 rounded-lg flex items-center transition-colors {isRecording ? 'ring-2 ring-red-500' : ''}" on:click={toggleRecording}>
-                    {#if isRecording}
-                      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" viewBox="0 0 20 20" fill="currentColor">
-                        <path d="M10 18a8 8 0 100-16 8 8 0 000 16zM8 7a1 1 0 00-1 1v4a1 1 0 001 1h4a1 1 0 001-1V8a1 1 0 00-1-1H8z" />
-                      </svg>
-                      Stop
-                    {:else}
-                      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" viewBox="0 0 20 20" fill="currentColor">
-                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" />
-                      </svg>
-                      Record
-                    {/if}
-                  </button>
 
-                  {#if canDownload}
-                    <button class="bg-gray-700 hover:bg-gray-600 text-white font-medium py-2 px-4 rounded-lg flex items-center transition-colors" on:click={downloadRecording}>
-                      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" viewBox="0 0 20 20" fill="currentColor">
-                        <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" />
-                      </svg>
-                      Download
-                    </button>
-                  {/if}
-                </div>
-              </div>
+<!-- Recording Options -->
+<div class="mt-6 w-full">
+<h3 class="text-white text-lg font-semibold mb-2">Recording Options</h3>
+<div class="flex justify-center gap-4">
+<button class="bg-gray-700 hover:bg-red-600 text-white font-medium py-2 px-4 rounded-lg flex items-center transition-colors {isRecording ? 'ring-2 ring-red-500' : ''}" on:click={toggleRecording}>
+
+{#if isRecording}
+<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" viewBox="0 0 20 20" fill="currentColor">
+<path d="M10 18a8 8 0 100-16 8 8 0 000 16zM8 7a1 1 0 00-1 1v4a1 1 0 001 1h4a1 1 0 001-1V8a1 1 0 00-1-1H8z" />
+</svg>
+Stop
+
+{:else}
+<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" viewBox="0 0 20 20" fill="currentColor">
+<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" />
+</svg>
+Record
+
+{/if}
+</button>
+
+{#if canDownload}
+<button class="bg-gray-700 hover:bg-green-600 text-white font-medium py-2 px-4 rounded-lg flex items-center transition-colors" on:click={downloadRecording}>
+<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" viewBox="0 0 20 20" fill="currentColor">
+<path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" />
+</svg>
+Download
+</button>
+
+{/if}
+</div>             
+</div>
+
+
 </div>
 <hr class="border-gray-600 my-2" />
 
