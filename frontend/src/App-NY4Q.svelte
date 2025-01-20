@@ -262,6 +262,12 @@
   let vfoBFrequency = 7150000;
   let vfoAMode = "LSB";
   let vfoBMode = "LSB";
+  let vfoAStep = 50;
+  let vfoBStep = 50;
+  let vfoAwaterfallL = 0;
+  let vfoAwaterfallR = 0;
+  let vfoBwaterfallL = 0;
+  let vfoBwaterfallR = 0; 
 
 // declaration for function handlePassbandChange(passband) //
 let bandwidth;
@@ -1059,23 +1065,42 @@ let bandwidth;
   }
 
 
-  function toggleVFO() {
+function toggleVFO() {
+    const [waterfallL, waterfallR] = waterfall.getWaterfallRange();
     if (vfoModeA) {
       vfo = "VFO B";
       vfoAFrequency = (frequency * 1000);
       vfoAMode = demodulation;
-      frequencyInputComponent.setFrequency(vfoBFrequency);
-      handleFrequencyChange({ detail: vfoBFrequency });
-      SetMode(vfoBMode);
-      updatePassband();
+      vfoAwaterfallL = waterfallL;
+      vfoAwaterfallR = waterfallR;
+      vfoAStep = currentTuneStep;
+      // First time in, you need to make sure nothing is undefined //
+      if(vfoBwaterfallR === 0 && vfoBwaterfallR === 0) { handleBandChange(12); }
+      else {
+        frequencyInputComponent.setFrequency(vfoBFrequency);
+        handleFrequencyChange({ detail: vfoBFrequency });
+        SetMode(vfoBMode);
+        waterfall.setWaterfallRange(vfoBwaterfallL, vfoBwaterfallR);
+        frequencyMarkerComponent.updateFrequencyMarkerPositions();
+        handleTuningStep(vfoBStep);
+        updatePassband();
+      }
     }
       if(!vfoModeA) {
-	vfo = "VFO A";
-	vfoBFrequency = (frequency * 1000);
-	vfoBMode = demodulation;
+        const [waterfallL, waterfallR] = waterfall.getWaterfallRange();
+        vfo = "VFO A";
+        vfoBFrequency = (frequency * 1000);
+        vfoBMode = demodulation;
+        vfoBwaterfallL = waterfallL;
+        vfoBwaterfallR = waterfallR;
+	vfoBStep = currentTuneStep;
+        SetMode(vfoAMode);
+	handleTuningStep(vfoAStep);
 	frequencyInputComponent.setFrequency(vfoAFrequency);
         handleFrequencyChange({ detail: vfoAFrequency });
-        SetMode(vfoAMode);
+        waterfall.setWaterfallRange(vfoAwaterfallL, vfoAwaterfallR);
+        frequencyMarkerComponent.updateFrequencyMarkerPositions();
+	handleTuningStep(vfoAStep);
         updatePassband();
      }
      vfoModeA = !vfoModeA;
