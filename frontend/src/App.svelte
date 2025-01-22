@@ -1686,7 +1686,7 @@ function handleBandChange(newBand) {
 
 
 // Function to publish bandwidth buttons //
-let newBandwidth = ["2000","2200","2400","2600","2700","2800","3000","3500","4000"]
+let newBandwidth = ["250","500","1800","2400","2800","3000","3500","4000","4500","5000","10000","12000"];
 let bwDiff = 0;
 function handleBandwidthChange(newBW) {
   staticBandwidthEnabled = !staticBandwidthEnabled;
@@ -2317,20 +2317,24 @@ class="retro-button text-white font-bold h-10 w-20 text-xs rounded-md flex items
 
  <!-- Static Bandwidth Buttons -->
 <div class="w-full mt-4">
+<h3 class="text-white text-lg font-semibold mb-2">IF Filters</h3>
   <div class="grid grid-cols-1 sm:grid-cols-9 gap-2">
     {#each newBandwidth as newbandwidth}
       <button id="fine-tuning-selector" class="retro-button text-sm text-white font-bold h-10 text-base rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out {currentBandwidth === newbandwidth ? 'bg-blue-600 pressed scale-95' : 'bg-gray-700 hover:bg-gray-600'}" on:click={() => handleBandwidthChange(newbandwidth)} title="{newbandwidth}">
-	{#if  newbandwidth == 2000}2.0 kHz
-	{:else if newbandwidth == 2200}2.2 kHz
-	{:else if newbandwidth == 2400}2.4 kHz
-	{:else if newbandwidth == 2600}2.6 kHz
-	{:else if newbandwidth == 2700}2.7 kHz
-	{:else if newbandwidth == 2800}2.8 kHz
-	{:else if newbandwidth == 3000}3.0 kHz
-	{:else if newbandwidth == 3500}3.5 kHz
-	{:else if newbandwidth == 4000}4.0 kHz
-	{:else}
-	{/if}
+	{#if newbandwidth == 250}250 Hz
+        {:else if newbandwidth == 500}500 Hz
+        {:else if newbandwidth == 1800}1.8 kHz
+        {:else if newbandwidth == 2400}2.4 kHz
+        {:else if newbandwidth == 2800}2.8 kHz
+        {:else if newbandwidth == 3000}3.0 kHz
+        {:else if newbandwidth == 3500}3.5 kHz
+        {:else if newbandwidth == 4000}4.0 kHz
+        {:else if newbandwidth == 4500}4.5 kHz
+        {:else if newbandwidth == 5000}5.0 kHz
+        {:else if newbandwidth == 10000}10.0 kHz
+        {:else if newbandwidth == 12000}12.0 kHz
+        {:else}
+        {/if}
       </button>
     {/each}
   </div>
