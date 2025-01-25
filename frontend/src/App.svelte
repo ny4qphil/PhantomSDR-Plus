@@ -1,5 +1,6 @@
 <script>
-  const VERSION = "1.5.4 with enhancements from ON5HB, NY4Q, HB3XDC, SV1BTL, SV2AMK";
+  const VERSION =
+    "1.5.4 with enhancements from ON5HB, NY4Q, HB3XDC, SV1BTL, SV2AMK";
 
   import { onDestroy, onMount, tick } from "svelte";
   import { fade, fly, scale } from "svelte/transition";
@@ -17,12 +18,41 @@
 
   import { pinch, pan } from "./lib/hammeractions.js";
   import { availableColormaps } from "./lib/colormaps";
-  import { init, audio, waterfall, events, FFTOffsetToFrequency, frequencyToFFTOffset, frequencyToWaterfallOffset, getMaximumBandwidth, waterfallOffsetToFrequency } from "./lib/backend.js";
-  import { constructLink, parseLink, storeInLocalStorage } from "./lib/storage.js";
+  import {
+    init,
+    audio,
+    waterfall,
+    events,
+    FFTOffsetToFrequency,
+    frequencyToFFTOffset,
+    frequencyToWaterfallOffset,
+    getMaximumBandwidth,
+    waterfallOffsetToFrequency,
+  } from "./lib/backend.js";
+  import {
+    constructLink,
+    parseLink,
+    storeInLocalStorage,
+  } from "./lib/storage.js";
 
   // Added to create the Site Information area //
-  import { siteSysop, siteSysopEmailAddress, siteInformation, siteGridSquare, siteHardware, siteSoftware, siteNote, siteSDRBaseFrequency, siteSDRBandwidth, siteRegion, siteChatEnabled } from '../site_information.json';
+  import {
+    siteSysop,
+    siteSysopEmailAddress,
+    siteInformation,
+    siteGridSquare,
+    siteHardware,
+    siteSoftware,
+    siteNote,
+    siteSDRBaseFrequency,
+    siteSDRBandwidth,
+    siteRegion,
+    siteChatEnabled,
+  } from "../site_information.json";
   // End of Information Area import //
+
+  // Import to detect mobile devices //
+  //import Device from "svelte-device-info";
 
   let isRecording = false;
   let canDownload = false;
@@ -39,16 +69,17 @@
 
   let passbandTunerComponent;
 
+  let autoAdjust; // added after C&P of the original App.svelte //
+
   let link;
   var chatContentDiv;
- 
+
   // Added to allow the user to toggle the waterfall on and off //
   function handleWaterfallChange() {
     waterfallDisplay = !waterfallDisplay;
   }
   // End of waterfall toggle addition //
 
- 
   // Declarations for the store and restore of the waterfall settings //
   // when Auto Adjust is enabled. //
   let previous_min_waterfall;
@@ -56,7 +87,6 @@
   let previous_brightness;
   let storeWaterfallSettings = false;
   // End of store and restore variables //
-
 
   // Definitions for handleBandChange function //
   // To show the proper band upon startup, you must set //
@@ -66,24 +96,21 @@
   let bandArray = waterfall.bands;
   let currentBand = 7; // 80m
 
-
   // Begin Tuning Steps declarations
-  let defaultStep,currentTuneStep = 10; // Default step value / Track current step
-  let tuningsteps = ["10","50","100","500","1000","5000","9000","10000","100000","1000000"];
-
+  let defaultStep,
+    currentTuneStep = 10; // Default step value / Track current step
+  let tuningsteps = ["10", "50", "100", "500", "1000", "5000", "9000", "10000"];
 
   // buttons = true for Buttons for Waterfall controls //
   // buttons = false for toggle switches for Waterfall controls //
   let buttons = true;
-  
+
   // Added to create a fineTune function to use //
   // buttons to click on for mobile users //
   let fineTuneAmount = 0;
 
-  
   // Set default AGC (0 = Off) //
   let currentAGC = 0;
-  
 
   // Added to allow an adjustment of the dynamic audio //
   // buffer function inside audio.js //
@@ -101,24 +128,26 @@
 
   // Getting The Current Date & Time And Setting It
   let currentDateTime = new Date();
-  
+
   // SMeter Clock
   onMount(() => {
-      const interval = setInterval(() => {
-       currentDateTime = new Date();
-  }, 1000);
+    const interval = setInterval(() => {
+      currentDateTime = new Date();
+    }, 1000);
 
-   return () => { clearInterval(interval); };
-    });
-   
-  const formatter = new Intl.DateTimeFormat('default', {
-    weekday: 'short',
-    month: 'short',
-    day: 'numeric',
-    hour: 'numeric',
-    minute: '2-digit',
-    second: '2-digit',
-    hour12: false
+    return () => {
+      clearInterval(interval);
+    };
+  });
+
+  const formatter = new Intl.DateTimeFormat("default", {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
   });
 
   // Function added to toggle the Additional Info menu //
@@ -129,12 +158,11 @@
     if (menu.classList.contains("hidden")) {
       menu.classList.remove("hidden");
       label.innerText = "Close Additional Info";
-      }
-      else {
-        menu.classList.add("hidden");
-        label.innerText = "Open Additional Info";
-      }
+    } else {
+      menu.classList.add("hidden");
+      label.innerText = "Open Additional Info";
     }
+  }
   // End of Site Information addition //
 
   function toggleRecording() {
@@ -154,7 +182,10 @@
   }
 
   function generateUniqueId() {
-    return Math.random().toString(36).substr(2, 10) + Math.random().toString(36).substr(2, 10);
+    return (
+      Math.random().toString(36).substr(2, 10) +
+      Math.random().toString(36).substr(2, 10)
+    );
   }
 
   let userId; // Global variable to store the user's unique ID
@@ -217,7 +248,6 @@
     waterfallBeginX = e.clientX;
   }
 
-
   function handleWindowMouseMove(e) {
     if (waterfallDragging) {
       waterfallDragTotal += Math.abs(e.movementX) + Math.abs(e.movementY);
@@ -226,7 +256,6 @@
       frequencyMarkerComponent.updateFrequencyMarkerPositions();
     }
   }
-
 
   function handleWindowMouseUp(e) {
     if (waterfallDragging) {
@@ -255,8 +284,8 @@
   // Declaration for the VFO A/B system //
   let vfo = "VFO A";
   let vfoModeA = true;
-  let vfoAFrequency = 3645000;
-  let vfoBFrequency = 7150000;
+  let vfoAFrequency = siteSDRBaseFrequency;
+  let vfoBFrequency = siteSDRBaseFrequency;
   let vfoAMode = "LSB";
   let vfoBMode = "LSB";
   let vfoAStep = 50;
@@ -266,8 +295,8 @@
   let vfoBwaterfallL = 0;
   let vfoBwaterfallR = 0;
 
-// declaration for function handlePassbandChange(passband) //
-let bandwidth;
+  // declaration for function handlePassbandChange(passband) //
+  let bandwidth;
 
   // Waterfall drawing
   let currentColormap = "gqrx";
@@ -305,14 +334,13 @@ let bandwidth;
   function handleMaxMove() {
     waterfall.setMaxOffset(max_waterfall);
   }
-  
 
   function handleAutoAdjust() {
     autoAdjustEnabled = !autoAdjustEnabled;
     waterfall.autoAdjust = autoAdjustEnabled;
     // Added to track the waterfall settings //
     // This routine stores the settings //
-    if(autoAdjustEnabled && !storeWaterfallSettings) {
+    if (autoAdjustEnabled && !storeWaterfallSettings) {
       previous_min_waterfall = min_waterfall;
       previous_max_waterfall = max_waterfall;
       previous_brightness = brightness;
@@ -321,19 +349,19 @@ let bandwidth;
 
     // Added to restore the waterfall settings //
     // to the previous levels is Auto Adjust is diaabled //
-    if(!autoAdjustEnabled && storeWaterfallSettings) {
-     min_waterfall = previous_min_waterfall;
-     max_waterfall = previous_max_waterfall;
-     brightness = previous_brightness;
-     storeWaterfallSettings = false;
-     handleMinMove();
-     handleMaxMove();
-     handleBrightnessMove();
-   }
- }
+    if (!autoAdjustEnabled && storeWaterfallSettings) {
+      min_waterfall = previous_min_waterfall;
+      max_waterfall = previous_max_waterfall;
+      brightness = previous_brightness;
+      storeWaterfallSettings = false;
+      handleMinMove();
+      handleMaxMove();
+      handleBrightnessMove();
+    }
+  }
 
   function checkColor(color) {
-  console.log("C = " + color);
+    console.log("C = " + color);
   }
 
   // This function checks the region inside waterfall.js and compares //
@@ -343,29 +371,38 @@ let bandwidth;
     switch (region) {
       case 123:
         return true;
-	break;
-     case 1:
-       if (region === 1 && siteRegion === 1) { return true; }
-       break;
-     case 2:
-       if (region === 2 && siteRegion === 2) { return true; }
-       break;
-     case 3:
-       if (region === 3 && siteRegion === 3) { return true; }
-       break;
+        break;
+      case 1:
+        if (region === 1 && siteRegion === 1) {
+          return true;
+        }
+        break;
+      case 2:
+        if (region === 2 && siteRegion === 2) {
+          return true;
+        }
+        break;
+      case 3:
+        if (region === 3 && siteRegion === 3) {
+          return true;
+        }
+        break;
     }
     return false;
   }
 
- // This function checks the siteSDRBasebandFrequency siteSDRBandwidth and //
+  // This function checks the siteSDRBasebandFrequency siteSDRBandwidth and //
   // compares it to the startFreq & endFreq from waterfall.js and if all that //
-  // passes, then a Band Button is printed to the SDR inttrface. //
-  function printBandButton(startFreq,endFreq) {
+  // passes, then a Band Button is printed to the SDR interface. //
+  function printBandButton(startFreq, endFreq, publish) {
     let sdrStartFreq = siteSDRBaseFrequency;
     let sdrBandwidth = siteSDRBandwidth;
-    return (endFreq >= sdrStartFreq && endFreq <= (sdrStartFreq + sdrBandwidth));
+    if (publish) {
+      return endFreq >= sdrStartFreq && endFreq <= sdrStartFreq + sdrBandwidth;
+    } else {
+      return false;
+    }
   }
-
 
   // Audio demodulation selection
   let demodulators = ["USB", "LSB", "CW", "CW-L", "AM", "FM"];
@@ -379,13 +416,11 @@ let bandwidth;
     WBFM: { type: "FM", offsets: [95000, 95000] },
   };
 
-
   let demodulation = "USB";
   function roundAudioOffsets(offsets) {
     const [l, m, r] = offsets;
     return [Math.floor(l), m, Math.floor(r)];
   }
-
 
   function SetMode(mode) {
     if (mode == "CW-U" || mode == "CW-L") {
@@ -398,7 +433,20 @@ let bandwidth;
     updateLink();
   }
 
-  
+  function setModePopup(mode) {
+    if (mode == "CW-U" || mode == "CW-L") {
+      mode = "CW";
+    }
+    console.log("Setting mode to", mode);
+    demodulation = mode;
+
+    handleDemodulationChange(null, true);
+    updateLink();
+    setTimeout(function () {
+      toggleModePopup();
+    }, 1500);
+  }
+
   // Demodulation controls
   function handleDemodulationChange(e, changed) {
     passbandTunerComponent.setMode(demodulation);
@@ -409,7 +457,10 @@ let bandwidth;
       } else {
         audio.setFmDeemph(0);
       }
-      if (demodulationDefault.type == "USB" && demodulationDefault.offsets[0] == 250) {
+      if (
+        demodulationDefault.type == "USB" &&
+        demodulationDefault.offsets[0] == 250
+      ) {
         audio.setAudioDemodulation("CW");
       } else {
         audio.setAudioDemodulation(demodulationDefault.type);
@@ -431,7 +482,9 @@ let bandwidth;
     const lOffset = l - 200;
     const mOffset = m - 750;
     const rOffset = r - 200;
-    const audioParametersOffset = [lOffset, mOffset, rOffset].map(frequencyToFFTOffset);
+    const audioParametersOffset = [lOffset, mOffset, rOffset].map(
+      frequencyToFFTOffset,
+    );
     const audioParameters = [l, m, r].map(frequencyToFFTOffset);
 
     // Set audio range with both normal and offset values
@@ -473,7 +526,9 @@ let bandwidth;
     frequency = (frequencyInputComponent.getFrequency() / 1e3).toFixed(2);
 
     const audioParameters = [l, m, r].map(frequencyToFFTOffset);
-    const audioParametersOffset = [lOffset, mOffset, rOffset].map(frequencyToFFTOffset);
+    const audioParametersOffset = [lOffset, mOffset, rOffset].map(
+      frequencyToFFTOffset,
+    );
 
     // Set audio range with both normal and offset values
     audio.setAudioRange(...audioParameters, ...audioParametersOffset);
@@ -492,14 +547,20 @@ let bandwidth;
     const [l, m, r] = audioRange.map(FFTOffsetToFrequency);
 
     // Preserve current bandwidth settings
-    let audioParameters = [frequency - (m - l), frequency, frequency + (r - m)].map(frequencyToFFTOffset);
+    let audioParameters = [
+      frequency - (m - l),
+      frequency,
+      frequency + (r - m),
+    ].map(frequencyToFFTOffset);
     const newm = audioParameters[1];
 
     const lOffset = frequency - (m - l) - 200;
     const mOffset = frequency - 750;
     const rOffset = frequency + (r - m) - 200;
 
-    const audioParametersOffset = [lOffset, mOffset, rOffset].map(frequencyToFFTOffset);
+    const audioParametersOffset = [lOffset, mOffset, rOffset].map(
+      frequencyToFFTOffset,
+    );
 
     // If the ranges are not within limit, shift it back
     let [waterfallL, waterfallR] = waterfall.getWaterfallRange();
@@ -511,7 +572,10 @@ let bandwidth;
       } else {
         offset = limits;
       }
-      const newMid = Math.min(waterfall.waterfallMaxSize - limits, Math.max(limits, newm - offset + limits));
+      const newMid = Math.min(
+        waterfall.waterfallMaxSize - limits,
+        Math.max(limits, newm - offset + limits),
+      );
 
       waterfallL = Math.floor(newMid - limits);
       waterfallR = Math.floor(newMid + limits);
@@ -531,7 +595,8 @@ let bandwidth;
   function handleWaterfallMagnify(e, type) {
     let [l, m, r] = audio.getAudioRange();
     const [waterfallL, waterfallR] = waterfall.getWaterfallRange();
-    const offset = ((m - waterfallL) / (waterfallR - waterfallL)) * waterfall.canvasWidth;
+    const offset =
+      ((m - waterfallL) / (waterfallR - waterfallL)) * waterfall.canvasWidth;
     switch (type) {
       case "max":
         m = Math.min(waterfall.waterfallMaxSize - 512, Math.max(512, m));
@@ -647,7 +712,6 @@ let bandwidth;
     drawSMeter(activeSegments);
   }
 
-
   function handleWheel(node) {
     function onWheel(event) {
       event.preventDefault();
@@ -659,7 +723,9 @@ let bandwidth;
       let frequencyHz = Math.round(parseFloat(frequency) * 1e3);
 
       function adjustFrequency(freq, direction, shiftPressed, altPressed) {
-        const step = currentTuneStep || (altPressed ? 10000 : shiftPressed ? 1000 : defaultStep);
+        const step =
+          currentTuneStep ||
+          (altPressed ? 10000 : shiftPressed ? 1000 : defaultStep);
         const lastDigits = freq % step;
 
         if (lastDigits === 0) {
@@ -671,7 +737,12 @@ let bandwidth;
         }
       }
 
-      frequencyHz = adjustFrequency(frequencyHz, delta, isShiftPressed, isAltPressed);
+      frequencyHz = adjustFrequency(
+        frequencyHz,
+        delta,
+        isShiftPressed,
+        isAltPressed,
+      );
 
       // Convert back to kHz and ensure 2 decimal places
       frequency = (frequencyHz / 1e3).toFixed(2);
@@ -703,14 +774,22 @@ let bandwidth;
     } else if (demodulationDefault === "LSB") {
       l = Math.max(m - getMaximumBandwidth(), Math.min(m, l - bandwidthoffset));
     } else {
-      r = Math.max(0, Math.min(m + getMaximumBandwidth() / 2, r + bandwidthoffset / 2));
-      l = Math.max(m - getMaximumBandwidth() / 2, Math.min(m, l - bandwidthoffset / 2));
+      r = Math.max(
+        0,
+        Math.min(m + getMaximumBandwidth() / 2, r + bandwidthoffset / 2),
+      );
+      l = Math.max(
+        m - getMaximumBandwidth() / 2,
+        Math.min(m, l - bandwidthoffset / 2),
+      );
     }
     let audioParameters = [l, m, r].map(frequencyToFFTOffset);
     const lOffset = l - 200;
     const mOffset = m - 750;
     const rOffset = r - 200;
-    const audioParametersOffset = [lOffset, mOffset, rOffset].map(frequencyToFFTOffset);
+    const audioParametersOffset = [lOffset, mOffset, rOffset].map(
+      frequencyToFFTOffset,
+    );
 
     audio.setAudioRange(...audioParameters, ...audioParametersOffset);
     updatePassband();
@@ -721,13 +800,16 @@ let bandwidth;
     mute = !mute;
     audio.setMute(mute);
   }
+
   function handleVolumeChange() {
     audio.setGain(Math.pow(10, (volume - 50) / 50 + 2.6));
   }
+
   function handleSquelchChange() {
     squelchEnable = !squelchEnable;
     audio.setSquelch(squelchEnable);
   }
+
   function handleSquelchMove() {
     audio.setSquelchThreshold(squelch);
   }
@@ -747,40 +829,52 @@ let bandwidth;
     NREnabled = !NREnabled;
     audio.decoder.set_nr(NREnabled);
   }
+
   function handleNBChange() {
     NBEnabled = !NBEnabled;
     audio.nb = NBEnabled;
     audio.decoder.set_nb(NBEnabled);
   }
+
   function handleANChange() {
     ANEnabled = !ANEnabled;
     audio.decoder.set_an(ANEnabled);
   }
+
   function handleCTCSSChange() {
     CTCSSSupressEnabled = !CTCSSSupressEnabled;
     audio.setCTCSSFilter(CTCSSSupressEnabled);
+    console.log("mD = " + Device.isMobile);
   }
-
-
-
 
   // This function was added to track band changes //
   // and makes the band buttons track along with frequency //
   // adjustments. //
-  let prevBand,stepi = 0;
-
+  let prevBand,
+    stepi = 0;
   function updateBandButton() {
-      currentBand = -1;
-      for (var i = 0; i < bandArray.length; i++) {
-          if(frequency >= (bandArray[i].startFreq / 1000) && frequency <= (bandArray[i].endFreq / 1000) && ((bandArray[i].ITU === siteRegion) || bandArray[i].ITU === 123)) {
-            currentBand = i;
-              if(prevBand != currentBand) { currentTuneStep = bandArray[i].stepi };
-          }  
-     } 
-     prevBand = currentBand;
+    currentBand = -1;
+    for (var i = 0; i < bandArray.length; i++) {
+      if (
+        frequency >= bandArray[i].startFreq / 1000 &&
+        frequency <= bandArray[i].endFreq / 1000 &&
+        (bandArray[i].ITU === siteRegion || bandArray[i].ITU === 123)
+      ) {
+        currentBand = i;
+        newStaticBandwidth = 0; // To reset the IF Filter button //
+        if (bandArray[i].max < 256) {
+          min_waterfall = bandArray[i].min;
+          max_waterfall = bandArray[i].max;
+          handleMinMove();
+          handleMaxMove();
+        }
+        if (prevBand != currentBand) {
+          currentTuneStep = bandArray[i].stepi;
+        }
+      }
+    }
+    prevBand = currentBand;
   }
-
-
 
   // Regular updating UI elements:
   // Other user tuning displays
@@ -877,7 +971,8 @@ let bandwidth;
   };
 
   function addBookmark() {
-    const [currentWaterfallL, currentWaterfallR] = waterfall.getWaterfallRange();
+    const [currentWaterfallL, currentWaterfallR] =
+      waterfall.getWaterfallRange();
 
     const bookmark = {
       name: newBookmarkName,
@@ -916,7 +1011,6 @@ let bandwidth;
     newBookmarkName = "";
   }
 
-
   function goToBookmark(bookmark) {
     // Set frequency
     frequencyInputComponent.setFrequency(bookmark.frequency);
@@ -927,7 +1021,7 @@ let bandwidth;
     handleDemodulationChange(null, true);
 
     // This next section was added to restore more //
-    // settings in a bookmark. 
+    // settings in a bookmark.
 
     // Set Volume
     volume = bookmark.volume;
@@ -941,10 +1035,10 @@ let bandwidth;
     audio.setSquelchThreshold(squelch);
 
     // Begin code to store and restore additional //
-    // WebSDR settings.  
+    // WebSDR settings.
     // Set Audio Buffer
     audioBufferDelayEnabled = false;
-    if(bookmark.audioBufferDelayEnabled) {
+    if (bookmark.audioBufferDelayEnabled) {
       audioBufferDelay = bookmark.audioBufferDelay;
       audioBufferDelayEnabled = bookmark.audioBufferDelayEnabled;
     }
@@ -971,12 +1065,11 @@ let bandwidth;
     audio.setCTCSSFilter(CTCSSSupressEnabled);
 
     // Set bandwidth
-    if(bookmark.staticBandwidthEnabled) {
+    if (bookmark.staticBandwidthEnabled) {
       handleBandwidthChange(bookmark.currentBandwidth);
       staticBandwidthEnabled = bookmark.staticBandwidthEnabled;
       currentBandwidth = bookmark.currentBandwidth;
     }
-
 
     // Set Tuning Step
     currentTuneStep = bookmark.currentTuneStep;
@@ -1000,7 +1093,8 @@ let bandwidth;
     // Set Waterfall Size
     let [l, m, r] = audio.getAudioRange();
     const [waterfallL, waterfallR] = waterfall.getWaterfallRange();
-    const offset = ((m - waterfallL) / (waterfallR - waterfallL)) * waterfall.canvasWidth;
+    const offset =
+      ((m - waterfallL) / (waterfallR - waterfallL)) * waterfall.canvasWidth;
     m = Math.min(waterfall.waterfallMaxSize - 512, Math.max(512, m));
     l = bookmark.currentWaterfallL;
     r = bookmark.currentWaterfallR;
@@ -1011,11 +1105,10 @@ let bandwidth;
     // Set Waterfall Colormap
     currentColormap = bookmark.currentColormap;
     waterfall.setColormap(currentColormap);
-  
-  // Update the link
+
+    // Update the link
     updateLink();
   }
-
 
   function copyToClipboard(text) {
     try {
@@ -1039,24 +1132,40 @@ let bandwidth;
     localStorage.setItem("bookmarks", JSON.stringify(bookmarksToSave));
   }
 
-  let showBookmarkPopup = false;
+  let showBookmarkPopup,
+    showModePopup,
+    showBandPopup,
+    showIFPopup = false;
 
   function toggleBookmarkPopup() {
     showBookmarkPopup = !showBookmarkPopup;
+  }
+
+  function toggleModePopup() {
+    showModePopup = !showModePopup;
+  }
+
+  function toggleBandPopup() {
+    showBandPopup = !showBandPopup;
+  }
+
+  function toggleIFPopup() {
+    showIFPopup = !showIFPopup;
   }
 
   function toggleVFO() {
     const [waterfallL, waterfallR] = waterfall.getWaterfallRange();
     if (vfoModeA) {
       vfo = "VFO B";
-      vfoAFrequency = (frequency * 1000);
+      vfoAFrequency = frequency * 1000;
       vfoAMode = demodulation;
       vfoAwaterfallL = waterfallL;
       vfoAwaterfallR = waterfallR;
       vfoAStep = currentTuneStep;
       // First time in, you need to make sure nothing is undefined //
-      if(vfoBwaterfallR === 0 && vfoBwaterfallR === 0) { handleBandChange(12); }
-      else {
+      if (vfoBwaterfallR === 0 && vfoBwaterfallR === 0) {
+        handleBandChange(12);
+      } else {
         frequencyInputComponent.setFrequency(vfoBFrequency);
         handleFrequencyChange({ detail: vfoBFrequency });
         SetMode(vfoBMode);
@@ -1066,24 +1175,24 @@ let bandwidth;
         updatePassband();
       }
     }
-      if(!vfoModeA) {
-        const [waterfallL, waterfallR] = waterfall.getWaterfallRange();
-        vfo = "VFO A";
-        vfoBFrequency = (frequency * 1000);
-        vfoBMode = demodulation;
-        vfoBwaterfallL = waterfallL;
-        vfoBwaterfallR = waterfallR;
-	vfoBStep = currentTuneStep;
-        SetMode(vfoAMode);
-	handleTuningStep(vfoAStep);
-	frequencyInputComponent.setFrequency(vfoAFrequency);
-        handleFrequencyChange({ detail: vfoAFrequency });
-        waterfall.setWaterfallRange(vfoAwaterfallL, vfoAwaterfallR);
-        frequencyMarkerComponent.updateFrequencyMarkerPositions();
-	handleTuningStep(vfoAStep);
-        updatePassband();
-     }
-     vfoModeA = !vfoModeA;
+    if (!vfoModeA) {
+      const [waterfallL, waterfallR] = waterfall.getWaterfallRange();
+      vfo = "VFO A";
+      vfoBFrequency = frequency * 1000;
+      vfoBMode = demodulation;
+      vfoBwaterfallL = waterfallL;
+      vfoBwaterfallR = waterfallR;
+      vfoBStep = currentTuneStep;
+      SetMode(vfoAMode);
+      handleTuningStep(vfoAStep);
+      frequencyInputComponent.setFrequency(vfoAFrequency);
+      handleFrequencyChange({ detail: vfoAFrequency });
+      waterfall.setWaterfallRange(vfoAwaterfallL, vfoAwaterfallR);
+      frequencyMarkerComponent.updateFrequencyMarkerPositions();
+      handleTuningStep(vfoAStep);
+      updatePassband();
+    }
+    vfoModeA = !vfoModeA;
   }
 
   let currentStep = 0;
@@ -1099,7 +1208,8 @@ let bandwidth;
     },
     {
       selector: "#waterfall",
-      content: "This is the Waterfall, the main part of a WebSDR where you see all signals visuallly.",
+      content:
+        "This is the Waterfall, the main part of a WebSDR where you see all signals visuallly.",
     },
     {
       selector: "#volume-slider",
@@ -1115,7 +1225,8 @@ let bandwidth;
     },
     {
       selector: "#tuning-step-selector",
-      content: "Use these buttons to change the tuning steps when using the mouse wheel.",
+      content:
+        "Use these buttons to change the tuning steps when using the mouse wheel.",
     },
     {
       selector: "#band-selector",
@@ -1127,23 +1238,34 @@ let bandwidth;
     },
     {
       selector: "#audio-buffer-slider",
-      content: "This button/slider allows the user to adjust the limits on the dynamic audio buffer.",
+      content:
+        "This button/slider allows the user to adjust the limits on the dynamic audio buffer.",
     },
     {
       selector: "#ft8-decoder",
-      content: "This Button lets you Decode FT8 Signals, if you are on the proper Frequency",
+      content:
+        "This Button lets you Decode FT8 Signals, if you are on the proper Frequency",
     },
     {
       selector: "#smeter-tut",
-      content: "This Section shows you the S-Meter, lets you Input the Frequency and shows the Mode with Filter Bandwidth.",
+      content:
+        "This Section shows you the S-Meter, lets you Input the Frequency and shows the Mode with Filter Bandwidth.",
     },
     {
       selector: "#demodulationModes",
       content: "Use this Section to change the Demodulation Mode.",
     },
     {
+      selector: "#mobile-fine-tuning-selector",
+      content: "Use these buttons to fine tune the frequency.",
+    },
+    {
       selector: "#fine-tuning-selector",
       content: "Use these buttons to fine tune the frequency.",
+    },
+    {
+      selector: "#static-bandwidth-selector",
+      content: "Use these buttons to choose static IF filtering.",
     },
     {
       selector: "#zoom-controls",
@@ -1151,7 +1273,8 @@ let bandwidth;
     },
     {
       selector: "#moreoptions",
-      content: "These options allow you to enable things like CTCSS Supression, Noise Reduction and more.",
+      content:
+        "These options allow you to enable things like CTCSS Supression, Noise Reduction and more.",
     },
     {
       selector: "#brightness-controls",
@@ -1178,23 +1301,45 @@ let bandwidth;
       content: "Increase the size of the waterfall display.",
     },
     {
+      selector: "#if-filter-popup-button",
+      content: "This allows for the setting of static IF filters.",
+    },
+    {
+      selector: "#band-popup-button",
+      content:
+        "This button opens the Bands menu and allows for the selection of different bands.",
+    },
+    {
+      selector: "#mode-popup-button",
+      content:
+        "This button opens the Modes and allows for the selection of different modes.",
+    },
+    {
+      selector: "#vfo-ab-toggle",
+      content: "Use this to toggle VFO A/B.",
+    },
+    {
       selector: "#bookmark-button",
       content: "Click this to open the Bookmarks Menu.",
     },
     {
       selector: "#chat-box",
-      content: "This is the Chatbox, where to communicae with other users and sending Frequencies",
+      content:
+        "This is the Chatbox, where to communicae with other users and sending Frequencies",
     },
     {
       selector: "#chat-box",
-      content: "Thank you for completing the Tutorial, now you can use the WebSDR as you wish. Enjoy!",
+      content:
+        "Thank you for completing the Tutorial, now you can use the WebSDR as you wish. Enjoy!",
     },
   ];
 
   async function initTutorial() {
     if (!localStorage.getItem("TutorialComplete")) {
       await tick();
-      const allElementsPresent = tutorialSteps.every((step) => document.querySelector(step.selector));
+      const allElementsPresent = tutorialSteps.every((step) =>
+        document.querySelector(step.selector),
+      );
       if (allElementsPresent) {
         showTutorial = true;
         isFirstTime = true;
@@ -1265,7 +1410,9 @@ let bandwidth;
   onMount(async () => {
     if (!localStorage.getItem("TutorialComplete")) {
       await tick();
-      const allElementsPresent = tutorialSteps.slice(1).every((step) => document.querySelector(step.selector));
+      const allElementsPresent = tutorialSteps
+        .slice(1)
+        .every((step) => document.querySelector(step.selector));
       if (allElementsPresent) {
         isFirstTime = true;
         showTutorial = true;
@@ -1291,7 +1438,10 @@ let bandwidth;
     waterfall.setFrequencyMarkerComponent(frequencyMarkerComponent);
 
     // Enable after connection established
-    [...document.getElementsByTagName("button"), ...document.getElementsByTagName("input")].forEach((element) => {
+    [
+      ...document.getElementsByTagName("button"),
+      ...document.getElementsByTagName("input"),
+    ].forEach((element) => {
       element.disabled = false;
     });
 
@@ -1304,8 +1454,13 @@ let bandwidth;
       bandwithoffsets = bandwithoffsets;
     }
 
-    frequencyInputComponent.setFrequency(FFTOffsetToFrequency(audio.getAudioRange()[1]));
-    frequencyInputComponent.updateFrequencyLimits(audio.baseFreq, audio.baseFreq + audio.totalBandwidth);
+    frequencyInputComponent.setFrequency(
+      FFTOffsetToFrequency(audio.getAudioRange()[1]),
+    );
+    frequencyInputComponent.updateFrequencyLimits(
+      audio.baseFreq,
+      audio.baseFreq + audio.totalBandwidth,
+    );
 
     username = localStorage.getItem("chatusername") || "";
     if (!username) {
@@ -1355,7 +1510,9 @@ let bandwidth;
     window["spectrumAudio"] = audio;
     window["spectrumWaterfall"] = waterfall;
 
-    socket = new WebSocket(window.location.origin.replace(/^http/, "ws") + "/chat");
+    socket = new WebSocket(
+      window.location.origin.replace(/^http/, "ws") + "/chat",
+    );
 
     chatContentDiv = document.getElementById("chat_content");
 
@@ -1378,7 +1535,10 @@ let bandwidth;
           isCurrentUser: event.data.startsWith(userId),
           timestamp: Date.now(),
         };
-        messages.update((currentMessages) => [...currentMessages, receivedMessageObject]);
+        messages.update((currentMessages) => [
+          ...currentMessages,
+          receivedMessageObject,
+        ]);
       }
       scrollToBottom();
     };
@@ -1388,7 +1548,10 @@ let bandwidth;
 
     function setWidth() {
       const width = middleColumn.offsetWidth;
-      document.documentElement.style.setProperty("--middle-column-width", `1372px`);
+      document.documentElement.style.setProperty(
+        "--middle-column-width",
+        `1372px`,
+      );
     }
 
     setWidth();
@@ -1493,7 +1656,9 @@ let bandwidth;
       const freqMatch = message.match(freqRegex);
       if (freqMatch) {
         const [fullMatch, frequency, demodulation] = freqMatch;
-        const [beforeFreq, afterFreq] = message.split(fullMatch).map((part) => formatLinks(sanitizeHtml(part)));
+        const [beforeFreq, afterFreq] = message
+          .split(fullMatch)
+          .map((part) => formatLinks(sanitizeHtml(part)));
         return {
           isFormatted: true,
           timestamp: sanitizeHtml(timestamp),
@@ -1562,44 +1727,51 @@ let bandwidth;
 
   //Time
   function startTime() {
-    var Digital=new Date()
-    var hours=Digital.getUTCHours()
-    var minutes=Digital.getUTCMinutes()
-    var seconds=Digital.getUTCSeconds()
-      if (hours>=24){
-          hours="0"
-          //this makes the first hour of the day display as "00" UTC (the 2nd "0" is added below).
-      }
-      // Add leading zeros when needed:
-      if (hours<=9)
-          hours="0"+hours
-      if (minutes<=9)
-          minutes="0"+minutes
-     if (seconds<=9)
-          seconds="0"+seconds
-  
-     var LDigital=new Date()
-     var l_hours=LDigital.getHours()
-     var l_minutes=LDigital.getMinutes()
-     var l_seconds=LDigital.getSeconds()
-      if (l_hours>=24){
-          l_hours="0"
-          //this makes the first hour of the day display as "00" UTC (the 2nd "0" is added below).
-      }
-      // Add leading zeros when needed:
-      if (l_hours<=9)
-          l_hours="0"+l_hours
-      if (l_minutes<=9)
-          l_minutes="0"+l_minutes
-      if (l_seconds<=9)
-          l_seconds="0"+l_seconds
-          document.getElementById('time').innerHTML =
-          hours+":"+minutes+":"+seconds+" (UTC) ⬌ "+l_hours+":"+l_minutes+":"+l_seconds+" (Local)"
-      let t = setTimeout(startTime, 500);
-      }
+    var Digital = new Date();
+    var hours = Digital.getUTCHours();
+    var minutes = Digital.getUTCMinutes();
+    var seconds = Digital.getUTCSeconds();
+    if (hours >= 24) {
+      hours = "0";
+      //this makes the first hour of the day display as "00" UTC (the 2nd "0" is added below).
+    }
+    // Add leading zeros when needed:
+    if (hours <= 9) hours = "0" + hours;
+    if (minutes <= 9) minutes = "0" + minutes;
+    if (seconds <= 9) seconds = "0" + seconds;
+
+    var LDigital = new Date();
+    var l_hours = LDigital.getHours();
+    var l_minutes = LDigital.getMinutes();
+    var l_seconds = LDigital.getSeconds();
+    if (l_hours >= 24) {
+      l_hours = "0";
+      //this makes the first hour of the day display as "00" UTC (the 2nd "0" is added below).
+    }
+    // Add leading zeros when needed:
+    if (l_hours <= 9) l_hours = "0" + l_hours;
+    if (l_minutes <= 9) l_minutes = "0" + l_minutes;
+    if (l_seconds <= 9) l_seconds = "0" + l_seconds;
+    document.getElementById("time").innerHTML =
+      hours +
+      ":" +
+      minutes +
+      ":" +
+      seconds +
+      " (UTC) ⬌ " +
+      l_hours +
+      ":" +
+      l_minutes +
+      ":" +
+      l_seconds +
+      " (Local)";
+    let t = setTimeout(startTime, 500);
+  }
   function checkTime(i) {
-          if (i < 10) {i = "0" + i};  // add zero in front of numbers < 10
-          return i;
+    if (i < 10) {
+      i = "0" + i;
+    } // add zero in front of numbers < 10
+    return i;
   }
 
   // Added to allow the user to adjust the dynamic audio //
@@ -1607,140 +1779,213 @@ let bandwidth;
   // audio.js - the variables inside audio.js to allow this adjustment //
   // are bufferLimit = 0.5 and bufferThreshold = 0.1 //
   function handleAudioBufferDelayMove(newAudioBufferDelay) {
-    if(newAudioBufferDelay > 5) { newAudioBufferDelay = 1;}
+    if (newAudioBufferDelay > 5) {
+      newAudioBufferDelay = 1;
+    }
     audioBufferDelay = newAudioBufferDelay;
-    if (audioBufferDelay === 1) { audioBufferDelayEnabled = false; }
-      else { audioBufferDelayEnabled = true; }
+    if (audioBufferDelay === 1) {
+      audioBufferDelayEnabled = false;
+    } else {
+      audioBufferDelayEnabled = true;
+    }
     switch (audioBufferDelay) {
       case 1:
-        audio.setAudioBufferDelay(0.5,0.1);
-      break;
+        audio.setAudioBufferDelay(0.5, 0.1);
+        break;
       case 2:
-        audio.setAudioBufferDelay(1.0,0.2);
-      break;
+        audio.setAudioBufferDelay(1.0, 0.2);
+        break;
       case 3:
-        audio.setAudioBufferDelay(1.5,0.3);
-      break;
+        audio.setAudioBufferDelay(1.5, 0.3);
+        break;
       case 4:
-        audio.setAudioBufferDelay(2.0,0.4);
-      break;
+        audio.setAudioBufferDelay(2.0, 0.4);
+        break;
       case 5:
-        audio.setAudioBufferDelay(2.5,0.5);
-      break;
+        audio.setAudioBufferDelay(2.5, 0.5);
+        break;
     }
-}
-
-// This function was added to enable AGC to the client //
-function handleAGCChange(newAGC) {
-
-  currentAGC = newAGC;
-  switch(newAGC) {
-    case 0:
-      audio.setAGCStateSpeed(false,0);
-      break;
-    case 1:
-     audio.setAGCStateSpeed(true,1);
-     break;
-    case 2:
-      audio.setAGCStateSpeed(true,2);
-      break;
-    case 3:
-      audio.setAGCStateSpeed(true,3);
-      break;
   }
-}
 
-// This Band Selection function handles band changes sent from the Band Selection section of the main page //
-// The 7.15255 float below is (total_watefall_span / maximum_frequency_sampled) // 
-function handleBandChange(newBand) {
-  let centerFreq = parseFloat((((bandArray[newBand].endFreq - bandArray[newBand].startFreq) /2 ) + bandArray[newBand].startFreq)); 
-  let waterfallEndSpan = parseFloat((bandArray[newBand].endFreq / 7.15255));
-  let waterfallStartSpan = parseFloat((bandArray[newBand].startFreq / 7.15255));
-  let waterfallSpan = ((waterfallEndSpan - waterfallStartSpan) / 2);
-  waterfallSpan = waterfallSpan + (waterfallSpan * 0.01); // 10% above band edge
-  frequencyInputComponent.setFrequency(centerFreq);
-  handleFrequencyChange({ detail: centerFreq });
-  updatePassband();
-  let [l, m, r] = audio.getAudioRange();
-  const [waterfallL, waterfallR] = waterfall.getWaterfallRange();
-  const offset = ((m - waterfallL) / (waterfallR - waterfallL)) * waterfall.canvasWidth;
-  m = Math.min(waterfall.waterfallMaxSize - 512, Math.max(512, m));
-  l = Math.floor(m - 512);
-  r = Math.ceil(m + 512);
-  // Below sets the waterfall brightness //
-  min_waterfall = -40;
-  max_waterfall = 120;
-  handleMinMove();
-  handleMaxMove();
-  // End waterfall brightness // 
-  l -= waterfallSpan;
-  r += waterfallSpan;
-  frequencyInputComponent.setFrequency(centerFreq);
-  handleFrequencyChange({ detail: centerFreq });
-  waterfall.setWaterfallRange(l, r);
-  frequencyMarkerComponent.updateFrequencyMarkerPositions();
-  updatePassband();
-  currentBand = newBand;
-}
-// End of Band Selection Function //
-
-
-// Function to publish bandwidth buttons //
-let newBandwidth = ["250","500","1800","2400","2800","3000","3500","4000","4500","5000","10000","12000"];
-let bwDiff = 0;
-function handleBandwidthChange(newBW) {
-  staticBandwidthEnabled = !staticBandwidthEnabled;
-  currentBandwidth = newBW;
-  // Set Mode
-  SetMode(demodulation);
-  // Set a starting point so we can calculate the offset from //
-  // the default setting for the particular mode //
-  switch (demodulation) {
-    case "CW":
-      bwDiff = Math.abs(newBW - 500);
-      break;
-    case "LSB":
-      bwDiff = (newBW - 2700);
-      break;
-    case "USB":
-      bwDiff = (newBW - 2700); 
-      break;
-    case "AM":
-      bwDiff = (newBW - 9000);
-      break;
-    case "FM":
-      bwDiff = (newBW - 10000);
-      break;
+  // This function was added to enable AGC to the client //
+  function handleAGCChange(newAGC) {
+    currentAGC = newAGC;
+    switch (newAGC) {
+      case 0:
+        audio.setAGCStateSpeed(false, 0);
+        break;
+      case 1:
+        audio.setAGCStateSpeed(true, 1);
+        break;
+      case 2:
+        audio.setAGCStateSpeed(true, 2);
+        break;
+      case 3:
+        audio.setAGCStateSpeed(true, 3);
+        break;
+    }
   }
-  handleBandwidthOffsetClick(bwDiff);
-  if(!staticBandwidthEnabled) { 
-    SetMode(demodulation);
-    currentBandwidth = 0;
+
+  // This Band Selection function handles band changes sent from the Band Selection section of the main page //
+  // The 7.15255 float below is (total_watefall_span / maximum_frequency_sampled) //
+  function handleBandChange(newBand) {
+    let centerFreq = parseFloat(
+      (bandArray[newBand].endFreq - bandArray[newBand].startFreq) / 2 +
+        bandArray[newBand].startFreq,
+    );
+    let waterfallEndSpan = parseFloat(bandArray[newBand].endFreq / 7.15255);
+    let waterfallStartSpan = parseFloat(bandArray[newBand].startFreq / 7.15255);
+    let waterfallSpan = (waterfallEndSpan - waterfallStartSpan) / 2;
+    waterfallSpan = waterfallSpan + waterfallSpan * 0.01; // 10% above band edge
+    frequencyInputComponent.setFrequency(centerFreq);
+    handleFrequencyChange({ detail: centerFreq });
+    updatePassband();
+    let [l, m, r] = audio.getAudioRange();
+    const [waterfallL, waterfallR] = waterfall.getWaterfallRange();
+    const offset =
+      ((m - waterfallL) / (waterfallR - waterfallL)) * waterfall.canvasWidth;
+    m = Math.min(waterfall.waterfallMaxSize - 512, Math.max(512, m));
+    l = Math.floor(m - 512);
+    r = Math.ceil(m + 512);
+    // Below sets the waterfall brightness //
+    min_waterfall = -40;
+    max_waterfall = 120;
+    handleMinMove();
+    handleMaxMove();
+    // End waterfall brightness //
+    l -= waterfallSpan;
+    r += waterfallSpan;
+    frequencyInputComponent.setFrequency(centerFreq);
+    handleFrequencyChange({ detail: centerFreq });
+    waterfall.setWaterfallRange(l, r);
+    frequencyMarkerComponent.updateFrequencyMarkerPositions();
+    updatePassband();
+    currentBand = newBand;
   }
-}
+  // End of Band Selection Function //
 
+  // This Band Selection function handles band changes sent from the Band Selection section of the main page //
+  // The 7.15255 float below is (total_watefall_span / maximum_frequency_sampled) //
+  function handleBandChangePopup(newBand) {
+    let centerFreq = parseFloat(
+      (bandArray[newBand].endFreq - bandArray[newBand].startFreq) / 2 +
+        bandArray[newBand].startFreq,
+    );
+    let waterfallEndSpan = parseFloat(bandArray[newBand].endFreq / 7.15255);
+    let waterfallStartSpan = parseFloat(bandArray[newBand].startFreq / 7.15255);
+    let waterfallSpan = (waterfallEndSpan - waterfallStartSpan) / 2;
+    waterfallSpan = waterfallSpan + waterfallSpan * 0.01; // 10% above band edge
+    frequencyInputComponent.setFrequency(centerFreq);
+    handleFrequencyChange({ detail: centerFreq });
+    updatePassband();
+    let [l, m, r] = audio.getAudioRange();
+    const [waterfallL, waterfallR] = waterfall.getWaterfallRange();
+    const offset =
+      ((m - waterfallL) / (waterfallR - waterfallL)) * waterfall.canvasWidth;
+    m = Math.min(waterfall.waterfallMaxSize - 512, Math.max(512, m));
+    l = Math.floor(m - 512);
+    r = Math.ceil(m + 512);
+    // Below sets the waterfall brightness //
+    min_waterfall = -40;
+    max_waterfall = 120;
+    handleMinMove();
+    handleMaxMove();
+    // End waterfall brightness //
+    l -= waterfallSpan;
+    r += waterfallSpan;
+    frequencyInputComponent.setFrequency(centerFreq);
+    handleFrequencyChange({ detail: centerFreq });
+    waterfall.setWaterfallRange(l, r);
+    frequencyMarkerComponent.updateFrequencyMarkerPositions();
+    updatePassband();
+    currentBand = newBand;
+    setTimeout(function () {
+      toggleBandPopup();
+    }, 1500);
+  }
+  // End of Band Selection Function //
 
-// Begin Fine Tuning Steps Function
-//Function created to create a fine tune button //
-// for mobile users //
-let finetuningsteps = ["-10","-5","-1","-0.5","-0.1","0","+0.1","+0.5","+1","+5","+10"];
+  // Function to publish bandwidth buttons //
+  let newBandwidth = [
+    "250",
+    "500",
+    "1800",
+    "2400",
+    "2800",
+    "3000",
+    "3500",
+    "4000",
+    "4500",
+    "5000",
+    "10000",
+    "12000",
+  ];
+  let newStaticBandwidth = 0;
+  function handleSetStaticBandwidth(newstaticbandwidth) {
+    let bwDiff = 0;
+    currentBandwidth = bandwidth * 1000;
+    if (newstaticbandwidth > currentBandwidth) {
+      bwDiff = newstaticbandwidth - currentBandwidth;
+    } else if (newstaticbandwidth < currentBandwidth) {
+      bwDiff = newstaticbandwidth - currentBandwidth;
+    } else {
+      bwDiff = 0;
+    }
+    handleBandwidthOffsetClick(bwDiff);
+    newStaticBandwidth = newstaticbandwidth; // This will update the IF Filter button //
+    setTimeout(function () {
+      toggleIFPopup();
+    }, 1500);
+  }
 
-function handleFineTuningStep(finetuningstep) {
-  finetuningstep = (parseFloat(finetuningstep) * 1e3);
-  if(finetuningstep == 0) { frequency = Math.round(frequency)}
-  frequencyInputComponent.setFrequency((frequency * 1e3)+ finetuningstep);
-  handleFrequencyChange({ detail: ((frequency * 1e3) + finetuningstep) });
-  updatePassband();
-}
-// End Fine Tuning Steps Function //
+  // Begin Fine Tuning Steps Function
+  //Function created to create a fine tune button //
+  // for mobile users //
+  let mobilefinetuningsteps = [
+    "+0.1",
+    "+0.5",
+    "+1",
+    "+5",
+    "+10",
+    "-0.1",
+    "-0.5",
+    "-1",
+    "-5",
+    "-10",
+    "0",
+  ];
+  // For desktop users
+  let finetuningsteps = [
+    "-10",
+    "-5",
+    "-1",
+    "-0.5",
+    "-0.1",
+    "0",
+    "+0.1",
+    "+0.5",
+    "+1",
+    "+5",
+    "+10",
+  ];
 
-// Begin Tuning Steps Function
+  function handleFineTuningStep(finetuningstep) {
+    finetuningstep = parseFloat(finetuningstep) * 1e3;
+    if (finetuningstep == 0) {
+      frequency = Math.round(frequency);
+    }
+    frequencyInputComponent.setFrequency(frequency * 1e3 + finetuningstep);
+    handleFrequencyChange({ detail: frequency * 1e3 + finetuningstep });
+    updatePassband();
+  }
+  // End Fine Tuning Steps Function //
+
+  // Begin Tuning Steps Function
   function handleTuningStep(tuningstep) {
     //parseFloat(tuningstep);
     currentTuneStep = tuningstep;
   }
-// End Tuning Steps Function //
-
+  // End Tuning Steps Function //
 
   // Mobile gestures
   // Pinch = Mousewheel = Zoom
@@ -1751,7 +1996,10 @@ function handleFineTuningStep(finetuningstep) {
   function handleWaterfallPinchMove(e) {
     const diff = e.detail.scale - pinchX;
     pinchX = e.detail.scale;
-    const scale = 1 - Math.abs(e.detail.srcEvent.movementX) / waterfallCanvas.getBoundingClientRect().width;
+    const scale =
+      1 -
+      Math.abs(e.detail.srcEvent.movementX) /
+        waterfallCanvas.getBoundingClientRect().width;
     const evt = e.detail.srcEvent;
     evt.coords = { x: e.detail.center.x };
     evt.deltaY = -Math.sign(diff);
@@ -1768,926 +2016,1577 @@ function handleFineTuningStep(finetuningstep) {
       updatePassband();
     }
   }
-  
 </script>
-
-<svelte:window on:mousemove={handleWindowMouseMove} on:mouseup={handleWindowMouseUp} />
 
 <main class="custom-scrollbar">
   <div class="h-screen overflow-hidden flex flex-col min-h-screen">
-    <div class="w-full sm:h-screen overflow-y-scroll sm:w-1/2 xl:w-1/3 lg:w-1/4 sm:transition-all sm:ease-linear sm:duration-100" style="width:100%;">
-      <div class="min-h-screen bg-custom-dark text-gray-200" style="padding-top: 5px;">
+    <div
+      class="w-full sm:h-screen overflow-y-scroll sm:w-1/2 xl:w-1/3 lg:w-1/4 sm:transition-all sm:ease-linear sm:duration-100"
+      style="width:100%;"
+    >
+      <div
+        class="min-h-screen bg-custom-dark text-gray-200"
+        style="padding-top: 5px;"
+      >
         <div class="max-w-screen-lg mx-auto">
           <div class="xl:pt-1"></div>
 
           <!--Titel Box with Admin Infos, to be personalized-->
-          <div class="flex flex-col rounded p-2 justify-center" id="chat-column">
-            <div class="p-3 sm:p-5 flex flex-col bg-gray-800 border border-gray-700 rounded-lg w-full mb-8" id="chat-box" style="opacity: 0.85;">
+          <div
+            class="flex flex-col rounded p-2 justify-center"
+            id="chat-column"
+          >
+            <div
+              class="p-3 sm:p-5 flex flex-col bg-gray-800 border border-gray-700 rounded-lg w-full mb-8"
+              id="chat-box"
+              style="opacity: 0.85;"
+            >
               <!-- Header -->
-              <h4 class="text-xl sm:text-2xl font-semibold text-gray-100 mb-2 sm:mb-4">
+              <h4
+                class="text-xl sm:text-2xl font-semibold text-gray-100 mb-2 sm:mb-4"
+              >
                 <span>
-		  {siteInformation}<a href="https://k7fry.com/grid/?qth={siteGridSquare}" target="new" style="color:rgba(0, 225, 255, 0.993)">{siteGridSquare}</a>.
+                  {siteInformation}<a
+                    href="https://k7fry.com/grid/?qth={siteGridSquare}"
+                    target="new"
+                    style="color:rgba(0, 225, 255, 0.993)">{siteGridSquare}</a
+                  >.
                 </span>
               </h4>
 
               <!-- Details -->
-	      <span class="text-white text-xs sm:text-sm mr-4 mb-2 sm:mb-0">
-		{siteSysop} e-mail:
-		<a href="mailto:{siteSysopEmailAddress}?subject=WebSDR" style="color:rgba(0, 225, 255, 0.993)">{siteSysopEmailAddress}</a> - Visit other PhantomSDR+ WebSDR servers at:&nbsp;
-		<a href="https://sdr-list.xyz/" target="_blank" style="color:#FF0000;">sdr-list.xyz</a>
-	      </span>
+              <span class="text-white text-xs sm:text-sm mr-4 mb-2 sm:mb-0">
+                {siteSysop} e-mail:
+                <a
+                  href="mailto:{siteSysopEmailAddress}?subject=WebSDR"
+                  style="color:rgba(0, 225, 255, 0.993)"
+                  >{siteSysopEmailAddress}</a
+                >
+                - Visit other PhantomSDR+ WebSDR servers at:&nbsp;
+                <a
+                  href="https://sdr-list.xyz/"
+                  target="_blank"
+                  style="color:#FF0000;">sdr-list.xyz</a
+                >
+              </span>
 
-<span>&nbsp;</span>
+              <span>&nbsp;</span>
 
-<div class="flex justify-center w-full">
+              <div class="flex justify-center w-full">
+                <!-- Frequency Lookup -->
 
-<!-- Frequency Lookup -->
-
-Frequency Lookup :&nbsp; 
-                <button class="glass-button text-white py-1 px-3 mb-2 lg:mb-0 rounded-lg text-xs sm:text-sm" style="color:rgba(0, 225, 255, 0.993)" onClick="window.open('http://www.mwlist.org/mwlist_quick_and_easy.php?area=1&amp;kHz='+{Math.round(frequency)},'websdrstationinfo','');">
+                Frequency Lookup :&nbsp;
+                <button
+                  class="glass-button text-white py-1 px-3 mb-2 lg:mb-0 rounded-lg text-xs sm:text-sm"
+                  style="color:rgba(0, 225, 255, 0.993)"
+                  onClick="window.open('http://www.mwlist.org/mwlist_quick_and_easy.php?area=1&amp;kHz='+{Math.round(
+                    frequency,
+                  )},'websdrstationinfo','');"
+                >
                   <span class="icon">MW List</span>
-                  </button>
-&nbsp;&nbsp;&nbsp;
-                <button class="glass-button text-white py-1 px-3 mb-2 lg:mb-0 rounded-lg text-xs sm:text-sm" style="color:rgba(0, 225, 255, 0.993)" onClick="window.open('http://www.short-wave.info/index.php?freq='+{Math.round(frequency)}+'&amp;timbus=NOW&amp;ip=179&amp;porm=4','websdrstationinfo','')">
+                </button>
+                &nbsp;&nbsp;&nbsp;
+                <button
+                  class="glass-button text-white py-1 px-3 mb-2 lg:mb-0 rounded-lg text-xs sm:text-sm"
+                  style="color:rgba(0, 225, 255, 0.993)"
+                  onClick="window.open('http://www.short-wave.info/index.php?freq='+{Math.round(
+                    frequency,
+                  )}+'&amp;timbus=NOW&amp;ip=179&amp;porm=4','websdrstationinfo','')"
+                >
                   <span class="icon">Shortwave List</span>
-                  </button>
-&nbsp;&nbsp;&nbsp;
-<form method="get" target="_blank" action="https://www.qrzcq.com" >
-                Callsign lookup: &nbsp;&nbsp;&nbsp;
-                <input type="text" name="q" value="" size="6" style=" background-color: #2D3B4F; color: rgb(0, 255, 255); border-style: groove; border-color: grey; text-align:center; font-size: 84%;" on:click={() => this.form.q.select().focus()}>&nbsp;&nbsp;&nbsp;
-                <input type="hidden" name="action" value="search" >
-                <input class="glass-button text-white py-1 px-3 mb-2 lg:mb-0 rounded-lg text-xs sm:text-sm" type="submit" name="page" value="Search" />
+                </button>
+                &nbsp;&nbsp;&nbsp;
+                <form
+                  method="get"
+                  target="_blank"
+                  action="https://www.qrzcq.com"
+                >
+                  Callsign lookup: &nbsp;&nbsp;&nbsp;
+                  <input
+                    type="text"
+                    name="q"
+                    value=""
+                    size="6"
+                    style=" background-color: #2D3B4F; color: rgb(0, 255, 255); border-style: groove; border-color: grey; text-align:center; font-size: 84%;"
+                    on:click={() => this.form.q.select().focus()}
+                  />&nbsp;&nbsp;&nbsp;
+                  <input type="hidden" name="action" value="search" />
+                  <input
+                    class="glass-button text-white py-1 px-3 mb-2 lg:mb-0 rounded-lg text-xs sm:text-sm"
+                    type="submit"
+                    name="page"
+                    value="Search"
+                  />
                 </form>
-
-</div>
-<!-- End Frequency Lookup -->
-              
+              </div>
+              <!-- End Frequency Lookup -->
 
               <!-- Collapsible Menu -->
               <div>
                 <!-- Toggle Button -->
                 <center>
-		  <button class="bg-gray-700 hover:bg-gray-600 text-white font-medium py-2 px-4 rounded-lg flex items-center transition-colors ring-2 ring-blue-500 s-XsEmFtvddWTw" on:click={() => toggleMenu()} style="margin-top: 15px;">
+                  <button
+                    class="bg-gray-700 hover:bg-gray-600 text-white font-medium py-2 px-4 rounded-lg flex items-center transition-colors ring-2 ring-blue-500 s-XsEmFtvddWTw"
+                    on:click={() => toggleMenu()}
+                    style="margin-top: 15px;"
+                  >
                     <span id="menu-toggle-label">Open Additional Info</span>
                   </button>
                 </center>
-
                 <!-- Collapsible Content -->
-                <div id="collapsible-menu" class="hidden mt-3 bg-gray-700 p-3 rounded">
-                  <ul style="font-size: 0.91rem; text-align: left;">
-                    <b>Setup &amp; Configuration:</b>
-                    <br />
-		    <span style="/*text-decoration: line-through*/"><b>Hardware:</b> {siteHardware}</span>
-                    <br /> <br />
-		    <span style="/*text-decoration: line-through*/"><b>Software:</b> {siteSoftware}</span>
-                    <br /><br />
-<span style="/*text-decoration: line-through*/"><b>Note:</b>
-                    <br />
-		    {siteNote}
-                    <br />                    
-                    <br />
-                    <div style="font-weight: bold;">Current band propagation statistics:</div>
-                    <div style="display: flex; align-items: center; margin-top: 10px;">
-                      <a href="https://www.hamqsl.com/solar.html" title="Click for more information">
-                        <img alt="Solar propagation" src="https://www.hamqsl.com/solar101vhf.php" />
-                      </a>
-                      <br />
+                <div
+                  id="collapsible-menu"
+                  class="hidden mt-3 bg-gray-700 p-3 rounded"
+                >
+                  <div class="columns">
+                    <div class="first-column">
+                      <ul style="font-size: 0.91rem; text-align: left;">
+                        <b>Setup &amp; Configuration:</b>
+                        <br />
+                        <span style="/*text-decoration: line-through*/"
+                          ><b>Hardware:</b> {siteHardware}</span
+                        >
+                        <br /> <br />
+                        <span style="/*text-decoration: line-through*/"
+                          ><b>Software:</b> {siteSoftware}</span
+                        >
+                        <br /><br />
+                        <span style="/*text-decoration: line-through*/"
+                          ><b>Note:</b>
+                          <br />
+                          {siteNote}
+                          <br />
+                          <br />
+
+                          <div style="font-weight: bold;">
+                            Current band propagation for Europe and statistics:
+                          </div>
+                          <div
+                            style="display: flex; align-items: center; margin-top: 10px;"
+                          >
+                            <img
+                              src="https://images.lightningmaps.org/blitzortung/europe/index.php?map=5&amp;t=5092072"
+                              alt="Lightning Map"
+                              style="margin-right: 10px;"
+                            />
+                            <a
+                              href="https://www.hamqsl.com/solar.html"
+                              title="Click for more information"
+                            >
+                              <img
+                                alt="Solar propagation"
+                                src="https://www.hamqsl.com/solar101vhf.php"
+                              />
+                            </a><br />
+                          </div>
+                        </span>
+                      </ul>
                     </div>
-                    <br />
-                  </ul>
+
+                    <div class="second-column">
+                      <!--- Any other information -->
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
 
-          <style>
-            .hidden {
-              display: none;
-            }
-          </style>
-          <!--End of Titel Box -->
+            <style>
+              .hidden {
+                display: none;
+              }
 
-          <!--Beginn of Waterfall -->
-          <div class="flex justify-center w-full">
-            <div class="w-full" id="outer-waterfall-container">
-              <div style="image-rendering:pixelated;" class="w-full xl:rounded-lg peer overflow-hidden" id="waterfall">
-                <canvas class="w-full bg-black peer {spectrumDisplay ? 'max-h-40' : 'max-h-0'}" bind:this={spectrumCanvas} on:wheel={handleWaterfallWheel} on:click={passbandTunerComponent.handlePassbandClick} width="1024" height="128"></canvas>
-                <canvas
-                  class="w-full bg-black {waterfallDisplay ? 'block' : 'hidden'}"
-                  bind:this={waterfallCanvas}
-                  use:pinch
-                  on:pinchstart={handleWaterfallPinchStart}
-                  on:pinchmove={handleWaterfallPinchMove}
-                  use:pan
-                  on:panmove={handleWaterfallPanMove}
-                  on:wheel={handleWaterfallWheel}
-                  on:mousedown={handleWaterfallMouseDown}
-                  width="1024"
-                ></canvas>
-                <canvas class="hidden" bind:this={tempCanvas} width="1024" height="1024"></canvas>
-                <FrequencyInput bind:this={frequencyInputComponent} on:change={handleFrequencyChange}></FrequencyInput>
+              /* Setting the container width to 100% enabling overflow auto to clear the float */
+              .columns {
+                width: 100%;
+                overflow: auto; /* To clear the float */
+              }
 
-                <FrequencyMarkers bind:this={frequencyMarkerComponent} on:click={passbandTunerComponent.handlePassbandClick} on:wheel={handleWaterfallWheel} on:markerclick={handleFrequencyMarkerClick}></FrequencyMarkers>
-                <canvas
-                  class="w-full bg-black peer"
-                  bind:this={graduationCanvas}
-                  on:wheel={handleWaterfallWheel}
-                  on:click={passbandTunerComponent.handlePassbandClick}
-                  on:mousedown={(e) => passbandTunerComponent.handleMoveStart(e, 1)}
-                  on:touchstart={passbandTunerComponent.handleTouchStart}
-                  on:touchmove={passbandTunerComponent.handleTouchMove}
-                  on:touchend={passbandTunerComponent.handleTouchEnd}
-                  width="1024"
-                  height="20"
-                ></canvas>
-                <PassbandTuner on:change={handlePassbandChange} on:wheel={handleWaterfallWheel} bind:this={passbandTunerComponent}></PassbandTuner>
-                <canvas
-                  class="w-full bg-black peer"
-                  bind:this={bandPlanCanvas}
-                  on:wheel={handleWaterfallWheel}
-                  on:click={passbandTunerComponent.handlePassbandClick}
-                  on:mousedown={(e) => passbandTunerComponent.handleMoveStart(e, 1)}
-                  on:touchstart={passbandTunerComponent.handleTouchStart}
-                  on:touchmove={passbandTunerComponent.handleTouchMove}
-                  on:touchend={passbandTunerComponent.handleTouchEnd}
-                  width="1024"
-                  height="20"
+              /* Styling for the left column */
+              .first-column {
+                float: left; /* Float left to place it on the left side */
+                width: 50%; /* Taking 50% of the container width */
+              }
+
+              /* Styling for the right column */
+              .second-column {
+                float: right; /* Float right to place it on the right side */
+                width: 50%; /* Taking 50% of the container width */
+              }
+            </style>
+            <!--End of Titel Box -->
+            <div class="xl:pt-20"></div>
+            <div class="flex justify-center w-full">
+              <div class="w-full" id="outer-waterfall-container">
+                <div
+                  style="image-rendering:pixelated;"
+                  class="w-full xl:rounded-lg peer overflow-hidden"
+                  id="waterfall"
                 >
-                </canvas>
+                  <canvas
+                    class="w-full bg-black peer {spectrumDisplay
+                      ? 'max-h-40'
+                      : 'max-h-0'}"
+                    bind:this={spectrumCanvas}
+                    on:wheel={handleWaterfallWheel}
+                    on:click={passbandTunerComponent.handlePassbandClick}
+                    width="1024"
+                    height="128"
+                  ></canvas>
+                  <canvas
+                    class="w-full bg-black {waterfallDisplay
+                      ? 'block'
+                      : 'hidden'}"
+                    bind:this={waterfallCanvas}
+                    use:pinch
+                    on:pinchstart={handleWaterfallPinchStart}
+                    on:pinchmove={handleWaterfallPinchMove}
+                    use:pan
+                    on:panmove={handleWaterfallPanMove}
+                    on:wheel={handleWaterfallWheel}
+                    on:mousedown={handleWaterfallMouseDown}
+                    width="1024"
+                  ></canvas>
+                  <canvas
+                    class="hidden"
+                    bind:this={tempCanvas}
+                    width="1024"
+                    height="1024"
+                  ></canvas>
+                  <FrequencyInput
+                    bind:this={frequencyInputComponent}
+                    on:change={handleFrequencyChange}
+                  ></FrequencyInput>
+
+                  <FrequencyMarkers
+                    bind:this={frequencyMarkerComponent}
+                    on:click={passbandTunerComponent.handlePassbandClick}
+                    on:wheel={handleWaterfallWheel}
+                    on:markerclick={handleFrequencyMarkerClick}
+                  ></FrequencyMarkers>
+                  <canvas
+                    class="w-full bg-black peer"
+                    bind:this={graduationCanvas}
+                    on:wheel={handleWaterfallWheel}
+                    on:click={passbandTunerComponent.handlePassbandClick}
+                    on:mousedown={(e) =>
+                      passbandTunerComponent.handleMoveStart(e, 1)}
+                    on:touchstart={passbandTunerComponent.handleTouchStart}
+                    on:touchmove={passbandTunerComponent.handleTouchMove}
+                    on:touchend={passbandTunerComponent.handleTouchEnd}
+                    width="1024"
+                    height="20"
+                  ></canvas>
+                  <PassbandTuner
+                    on:change={handlePassbandChange}
+                    on:wheel={handleWaterfallWheel}
+                    bind:this={passbandTunerComponent}
+                  ></PassbandTuner>
+                  <canvas
+                    class="w-full bg-black peer"
+                    bind:this={bandPlanCanvas}
+                    on:wheel={handleWaterfallWheel}
+                    on:click={passbandTunerComponent.handlePassbandClick}
+                    on:mousedown={(e) =>
+                      passbandTunerComponent.handleMoveStart(e, 1)}
+                    on:touchstart={passbandTunerComponent.handleTouchStart}
+                    on:touchmove={passbandTunerComponent.handleTouchMove}
+                    on:touchend={passbandTunerComponent.handleTouchEnd}
+                    width="1024"
+                    height="20"
+                  >
+                  </canvas>
+                </div>
               </div>
             </div>
-          </div>
 
-          <div class="absolute inset-0 z-20 bg-black bg-opacity-40 backdrop-filter backdrop-blur-sm transition-opacity duration-300 ease-in-out cursor-pointer flex justify-center items-center" id="startaudio">
-            <div class="text-center p-4 pointer-events-none">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto mb-2 text-white opacity-80" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
-              </svg>
-              <p class="text-white text-lg font-medium">Tap to enable audio</p>
+            <div
+              class="absolute inset-0 z-20 bg-black bg-opacity-40 backdrop-filter backdrop-blur-sm transition-opacity duration-300 ease-in-out cursor-pointer flex justify-center items-center"
+              id="startaudio"
+            >
+              <div class="text-center p-4 pointer-events-none">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-12 w-12 mx-auto mb-2 text-white opacity-80"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="1.5"
+                    d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"
+                  />
+                </svg>
+                <p class="text-white text-lg font-medium">
+                  Tap to enable audio
+                </p>
+              </div>
             </div>
-          </div>
 
-          {#if showTutorial}
-            <div class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center" on:click|self={nextStep} transition:fade={{ duration: 300 }}>
-              {#key currentStep}
-                {#if highlightedElement}
-                  <div
-                    class="absolute bg-blue-500 bg-opacity-20 border-2 border-blue-500 transition-all duration-300 ease-in-out pointer-events-none"
-                    style="
+            {#if showTutorial}
+              <div
+                class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center"
+                on:click|self={nextStep}
+                transition:fade={{ duration: 300 }}
+              >
+                {#key currentStep}
+                  {#if highlightedElement}
+                    <div
+                      class="absolute bg-blue-500 bg-opacity-20 border-2 border-blue-500 transition-all duration-300 ease-in-out pointer-events-none"
+                      style="
                     top: {highlightPosition.top}px;
                     left: {highlightPosition.left}px;
                     width: {highlightPosition.width}px;
                     height: {highlightPosition.height}px;
                   "
-                    transition:scale={{ duration: 300, start: 0.95 }}
-                  ></div>
+                      transition:scale={{ duration: 300, start: 0.95 }}
+                    ></div>
+                  {/if}
+                {/key}
+
+                <div
+                  class="fixed bottom-4 left-4 right-4 sm:left-1/2 sm:right-auto sm:transform sm:-translate-x-1/2 bg-gray-800 text-white p-4 sm:p-6 rounded-lg shadow-lg max-w-md text-center backdrop-filter backdrop-blur-lg bg-opacity-90 border border-gray-700"
+                  transition:fly={{ y: 50, duration: 300 }}
+                >
+                  <h3 class="text-lg sm:text-xl font-semibold mb-2">
+                    Step {currentStep + 1} of {tutorialSteps.length}
+                  </h3>
+                  <p class="mb-4 text-sm sm:text-lg">
+                    {tutorialSteps[currentStep].content}
+                  </p>
+                  <div
+                    class="flex flex-col sm:flex-row justify-between space-y-2 sm:space-y-0 sm:space-x-4"
+                  >
+                    <button
+                      class="w-full sm:w-auto px-4 sm:px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50"
+                      on:click|stopPropagation={endTutorial}
+                    >
+                      Skip Tutorial
+                    </button>
+                    <button
+                      class="w-full sm:w-auto px-4 sm:px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
+                      on:click|stopPropagation={nextStep}
+                    >
+                      {currentStep < tutorialSteps.length - 1
+                        ? "Next"
+                        : "Finish"}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            {/if}
+
+            <!-- alles neu  -->
+
+            <div
+              class="flex flex-col xl:flex-row rounded p-5 justify-center rounded"
+              id="middle-column"
+            >
+              <div
+                class="p-5 flex flex-col items-center bg-gray-800 lg:border lg:border-gray-700 rounded-none rounded-t-lg lg:rounded-none lg:rounded-l-lg"
+              >
+                <h3 class="text-lg font-semibold text-gray-100 mb-6">Audio</h3>
+                <div class="control-group" id="volume-slider">
+                  <button
+                    class="glass-button text-white font-bold rounded-full w-10 h-10 flex items-center justify-center mr-4"
+                    on:click={handleMuteChange}
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 24 24"
+                      fill="currentColor"
+                      class="w-5 h-5"
+                    >
+                      {#if mute}
+                        <path
+                          d="M13.5 4.06c0-1.336-1.616-2.005-2.56-1.06l-4.5 4.5H4.508c-1.141 0-2.318.664-2.66 1.905A9.76 9.76 0 001.5 12c0 .898.121 1.768.35 2.595.341 1.24 1.518 1.905 2.659 1.905h1.93l4.5 4.5c.945.945 2.561.276 2.561-1.06V4.06zM17.78 9.22a.75.75 0 10-1.06 1.06L18.44 12l-1.72 1.72a.75.75 0 001.06 1.06L19.5 13.06l1.72 1.72a.75.75 0 101.06-1.06L20.56 12l1.72-1.72a.75.75 0 00-1.06-1.06L19.5 10.94l-1.72-1.72z"
+                        />
+                      {:else}
+                        <path
+                          d="M13.5 4.06c0-1.336-1.616-2.005-2.56-1.06l-4.5 4.5H4.508c-1.141 0-2.318.664-2.66 1.905A9.76 9.76 0 001.5 12c0 .898.121 1.768.35 2.595.341 1.24 1.518 1.905 2.659 1.905h1.93l4.5 4.5c.945.945 2.561.276 2.561-1.06V4.06zM18.584 5.106a.75.75 0 011.06 0c3.808 3.807 3.808 9.98 0 13.788a.75.75 0 11-1.06-1.06 8.25 8.25 0 000-11.668.75.75 0 010-1.06z"
+                        />
+                      {/if}
+                    </svg>
+                  </button>
+                  <div class="slider-container">
+                    <input
+                      type="range"
+                      bind:value={volume}
+                      on:input={handleVolumeChange}
+                      class="glass-slider"
+                      disabled={mute}
+                      min="0"
+                      max="100"
+                      step="1"
+                    />
+                  </div>
+                  <span class="value-display text-gray-300 ml-4">{volume}%</span
+                  >
+                </div>
+
+                <div class="control-group mt-4" id="squelch-slider">
+                  <button
+                    class="glass-button text-white font-bold rounded-full w-10 h-10 flex items-center justify-center mr-4"
+                    style="background: {squelchEnable
+                      ? 'rgba(16, 185, 129, 0.2)'
+                      : 'rgba(255, 255, 255, 0.05)'}"
+                    on:click={handleSquelchChange}
+                  >
+                    <span class="text-xs font-semibold">SQ</span>
+                  </button>
+                  <div class="slider-container">
+                    <input
+                      type="range"
+                      bind:value={squelch}
+                      on:input={handleSquelchMove}
+                      class="glass-slider"
+                      min="-150"
+                      max="0"
+                      step="1"
+                    />
+                  </div>
+                  <span class="value-display text-gray-300 ml-4"
+                    >{squelch}db</span
+                  >
+                </div>
+
+                <!-- Audio Buffer Slider -->
+                <div class="control-group mt-4" id="audio-buffer-slider">
+                  <button
+                    class="glass-button text-white font-bold rounded-full w-10 h-10 flex items-center justify-center mr-4"
+                    style="background: {audioBufferDelayEnabled
+                      ? 'rgba(16, 185, 129, 0.2)'
+                      : 'rgba(255, 255, 255, 0.05)'}"
+                    on:click={() =>
+                      handleAudioBufferDelayMove((audioBufferDelay += 1))}
+                  >
+                    <span class="text-white text-xs font-semibold">Buffer</span>
+                  </button>
+                  <div class="slider-container">
+                    <input
+                      type="range"
+                      bind:value={audioBufferDelay}
+                      on:input={handleAudioBufferDelayMove(audioBufferDelay)}
+                      class="glass-slider"
+                      min="1"
+                      max="5"
+                      step="1"
+                    />
+                  </div>
+                  <span class="value-display text-gray-300 ml-4"
+                    >×{audioBufferDelay}</span
+                  >
+                  <hr class="border-gray-600 my-2" />
+                </div>
+                <!-- End of Buffer -->
+
+                <!-- Begin Filter Selection -->
+                <h3 class="text-white text-lg font-semibold mb-2">Filters</h3>
+                <div class="w-full mb-6">
+                  <div id="moreoptions" class="grid grid-cols-4 gap-2">
+                    {#each [{ option: "NR", icon: "wave-square", enabled: NREnabled }, { option: "NB", icon: "zap", enabled: NBEnabled }, { option: "AN", icon: "shield", enabled: ANEnabled }, { option: "CTCSS", icon: "filter", enabled: CTCSSSupressEnabled }] as { option, icon, enabled }}
+                      <button
+                        class="retro-button text-white font-bold h-10 text-sm rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out {enabled
+                          ? 'bg-blue-600 pressed scale-95'
+                          : 'bg-gray-700 hover:bg-gray-600'}"
+                        on:click={() => {
+                          if (option === "NR") handleNRChange();
+                          else if (option === "NB") handleNBChange();
+                          else if (option === "AN") handleANChange();
+                          else handleCTCSSChange();
+                        }}
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          class="h-4 w-4 mr-2"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        >
+                          {#if icon === "wave-square"}
+                            <path d="M0 15h3v-3h3v3h3v-3h3v3h3v-3h3v3h3v-3h3" />
+                          {:else if icon === "zap"}
+                            <polygon
+                              points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"
+                            />
+                          {:else if icon === "shield"}
+                            <path
+                              d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"
+                            />
+                          {:else if icon === "filter"}
+                            <polygon
+                              points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"
+                            />
+                          {/if}
+                        </svg>
+                        <span>{option}</span>
+                      </button>
+                    {/each}
+                  </div>
+                  <hr class="border-gray-600 my-2" />
+                  <!-- End Filter Selection -->
+                </div>
+
+                <!-- Decoder Options -->
+                <div class="mt-6">
+                  <label class="block text-sm font-medium text-gray-300 mb-3"
+                    >Decoder Options</label
+                  >
+                  <div class="flex justify-center gap-4">
+                    <button
+                      class="bg-gray-700 hover:bg-gray-600 text-white font-medium py-2 px-4 rounded-lg flex items-center transition-colors {!ft8Enabled
+                        ? 'ring-2 ring-blue-500'
+                        : ''}"
+                      on:click={(e) => handleFt8Decoder(e, false)}
+                    >
+                      None
+                    </button>
+                    <button
+                      id="ft8-decoder"
+                      class="bg-gray-700 hover:bg-gray-600 text-white font-medium py-2 px-4 rounded-lg flex items-center transition-colors {ft8Enabled
+                        ? 'ring-2 ring-blue-500'
+                        : ''}"
+                      on:click={(e) => handleFt8Decoder(e, true)}
+                    >
+                      FT8
+                    </button>
+                  </div>
+                </div>
+
+                <!-- FT8 Messages List -->
+                {#if ft8Enabled}
+                  <div class="bg-gray-700 rounded-lg p-4 mt-6">
+                    <div class="flex justify-between items-center mb-3 text-sm">
+                      <h4 class="text-white font-semibold">FT8 Messages</h4>
+                      <span
+                        class="text-gray-300 pl-4 lg:pl-0"
+                        id="farthest-distance">Farthest: 0 km</span
+                      >
+                    </div>
+                    <div
+                      class="text-gray-300 overflow-auto max-h-40 custom-scrollbar pr-2"
+                    >
+                      <div id="ft8MessagesList">
+                        <!-- Dynamic content populated here -->
+                      </div>
+                    </div>
+                  </div>
                 {/if}
-              {/key}
+
+                <!-- Recording Options -->
+                <div class="mt-6 w-full">
+                  <label class="block text-sm font-medium text-gray-300 mb-3"
+                    >Recording Options</label
+                  >
+                  <div class="flex justify-center gap-4">
+                    <button
+                      class="bg-gray-700 hover:bg-red-600 text-white font-medium py-2 px-4 rounded-lg flex items-center transition-colors {isRecording
+                        ? 'ring-2 ring-red-500'
+                        : ''}"
+                      on:click={toggleRecording}
+                    >
+                      {#if isRecording}
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          class="h-4 w-4 mr-2"
+                          viewBox="0 0 20 20"
+                          fill="currentColor"
+                        >
+                          <path
+                            d="M10 18a8 8 0 100-16 8 8 0 000 16zM8 7a1 1 0 00-1 1v4a1 1 0 001 1h4a1 1 0 001-1V8a1 1 0 00-1-1H8z"
+                          />
+                        </svg>
+                        Stop
+                      {:else}
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          class="h-4 w-4 mr-2"
+                          viewBox="0 0 20 20"
+                          fill="currentColor"
+                        >
+                          <path
+                            fill-rule="evenodd"
+                            d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z"
+                            clip-rule="evenodd"
+                          />
+                        </svg>
+                        Record
+                      {/if}
+                    </button>
+
+                    {#if canDownload}
+                      <button
+                        class="bg-gray-700 hover:bg-green-600 text-white font-medium py-2 px-4 rounded-lg flex items-center transition-colors"
+                        on:click={downloadRecording}
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          class="h-4 w-4 mr-2"
+                          viewBox="0 0 20 20"
+                          fill="currentColor"
+                        >
+                          <path
+                            fill-rule="evenodd"
+                            d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z"
+                            clip-rule="evenodd"
+                          />
+                        </svg>
+                        Download
+                      </button>
+                    {/if}
+                  </div>
+                </div>
+              </div>
 
               <div
-                class="fixed bottom-4 left-4 right-4 sm:left-1/2 sm:right-auto sm:transform sm:-translate-x-1/2 bg-gray-800 text-white p-4 sm:p-6 rounded-lg shadow-lg max-w-md text-center backdrop-filter backdrop-blur-lg bg-opacity-90 border border-gray-700"
-                transition:fly={{ y: 50, duration: 300 }}
+                class="flex flex-col items-center bg-gray-800 p-6 border-l-0 border-r-0 border border-gray-700"
               >
-                <h3 class="text-lg sm:text-xl font-semibold mb-2">
-                  Step {currentStep + 1} of {tutorialSteps.length}
-                </h3>
-                <p class="mb-4 text-sm sm:text-lg">
-                  {tutorialSteps[currentStep].content}
-                </p>
-                <div class="flex flex-col sm:flex-row justify-between space-y-2 sm:space-y-0 sm:space-x-4">
-                  <button class="w-full sm:w-auto px-4 sm:px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50" on:click|stopPropagation={endTutorial}> Skip Tutorial </button>
-                  <button class="w-full sm:w-auto px-4 sm:px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50" on:click|stopPropagation={nextStep}>
-                    {currentStep < tutorialSteps.length - 1 ? "Next" : "Finish"}
-                  </button>
-                </div>
-              </div>
-            </div>
-          {/if}
-
-
-<!-- Begin Waterfall Controls Section  -->
-
-	 <div class="flex flex-col xl:flex-row rounded p-5 justify-center rounded w-full mb-2" id="middle-column">
-            <div class="p-5 flex flex-col items-center bg-gray-800 lg:border lg:border-gray-700 rounded-none rounded-t-lg lg:rounded-none lg:rounded-l-lg" style="opacity: 0.95;">
-
-<h3 class="text-white text-lg font-semibold mb-4">Waterfall Controls</h3>
-
-              <div class="w-full mb-6">
-                <div id="brightness-controls" class="flex items-center justify-between mb-2">
-                  <span class="text-gray-300 text-sm w-10">Min:</span>
-                  <div class="slider-container w-48 mx-2">
-                    <input type="range" bind:value={min_waterfall} min="-100" max="255" step="1" class="glass-slider w-full" on:input={handleMinMove} />
-                  </div>
-                  <span class="text-gray-300 text-sm w-10 text-right">{min_waterfall}</span>
-                </div>
-                <div class="flex items-center justify-between">
-                  <span class="text-gray-300 text-sm w-10">Max:</span>
-                  <div class="slider-container w-48 mx-2">
-                    <input type="range" bind:value={max_waterfall} min="0" max="255" step="1" class="glass-slider w-full" on:input={handleMaxMove} />
-                  </div>
-                  <span class="text-gray-300 text-sm w-10 text-right">{max_waterfall}</span>
-                </div>
-              </div>
-
-              <div class="w-full mb-6">
-                <div id="colormap-select" class="relative">
-                  <select bind:value={currentColormap} on:change={handleWaterfallColormapSelect} class="glass-select block w-full pl-3 pr-10 py-2 text-sm rounded-lg text-gray-200 appearance-none focus:outline-none">
-                    {#each availableColormaps as colormap}
-                      <option value={colormap}>{colormap}</option>
-                    {/each}
-                  </select>
-                  <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-400">
-                    <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-                      <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
-                    </svg>
-                  </div>
-                </div>
-              </div>
-
-
-<div class="w-full mb-6">
-<h3 class="text-white text-lg font-semibold mb-2">Zoom</h3>
-                      <div id="zoom-controls" class="grid grid-cols-4 gap-2">
-                        {#each [{ action: "+", title: "Zoom in", icon: "zoom-in", text: "In" }, { action: "-", title: "Zoom out", icon: "zoom-out", text: "Out" }, { action: "max", title: "Zoom to max", icon: "maximize", text: "Max" }, { action: "min", title: "Zoom to min", icon: "minimize", text: "Min" }] as { action, title, icon, text }}
-                          <button class="retro-button text-white font-bold h-10 text-sm rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out bg-gray-700 hover:bg-gray-600" on:click={(e) => handleWaterfallMagnify(e, action)} {title}>
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                              {#if icon === "zoom-in"}
-                                <circle cx="11" cy="11" r="8" />
-                                <line x1="21" y1="21" x2="16.65" y2="16.65" />
-                                <line x1="11" y1="8" x2="11" y2="14" />
-                                <line x1="8" y1="11" x2="14" y2="11" />
-                              {:else if icon === "zoom-out"}
-                                <circle cx="11" cy="11" r="8" />
-                                <line x1="21" y1="21" x2="16.65" y2="16.65" />
-                                <line x1="8" y1="11" x2="14" y2="11" />
-                              {:else if icon === "maximize"}
-                                <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3" />
-                              {:else if icon === "minimize"}
-                                <path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3" />
-                              {/if}
-                            </svg>
-                            <span>{text}</span>
-                          </button>
-                        {/each}
-                      </div>
-		      <hr class="border-gray-600 my-2" />
-                    </div>
-
-<!-- END -->
-
-<!-- START of waterfal control buttons -->
-{#if buttons }
-<div class="w-full mb-6">
-<div class="grid grid-cols-4 gap-2">
-        <button id="waterfall-toggle" class="retro-button text-sm text-white font-bold h-10 text-base rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out {waterfallDisplay === true ? 'bg-blue-600 pressed scale-95' : 'bg-gray-700 hover:bg-gray-600'}" on:click={handleWaterfallChange} title="Waterfall Toggle">
-                          Waterfall
-			  </button>
-
-        <button id="spectrum-toggle" class="retro-button text-sm text-white font-bold h-10 text-base rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out {spectrumDisplay === true ? 'bg-blue-600 pressed scale-95' : 'bg-gray-700 hover:bg-gray-600'}" on:click={handleSpectrumChange} title="Spectrum Toggle">
-	                   Spectrum
-			   </button>
-	<button id="auto-adjust" class="retro-button text-sm text-white font-bold h-10 text-base rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out {autoAdjustEnabled === true ? 'bg-blue-600 pressed scale-95' : 'bg-gray-700 hover:bg-gray-600'}" on:click={() => handleAutoAdjust()} title="Auto Adjust">                                                                         Auto Adjust
-                          </button>
-			          <button id="bigger-waterfall" class="retro-button text-sm text-white font-bold h-10 text-base rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out {biggerWaterfall === true ? 'bg-blue-600 pressed scale-95' : 'bg-gray-700 hover:bg-gray-600'}" on:click={handleWaterfallSizeChange} title="Height (+)">                                             Height (+)
-                          </button>
-</div>
-<hr class="border-gray-600 my-2" />
-                  </div>
-
-{:else}
-<!-- END of Waterfall Control Buttons -->
-
-              <div class="w-full mb-6">
-                <div class="grid grid-cols-1 sm:grid-cols-4 gap-2">
-                 <div id="waterfall-toggle" class="flex flex-col items-center">
-                    <span class="text-sm text-gray-300 mb-1 text-center">Waterfall</span>
-                    <label class="toggle-switch">
-                    {#if (waterfallDisplay)}
-                      <input type="checkbox" checked on:change={handleWaterfallChange} />
-                       {:else}
-                       <input type="checkbox" on:change={handleWaterfallChange} />
-                       {/if}
-                      <span class="toggle-slider"></span>
-                    </label>
-                  </div>
-
-                   <div id="spectrum-toggle" class="flex flex-col items-center">
-                    <span class="text-sm text-gray-300 mb-1">Spectrum</span>
-                    <label class="toggle-switch">
-                     {#if (spectrumDisplay)}
-                      <input type="checkbox" checked on:change={handleSpectrumChange} />
-                       {:else}
-                       <input type="checkbox" on:change={handleSpectrumChange} />
-                       {/if}
-                      <span class="toggle-slider"></span>
-                    </label>
-                  </div>
-
-                <div id="auto-adjust" class="flex flex-col items-center">
-                    <span class="text-sm text-gray-300 mb-1">Auto Adjust</span>
-                    <label class="toggle-switch">
-                      <input type="checkbox" on:change={() => handleAutoAdjust()} />
-                      <span class="toggle-slider"></span>
-                    </label>
-                  </div>
-
-                  <div id="bigger-waterfall" class="flex flex-col items-center">
-                    <span class="text-sm text-gray-300 mb-1 text-center">Height (+)</span>
-                    <label class="toggle-switch">
-                      <input type="checkbox" on:change={handleWaterfallSizeChange} />
-                      <span class="toggle-slider"></span>
-                    </label>
-                  </div>
-                </div>
-                <hr class="border-gray-600 my-2" />
-              </div>
-{/if}
-
-              <!-- Decoder Options -->
-              <div class="w-full mt-6">
-                <h3 class="text-white text-lg font-semibold mb-2">Decoder Options</h3>
-                <div class="flex justify-center gap-4">
-                  <button class="bg-gray-700 hover:bg-gray-600 text-white font-medium py-2 px-4 rounded-lg flex items-center transition-colors {!ft8Enabled ? 'ring-2 ring-blue-500' : ''}" on:click={(e) => handleFt8Decoder(e, false)}> None </button>
-                  <button id="ft8-decoder" class="bg-gray-700 hover:bg-gray-600 text-white font-medium py-2 px-4 rounded-lg flex items-center transition-colors {ft8Enabled ? 'ring-2 ring-blue-500' : ''}" on:click={(e) => handleFt8Decoder(e, true)}> FT8 </button>
-                </div>
-              </div>
-
-              <!-- FT8 Messages List -->
-              {#if ft8Enabled}
-                <div class="bg-gray-700 rounded-lg p-4 mt-6">
-                  <div class="flex justify-between items-center mb-3 text-sm">
-                    <h4 class="text-white font-semibold">FT8 Messages</h4>
-                    <span class="text-gray-300 pl-4 lg:pl-0" id="farthest-distance">Farthest: 0 km</span>
-                  </div>
-                  <div class="text-gray-300 overflow-auto max-h-40 custom-scrollbar pr-2">
-                    <div id="ft8MessagesList">
-                      <!-- Dynamic content populated here -->
-                    </div>
-                  </div>
-                </div>
-              {/if}
-</div>
-
-            <div class="flex flex-col items-center bg-gray-800 p-6 border-l-0 border-r-0 border border-gray-700" style="opacity: 0.95;">
-              <div class="bg-black rounded-lg p-8 min-w-80 lg:min-w-0 lg:p-4 mb-4 w-full" id="smeter-tut">
-                <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
-		  <div class="flex flex-col items-center text-sm">
-<input class="text-4xl h-16 w-48 text-center bg-black text-cyan-300 focus:outline-none focus:ring-2 focus:ring-cyan-500 rounded-lg mb-2"
-                      type="text"
-                      bind:value={frequency}
-                      size="3"
-                      name="frequency"
-                      on:keydown={(e) => {
-                        if (e.key === "Enter") {
-                          frequencyInputComponent.setFrequency(frequency * 1e3);
-                          handleFrequencyChange({ detail: frequency * 1e3 });
-                        }
-                      }}
-                      use:handleWheel
-                    />
-
-<div class="flex items-center justify-center text-xs w-48">
-<span class="text-yellow-400 px-1">{vfo}</span>
-<span class="text-gray-400 px-1">|</span>
-<span class="text-green-400 px-1">{demodulation}</span>
-<span class="text-gray-400 px-1">|</span>
-<span class="text-cyan-300 px-1">{bandwidth} kHz</span>
-</div>
-</div>
-
-
-<!--
-                    <div class="flex items-center justify-center text-sm w-48">
-                      <span class="text-green-400 px-2">{demodulation}</span>
-                      <span class="text-gray-400 px-2">|</span>
-                      <span class="text-cyan-300 px-2">BW {bandwidth} kHz</span>
-		    </div>
-                  </div>
--->
-
-
-<div class="flex flex-col items-center"><span class="date-time" style="color:rgba(0, 225, 255, 0.993)" >{formatter.format(currentDateTime)}
-</span><div></div><div class="flex space-x-1 mb-1">
-
-
-<div class="px-1 py-0.5 flex items-center justify-center w-10 h-5 relative overflow-hidden">
-<span class="text-xs font-mono {mute ? 'text-red-500' : 'text-red-500 opacity-20 relative z-10'}">MUTED</span>
-</div>
-
-<div class="px-1 py-0.5 flex items-center justify-center w-10 h-5 relative overflow-hidden">
-<span class="text-xs font-mono {squelchEnable ? `text-orange-500` : `text-orange-500 opacity-20 relative z-10`}">SQ</span>
-</div>
-
-<div class="px-1 py-0.5 flex items-center justify-center w-10 h-5 relative overflow-hidden">
-<span class="text-xs font-mono {NREnabled ? `text-green-500` : `text-green-500 opacity-20 relative z-10`}">NR</span>
-</div>
-
-<div class="px-1 py-0.5 flex items-center justify-center w-10 h-5 relative overflow-hidden">
-<span class="text-xs font-mono {NBEnabled ? `text-green-500` : `text-green-500 opacity-20 relative z-10`}">NB<span>
-</div>
-
-<div class="px-1 py-0.5 flex items-center justify-center w-10 h-5 relative overflow-hidden">
-<span class="text-xs font-mono {ANEnabled ? `text-green-500` : `text-green-500 opacity-20 relative z-10`}">AN</span>
-</div>
-
-<div class="px-1 py-0.5 flex items-center justify-center w-10 h-5 relative overflow-hidden">
-<span class="text-xs font-mono {CTCSSSupressEnabled ? `text-yellow-500` : `text-yellow-500 opacity-20 relative z-10`}">CTCSS</span>
-</div>
-</div>
-
-
-
-                    <!-- SMeter -->
-                    <canvas id="sMeter" width="250" height="40"></canvas>
-                  </div>
-                </div>
-              </div>
-
-
-              <div id="frequencyContainer" class="w-full mt-4">
-<h3 class="text-white text-lg font-semibold mb-2">Modes</h3>
-                <div class="space-y-3">
-                  <!-- Demodulation -->
-                  <div class="flex justify-center">
-                    <div id="demodulationModes" class="grid grid-cols-3 sm:grid-cols-6 gap-2 w-full max-w-md">
-                      {#each ["USB", "LSB", "CW", "AM", "FM"] as mode}
-                        <button on:click={() => SetMode(mode)}
-                          class="retro-button text-white font-bold h-10 text-sm rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out {demodulation === mode ? 'bg-blue-600 pressed scale-95' : 'bg-gray-700 hover:bg-gray-600'}"
-                        >
-                          {mode}
-                        </button>
-                      {/each}
-		      <button
-on:click={() => toggleVFO(vfo)}
-class="retro-button text-white font-bold h-10 w-20 text-xs rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out {toggleVFO === vfo ? 'bg-green-600 pressed scale-95' : 'bg-blue-700 hover:bg-gray-600'}">
-<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
-<path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" />
-</svg>
-{vfo}
-</button>
-
-                    </div>
-                    </div>
-<hr class="border-gray-600 my-2" />
-<!-- End of Mode Selection Area -->
-
-
-
- <!-- Added to create a setion of buttons to click -->
- <!-- which is more mobile friendly to users -->              
- <!-- Fine Tuning Step -->       
-<div class="w-full mt-4">
-<h3 class="text-white text-lg font-semibold mb-2">Fine Tuning (kHz)</h3>
-<div class="grid grid-cols-1 sm:grid-cols-11 gap-2">
-    {#each finetuningsteps as finetuningstep}
-        <button id="fine-tuning-selector" class="retro-button text-white font-bold h-10 text-base rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out bg-gray-700 hover:bg-gray-600"
-                          on:click={() => handleFineTuningStep(finetuningstep)} title="{finetuningstep} kHz">
-			  {finetuningstep}
-			  </button>
-                      {/each}
-                    </div>
-<hr class="border-gray-600 my-2" />
-                  </div>
-
-<!-- End of Fine Tuning Section -->
-
-<!-- NEW Begin Band Selection Section -->
-<!--
-<div class="w-full mt-4">
-<h3 class="text-white text-lg font-semibold mb-2">Bands</h3>
-<div class="grid grid-cols-1 sm:grid-cols-8 gap-2">
-    {#each bandArray as bandData, index}
-      {#if verifyRegion(bandData.ITU)}
-        {#if bandData.name != ""}
-          {#if printBandButton(bandData.startFreq,bandData.endFreq)}
-      <button id="band-selector" class="retro-button text-sm text-white fontrbold h-7 text-base rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out {currentBand === index ? 'bg-blue-600 pressed scale-95' : 'bg-gray-700 hover:bg-gray-600'}"
-        on:click={() => handleBandChange(index)} title="{bandData.name}">{bandData.name}
-      </button>
-          {/if}
-        {/if} 
-      {:else}
-    {/if}
-  {/each}
-</div>
-<hr class="border-gray-600 my-2" />
-</div>
--->
-<!-- End of Band Selection Area -->
-
-<!-- Begin Band Selection Section -->
-<div class="w-full mt-4">
-<h3 class="text-white text-lg font-semibold mb-2">Bands</h3>
-<div class="grid grid-cols-1 sm:grid-cols-8 gap-2">
-    {#each bandArray as bandData, index}
-      {#if verifyRegion(bandData.ITU)}
-        {#if printBandButton(bandData.startFreq,bandData.endFreq)}
-	  <button id="band-selector" class="retro-button text-sm text-white fontrbold h-7 text-base rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out {currentBand === index ? 'bg-blue-600 pressed scale-95' : 'bg-gray-700 hover:bg-gray-600'}" 
-	    on:click={() => handleBandChange(index)} title="{bandData.name}">{bandData.name} 
-	  </button>
-        {/if}
-      {:else}
-    {/if}
-  {/each}
-</div>
-<hr class="border-gray-600 my-2" />
-</div>
-<!-- End of Band Selection Area -->
-
-
-
-<!-- Begin Bandwidth Selection Area -->
- <div class="w-full mt-4">
- <h3 class="text-white text-lg font-semibold mb-2">Bandwidth</h3>
- <div class="grid grid-cols-1 sm:grid-cols-6 gap-2">
-   {#each bandwithoffsets as bandwidthoffset (bandwidthoffset)}
-   <button id="bandwidth-offset-selector" class="retro-button text-white font-bold h-10 text-base rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out {bandwidth === bandwidthoffset
-? 'bg-blue-600 pressed scale-95'
-: 'bg-gray-700 hover:bg-gray-600'}"
-    on:click={(e) => handleBandwidthOffsetClick(bandwidthoffset)}
-     title="{bandwidthoffset} kHz"
- >
-  {bandwidthoffset}
- </button>
-  {/each}
-</div>
-<hr class="border-gray-600 my-2" />
-                  </div>
-<!-- End of Bandwidth Selection Area -->
-
-
- <!-- Static Bandwidth Buttons -->
-<div class="w-full mt-4">
-<h3 class="text-white text-lg font-semibold mb-2">IF Filters</h3>
-  <div class="grid grid-cols-1 sm:grid-cols-9 gap-2">
-    {#each newBandwidth as newbandwidth}
-      <button id="fine-tuning-selector" class="retro-button text-sm text-white font-bold h-10 text-base rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out {currentBandwidth === newbandwidth ? 'bg-blue-600 pressed scale-95' : 'bg-gray-700 hover:bg-gray-600'}" on:click={() => handleBandwidthChange(newbandwidth)} title="{newbandwidth}">
-	{#if newbandwidth == 250}250 Hz
-        {:else if newbandwidth == 500}500 Hz
-        {:else if newbandwidth == 1800}1.8 kHz
-        {:else if newbandwidth == 2400}2.4 kHz
-        {:else if newbandwidth == 2800}2.8 kHz
-        {:else if newbandwidth == 3000}3.0 kHz
-        {:else if newbandwidth == 3500}3.5 kHz
-        {:else if newbandwidth == 4000}4.0 kHz
-        {:else if newbandwidth == 4500}4.5 kHz
-        {:else if newbandwidth == 5000}5.0 kHz
-        {:else if newbandwidth == 10000}10.0 kHz
-        {:else if newbandwidth == 12000}12.0 kHz
-        {:else}
-        {/if}
-      </button>
-    {/each}
-  </div>
-  <hr class="border-gray-600 my-2" />
-</div>
-
-<!-- End of Static Ban
-
-
- <!-- Tuning Steps -->
-<div class="w-full mt-4">
-<h3 class="text-white text-lg font-semibold mb-2">Tuning Steps</h3>
-<div class="grid grid-cols-1 sm:grid-cols-10 gap-2">
-  {#each tuningsteps as tuningstep (tuningstep)}
-    <button id="tuning-step-selector" class="text-sm retro-button text-white font-bold h-10 text-base rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out {currentTuneStep == tuningstep ? 'bg-blue-600 pressed scale-95' : 'bg-gray-700 hover:bg-gray-600'}"
-      on:click={() => handleTuningStep(tuningstep)} title="{tuningstep} Hz">
-      {#if tuningstep == 10}Default
-      {:else if tuningstep == 50}50 Hz
-      {:else if tuningstep == 100}100 Hz
-      {:else if tuningstep == 500}500 Hz
-      {:else if tuningstep == 1000}1 kHz
-      {:else if tuningstep == 5000}5 kHz
-      {:else if tuningstep == 9000}9 kHz
-      {:else if tuningstep == 10000}10 kHz
-      {:else if tuningstep == 100000}100 kHz
-      {:else if tuningstep == 1000000}1 MHz
-      {:else}
-      {tuningstep}
-      {/if}
-</button>
-  {/each}
-</div>
-<hr class="border-gray-600 my-2" />
-</div>
-
-<!-- End of Tuning Step Selection Area -->
-
-</div>
-</div>
-</div>
-            
-
-<div class="flex flex-col items-center bg-gray-800 p-6 lg:border lg:border-gray-700 rounded-none rounded-b-lg lg:rounded-none lg:rounded-r-lg" style="opacity: 0.95;">
-<h3 class="text-white text-lg font-semibold mb-4">Audio</h3>
-  <div class="control-group" id="volume-slider">
-  <button class="glass-button text-white font-bold rounded-full w-10 h-10 flex items-center justify-center mr-4" on:click={handleMuteChange}>
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5">
-          {#if mute}
-            <path d="M13.5 4.06c0-1.336-1.616-2.005-2.56-1.06l-4.5 4.5H4.508c-1.141 0-2.318.664-2.66 1.905A9.76 9.76 0 001.5 12c0 .898.121 1.768.35 2.595.341 1.24 1.518 1.905 2.659 1.905h1.93l4.5 4.5c.945.945 2.561.276 2.561-1.06V4.06zM17.78 9.22a.75.75 0 10-1.06 1.06L18.44 12l-1.72 1.72a.75.75 0 001.06 1.06L19.5 13.06l1.72 1.72a.75.75 0 101.06-1.06L20.56 12l1.72-1.72a.75.75 0 00-1.06-1.06L19.5 10.94l-1.72-1.72z"  />
-                    {:else}
-                      <path
-                        d="M13.5 4.06c0-1.336-1.616-2.005-2.56-1.06l-4.5 4.5H4.508c-1.141 0-2.318.664-2.66 1.905A9.76 9.76 0 001.5 12c0 .898.121 1.768.35 2.595.341 1.24 1.518 1.905 2.659 1.905h1.93l4.5 4.5c.945.945 2.561.276 2.561-1.06V4.06zM18.584 5.106a.75.75 0 011.06 0c3.808 3.807 3.808 9.98 0 13.788a.75.75 0 11-1.06-1.06 8.25 8.25 0 000-11.668.75.75 0 010-1.06z"
+                <div
+                  class="bg-black rounded-lg p-8 min-w-80 lg:min-w-0 lg:p-4 mb-4 w-full"
+                  id="smeter-tut"
+                >
+                  <div
+                    class="flex flex-col sm:flex-row items-center justify-between gap-4"
+                  >
+                    <div class="flex flex-col items-center">
+                      <input
+                        class="text-4xl h-16 w-48 text-center bg-black text-cyan-300 focus:outline-none focus:ring-2 focus:ring-cyan-500 rounded-lg mb-2"
+                        type="text"
+                        bind:value={frequency}
+                        size="3"
+                        name="frequency"
+                        on:keydown={(e) => {
+                          if (e.key === "Enter") {
+                            frequencyInputComponent.setFrequency(
+                              frequency * 1e3,
+                            );
+                            handleFrequencyChange({ detail: frequency * 1e3 });
+                          }
+                        }}
+                        use:handleWheel
                       />
-                    {/if}
-                  </svg>
-                </button>
-                <div class="slider-container">
-                  <input type="range" bind:value={volume} on:input={handleVolumeChange} class="glass-slider" disabled={mute} min="0" max="100" step="1" />
-                </div>
-                <span class="value-display text-gray-300 ml-4">{volume}%</span>
-              </div>
 
-              <div class="control-group mt-4" id="squelch-slider">
-                <button class="glass-button text-white font-bold rounded-full w-10 h-10 flex items-center justify-center mr-4" style="background: {squelchEnable ? 'rgba(16, 185, 129, 0.2)' : 'rgba(255, 255, 255, 0.05)'}" on:click={handleSquelchChange}>
-		  <span class="text-white text-xs font-semibold">SQ</span>
-                </button>
-                <div class="slider-container">
-                  <input type="range" bind:value={squelch} on:input={handleSquelchMove} class="glass-slider" min="-150" max="0" step="1" />
-                </div>
-                <span class="value-display text-gray-300 ml-4">{squelch}dB</span>
-              </div>
-<!-- Added -->
+                      <div
+                        class="flex items-center justify-center text-xs w-48"
+                      >
+                        <span class="text-yellow-400 px-1">{vfo}</span>
+                        <span class="text-gray-400 px-1">|</span>
+                        <span class="text-green-400 px-1">{demodulation}</span>
+                        <span class="text-gray-400 px-1">|</span>
+                        <span class="text-cyan-300 px-1">{bandwidth} kHz</span>
+                      </div>
+                    </div>
 
-<div class="control-group mt-4" id="audio-buffer-slider">
-                <button class="glass-button text-white font-bold rounded-full w-10 h-10 flex items-center justify-center mr-4" style="background: {audioBufferDelayEnabled ? 'rgba(16, 185, 129, 0.2)' : 'rgba(255, 255, 255, 0.05)'}" on:click={() => handleAudioBufferDelayMove((audioBufferDelay+=1))}>
-                  <span class="text-white text-xs font-semibold">Buffer</span>
-                </button>
-                <div class="slider-container">
-                  <input type="range" bind:value={audioBufferDelay} on:input={handleAudioBufferDelayMove(audioBufferDelay)} class="glass-slider" min="1" max="5" step="1" />
-                </div>
-                <span class="value-display text-gray-300 ml-4">×{audioBufferDelay}</span>
-              <hr class="border-gray-600 my-2" />
-              </div>
-
-
-<!-- AGC Selection -->
-<!--
-<h3 class="text-white text-lg font-semibold mb-4">AGC</h3>
-<div class="w-full mb-6">
-<div class="grid grid-cols-1 sm:grid-cols-4 gap-2">
-<button id="agc-selection" class="retro-button text-white font-bold h-10 text-base rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out {currentAGC === 0 ? 'bg-blue-600 pressed scale-95' : 'bg-gray-700 hover:bg-gray-600'}" on:click={() => handleAGCChange(0)} title="Auto">Auto
-</button>
-
-<button class="retro-button text-white font-bold h-10 text-base rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out {currentAGC === 1 ? 'bg-blue-600 pressed scale-95' : 'bg-gray-700 hover:bg-gray-600'}" on:click={() => handleAGCChange(1)} title="Fast AGC">Fast
-</button>
-
-<button class="retro-button text-white font-bold h-10 text-base rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out {currentAGC === 2 ? 'bg-blue-600 pressed scale-95' : 'bg-gray-700 hover:bg-gray-600'}" on:click={() => handleAGCChange(2)} title="Mid AGC">Mid
-</button>
-
-<button class="retro-button text-white font-bold h-10 text-base rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out {currentAGC === 3 ? 'bg-blue-600 pressed scale-95' : 'bg-gray-700 hover:bg-gray-600'}" on:click={() => handleAGCChange(3)} title="Slow AGC">Slow
-</button>
-</div>
-<hr class="border-gray-600 my-2" />
-</div>
--->
-<!-- End AGC Section -->
-
-<!-- Begin Filter Selection -->
- <h3 class="text-white text-lg font-semibold mb-2">Filters</h3>
-                    <div class="w-full mb-6">
-                      <div id="moreoptions" class="grid grid-cols-4 gap-2">
-                        {#each [{ option: "NR", icon: "wave-square", enabled: NREnabled }, { option: "NB", icon: "zap", enabled: NBEnabled }, { option: "AN", icon: "shield", enabled: ANEnabled }, { option: "CTCSS", icon: "filter", enabled: CTCSSSupressEnabled }] as { option, icon, enabled }}
-                          <button
-                            class="retro-button text-white font-bold h-10 text-sm rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out {enabled ? 'bg-blue-600 pressed scale-95' : 'bg-gray-700 hover:bg-gray-600'}"
-                            on:click={() => {
-                              if (option === "NR") handleNRChange();
-                              else if (option === "NB") handleNBChange();
-                              else if (option === "AN") handleANChange();
-                              else handleCTCSSChange();
-                            }}
+                    <div class="flex flex-col items-center">
+                      <span
+                        class="date-time"
+                        style="color:rgba(0, 225, 255, 0.993)"
+                        >{formatter.format(currentDateTime)}
+                      </span>
+                      <div></div>
+                      <div class="flex space-x-1 mb-1">
+                        <div
+                          class="px-1 py-0.5 flex items-center justify-center w-10 h-5 relative overflow-hidden"
+                        >
+                          <span
+                            class="text-xs font-mono {mute
+                              ? 'text-red-500'
+                              : 'text-red-500 opacity-20 relative z-10'}"
+                            >MUTED</span
                           >
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                              {#if icon === "wave-square"}
-                                <path d="M0 15h3v-3h3v3h3v-3h3v3h3v-3h3v3h3v-3h3" />
-                              {:else if icon === "zap"}
-                                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
-                              {:else if icon === "shield"}
-                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-                              {:else if icon === "filter"}
-                                <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
-                              {/if}
-                            </svg>
-                            <span>{option}</span>
+                        </div>
+
+                        <div
+                          class="px-1 py-0.5 flex items-center justify-center w-10 h-5 relative overflow-hidden"
+                        >
+                          <span
+                            class="text-xs font-mono {squelchEnable
+                              ? `text-orange-500`
+                              : `text-orange-500 opacity-20 relative z-10`}"
+                            >SQ</span
+                          >
+                        </div>
+
+                        <div
+                          class="px-1 py-0.5 flex items-center justify-center w-10 h-5 relative overflow-hidden"
+                        >
+                          <span
+                            class="text-xs font-mono {NREnabled
+                              ? `text-green-500`
+                              : `text-green-500 opacity-20 relative z-10`}"
+                            >NR</span
+                          >
+                        </div>
+
+                        <div
+                          class="px-1 py-0.5 flex items-center justify-center w-10 h-5 relative overflow-hidden"
+                        >
+                          <span
+                            class="text-xs font-mono {NBEnabled
+                              ? `text-green-500`
+                              : `text-green-500 opacity-20 relative z-10`}"
+                            >NB<span> </span></span
+                          >
+                        </div>
+
+                        <div
+                          class="px-1 py-0.5 flex items-center justify-center w-10 h-5 relative overflow-hidden"
+                        >
+                          <span
+                            class="text-xs font-mono {ANEnabled
+                              ? `text-green-500`
+                              : `text-green-500 opacity-20 relative z-10`}"
+                            >AN</span
+                          >
+                        </div>
+
+                        <div
+                          class="px-1 py-0.5 flex items-center justify-center w-10 h-5 relative overflow-hidden"
+                        >
+                          <span
+                            class="text-xs font-mono {CTCSSSupressEnabled
+                              ? `text-yellow-500`
+                              : `text-yellow-500 opacity-20 relative z-10`}"
+                            >CTCSS</span
+                          >
+                        </div>
+                      </div>
+
+                      <!-- SMeter -->
+                      <canvas id="sMeter" width="250" height="40"></canvas>
+                    </div>
+                  </div>
+                </div>
+
+                <div id="frequencyContainer" class="w-full mt-4">
+                  <div class="space-y-3">
+                    <div class="w-full mt-4">
+                      <h3 class="text-white text-lg font-semibold mb-2">
+                        Fine Tuning (kHz)
+                      </h3>
+                      <div class="grid grid-cols-5 sm:grid-cols-11 gap-2">
+                        {#each finetuningsteps as finetuningstep}
+                          <button
+                            id="fine-tuning-selector"
+                            class="retro-button text-white font-bold h-10 text-base rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out bg-gray-700 hover:bg-gray-600"
+                            on:click={() =>
+                              handleFineTuningStep(finetuningstep)}
+                            title="{finetuningstep} kHz"
+                          >
+                            {finetuningstep}
                           </button>
                         {/each}
                       </div>
                       <hr class="border-gray-600 my-2" />
-<!-- End Filter Selection -->
-
-
-<!-- Recording Options -->
-<div class="mt-6 w-full">
-<h3 class="text-white text-lg font-semibold mb-2">Recording Options</h3>
-<div class="flex justify-center gap-4">
-<button class="bg-gray-700 hover:bg-red-600 text-white font-medium py-2 px-4 rounded-lg flex items-center transition-colors {isRecording ? 'ring-2 ring-red-500' : ''}" on:click={toggleRecording}>
-
-{#if isRecording}
-<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" viewBox="0 0 20 20" fill="currentColor">
-<path d="M10 18a8 8 0 100-16 8 8 0 000 16zM8 7a1 1 0 00-1 1v4a1 1 0 001 1h4a1 1 0 001-1V8a1 1 0 00-1-1H8z" />
-</svg>
-Stop
-
-{:else}
-<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" viewBox="0 0 20 20" fill="currentColor">
-<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" />
-</svg>
-Record
-
-{/if}
-</button>
-
-{#if canDownload}
-<button class="bg-gray-700 hover:bg-green-600 text-white font-medium py-2 px-4 rounded-lg flex items-center transition-colors" on:click={downloadRecording}>
-<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" viewBox="0 0 20 20" fill="currentColor">
-<path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" />
-</svg>
-Download
-</button>
-
-{/if}
-</div>             
-</div>
-
-
-</div>
-<hr class="border-gray-600 my-2" />
-
-
-
-
-
-
-<!-- Begin Bookmark / Memories Section -->
-              <button id="bookmark-button" class="glass-button text-white font-bold py-2 px-4 rounded-lg flex items-center w-full justify-center" on:click={toggleBookmarkPopup}>
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
-                  <path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" />
-                </svg>
-                Bookmarks
-              </button>
-
-              <div id="user_count_container" class="w-full mt-4 bg-gradient-to-r from-purple-600 to-blue-600 rounded-lg p-1">
-                <div id="total_user_count" class="bg-gray-800 rounded-md p-2 text-center flex justify-between items-center">
-                  <!-- Content will be populated by JavaScript -->
-                </div>
-              </div>
-
-              <!-- Bookmark Popup Window -->
-              {#if showBookmarkPopup}
-                <div class="relative inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                  <div class="bg-gray-800 p-6 rounded-lg max-w-lg w-full max-h-[80vh] flex flex-col">
-                    <div class="flex justify-between items-center mb-3">
-                      <h2 class="text-lg font-bold text-white">Bookmarks</h2>
-                      <button class="text-gray-400 hover:text-white" on:click={toggleBookmarkPopup}>
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                        </svg>                       
-                      </button>
                     </div>
 
-                    <!-- Add Bookmark Section -->
-                    <div class="mb-4">
-                      <label class="block text-sm font-medium text-gray-300 mb-4">Add New Bookmark</label>
-                      <div class="flex items-center gap-2">
-                        <input class="glass-input text-white text-sm rounded-lg focus:outline-none px-3 py-2 flex-grow" bind:value={newBookmarkName} placeholder="Bookmark name" />
-                        <button class="glass-button text-white py-1 px-3 mb-2 lg:mb-0 rounded-lg text-xs sm:text-sm" style="color:#ffffff" on:click={addBookmark}>                         
-                          Add
+                    <!-- Demodulation -->
+                    <h3 class="text-white text-lg font-semibold mb-2">Modes</h3>
+                    <div class="flex justify-center">
+                      <div
+                        id="demodulationModes"
+                        class="grid grid-cols-3 sm:grid-cols-6 gap-2 w-full max-w-md"
+                      >
+                        {#each ["USB", "LSB", "CW", "AM", "FM"] as mode}
+                          <button
+                            on:click={() => SetMode(mode)}
+                            class="retro-button text-white font-bold h-10 text-sm rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out {demodulation ===
+                            mode
+                              ? 'bg-blue-600 pressed scale-95'
+                              : 'bg-gray-700 hover:bg-gray-600'}"
+                          >
+                            {mode}
+                          </button>
+                        {/each}
+                        <button
+                          id="vfo-ab-button"
+                          class="retro-button text-white font-bold h-10 text-sm rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out {toggleVFO ===
+                          vfo
+                            ? 'bg-green-600 pressed scale-95'
+                            : 'bg-blue-600 hover:bg-gray-600'}"
+                          on:click={() => toggleVFO(vfo)}
+                          title="VFO Toggle"
+                        >
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            class="h-5 w-5 mr-2"
+                            viewBox="0 0 20 20"
+                            fill="currentColor"
+                          >
+                            <path
+                              d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z"
+                            />
+                          </svg>
+                          {vfo}
                         </button>
                       </div>
                     </div>
 
-                    <!-- Current Link Section -->
-                    <div class="mb-4">
-                      <label class="block text-sm font-medium text-gray-300 mb-2">Current Link</label>
-                      <div class="flex items-center gap-2">
-                        <input type="text" class="glass-input text-white text-sm rounded-lg focus:outline-none px-3 py-2 flex-grow" value={link} readonly />
-                        <button class="glass-button text-white py-1 px-3 mb-2 lg:mb-0 rounded-lg text-xs sm:text-sm" style="color:#ffffff" on:click={handleLinkCopyClick}>                         
-                          Copy
-                        </button>
-                      </div>
-                    </div>
+                    <hr class="border-gray-600 my-2" />
 
-                    <!-- Bookmarks List -->
-                    <div class="overflow-y-auto flex-grow h-80">
-                      <label class="block text-sm font-medium text-gray-300 mb-2">Saved Bookmarks</label>
-                      {#each $bookmarks as bookmark, index}
-                        <div class="glass-panel rounded-lg p-3 flex items-center justify-between mb-2">
-                          <div class="flex flex-col">
-                            <span class="text-white text-sm">{bookmark.name}</span>
-                            <span class="text-gray-400 text-xs">{(bookmark.frequency / 1000).toFixed(3)} kHz</span>
-                          </div>
-                          <div class="flex gap-2">
-                            <button class="glass-button text-white py-1 px-3 mb-2 lg:mb-0 rounded-lg text-xs sm:text-sm" style="color:#ffffff" on:click={() => goToBookmark(bookmark)}>                             
-                              Go
+                    <div class="w-full mt-4">
+                      <h3 class="text-white text-lg font-semibold mb-2">
+                        Bands
+                      </h3>
+
+                      <div class="grid grid-cols-5 sm:grid-cols-5 gap-2">
+                        {#each bandArray as bandData, index}
+                          {#if verifyRegion(bandData.ITU)}
+                            {#if printBandButton(bandData.startFreq, bandData.endFreq, bandData.publishBand)}
+                              <button
+                                id="band-selector"
+                                class="retro-button text-sm text-white fontrbold h-7 text-base rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out {currentBand ===
+                                index
+                                  ? 'bg-blue-600 pressed scale-95'
+                                  : 'bg-gray-700 hover:bg-gray-600'}"
+                                on:click={() => handleBandChangePopup(index)}
+                                title={bandData.name}
+                                >{bandData.name}
+                              </button>
+                            {/if}
+                          {:else}{/if}
+                        {/each}
+                      </div>
+                      <!-- Content Ends -->
+                      <hr class="border-gray-600 my-2" />
+                    </div>
+                    <!-- Bandwidth -->
+                    <div>
+                      <h3 class="text-white text-lg font-semibold mb-2">
+                        Bandwidth
+                      </h3>
+
+                      <div class="w-full mt-4">
+                        <div class="grid grid-cols-4 sm:grid-cols-6 gap-2">
+                          {#each newBandwidth as newbandwidth}
+                            <button
+                              id="static-bandwidth-selector"
+                              class="retro-button text-sm text-white font-bold h-10 text-base rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out {newStaticBandwidth ==
+                              newbandwidth
+                                ? 'bg-blue-600 pressed scale-95'
+                                : 'bg-gray-700 hover:bg-gray-600'}"
+                              on:click={() =>
+                                handleSetStaticBandwidth(newbandwidth)}
+                              title={newbandwidth}
+                            >
+                              {#if newbandwidth == 250}250 Hz
+                              {:else if newbandwidth == 500}500 Hz
+                              {:else if newbandwidth == 1800}1.8 kHz
+                              {:else if newbandwidth == 2400}2.4 kHz
+                              {:else if newbandwidth == 2800}2.8 kHz
+                              {:else if newbandwidth == 3000}3.0 kHz
+                              {:else if newbandwidth == 3500}3.5 kHz
+                              {:else if newbandwidth == 4000}4.0 kHz
+                              {:else if newbandwidth == 4500}4.5 kHz
+                              {:else if newbandwidth == 5000}5.0 kHz
+                              {:else if newbandwidth == 10000}10.0 kHz
+                              {:else if newbandwidth == 12000}12.0 kHz
+                              {:else}{/if}
                             </button>
-                            <button class="glass-button text-white py-1 px-3 mb-2 lg:mb-0 rounded-lg text-xs sm:text-sm" style="color:#ffffff" on:click={() => copy(bookmark.link)}>                             
-                              Copy
-                            </button>
-                            <button class="glass-button text-white py-1 px-3 mb-2 lg:mb-0 rounded-lg text-xs sm:text-sm" style="color:#ffffff" on:click={() => deleteBookmark(index)}>                             
-                              Delete
-                            </button>
-                          </div>
+                          {/each}
                         </div>
+                      </div>
+                      <!-- Content Ends -->
+                      <hr class="border-gray-600 my-2" />
+
+                      <div class="grid grid-cols-1 sm:grid-cols-6 gap-2">
+                        {#each bandwithoffsets as bandwidthoffset (bandwidthoffset)}
+                          <button
+                            class="retro-button text-white font-bold h-10 text-base rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out {bandwidth ===
+                            bandwidthoffset
+                              ? 'bg-blue-600 pressed scale-95'
+                              : 'bg-gray-700 hover:bg-gray-600'}"
+                            on:click={(e) =>
+                              handleBandwidthOffsetClick(bandwidthoffset)}
+                            title="{bandwidthoffset} kHz"
+                          >
+                            {bandwidthoffset}
+                          </button>
+                        {/each}
+                      </div>
+                    </div>
+                  </div>
+
+                  <hr class="border-gray-600 my-2" />
+                  <!-- Tuning Steps -->
+                  <div class="w-full mt-4">
+                    <h3 class="text-white text-lg font-semibold mb-2">
+                      Tuning Steps
+                    </h3>
+                    <div class="grid grid-cols-4 sm:grid-cols-8 gap-2">
+                      {#each tuningsteps as tuningstep (tuningstep)}
+                        <button
+                          id="tuning-step-selector"
+                          class="text-sm retro-button text-white font-bold h-10 text-base rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out {currentTuneStep ==
+                          tuningstep
+                            ? 'bg-blue-600 pressed scale-95'
+                            : 'bg-gray-700 hover:bg-gray-600'}"
+                          on:click={() => handleTuningStep(tuningstep)}
+                          title="{tuningstep} Hz"
+                        >
+                          {#if tuningstep == 10}Default
+                          {:else if tuningstep == 50}50 Hz
+                          {:else if tuningstep == 100}100 Hz
+                          {:else if tuningstep == 500}500 Hz
+                          {:else if tuningstep == 1000}1 kHz
+                          {:else if tuningstep == 5000}5 kHz
+                          {:else if tuningstep == 9000}9 kHz
+                          {:else if tuningstep == 10000}10 kHz
+                          {:else}
+                            {tuningstep}
+                          {/if}
+                        </button>
                       {/each}
                     </div>
+                    <hr class="border-gray-600 my-2" />
+                  </div>
+
+                  <!-- End of Tuning Step Selection Area -->
+                </div>
+              </div>
+              <div
+                class="flex flex-col items-center bg-gray-800 p-6 lg:border lg:border-gray-700 rounded-none rounded-b-lg lg:rounded-none lg:rounded-r-lg"
+              >
+                <h3 class="text-white text-lg font-semibold mb-4">
+                  Waterfall Controls
+                </h3>
+
+                <div class="w-full mb-6">
+                  <div
+                    id="brightness-controls"
+                    class="flex items-center justify-between mb-2"
+                  >
+                    <span class="text-gray-300 text-sm w-10">Min:</span>
+                    <div class="slider-container w-48 mx-2">
+                      <input
+                        type="range"
+                        bind:value={min_waterfall}
+                        min="-100"
+                        max="255"
+                        step="1"
+                        class="glass-slider w-full"
+                        on:input={handleMinMove}
+                      />
+                    </div>
+                    <span class="text-gray-300 text-sm w-10 text-right"
+                      >{min_waterfall}</span
+                    >
+                  </div>
+                  <div class="flex items-center justify-between">
+                    <span class="text-gray-300 text-sm w-10">Max:</span>
+                    <div class="slider-container w-48 mx-2">
+                      <input
+                        type="range"
+                        bind:value={max_waterfall}
+                        min="0"
+                        max="255"
+                        step="1"
+                        class="glass-slider w-full"
+                        on:input={handleMaxMove}
+                      />
+                    </div>
+                    <span class="text-gray-300 text-sm w-10 text-right"
+                      >{max_waterfall}</span
+                    >
                   </div>
                 </div>
-              {/if}
 
-
-
-</div>
-</div>
-
-{#if siteChatEnabled}
-
-          <!--Beginn of Chatbox -->
-          <!--To disable Chatbox: Delte Code from here to .. -->
-          <div class="flex flex-col rounded p-2 justify-center" id="chat-column">
-            <div class="p-3 sm:p-5 flex flex-col bg-gray-800 border border-gray-700 rounded-lg w-full mb-8" id="chat-box" style="opacity: 0.95;">
-              <h2 class="text-xl sm:text-2xl font-semibold text-gray-100 mb-2 sm:mb-4">WebSDR Chatbox</h2>
-              <p class="text-white text-xs sm:text-sm mr-2 mb-2 sm:mb-0">
-                This chatbox is intended to discuss the operation of the WebSDR, so please keep the discussion civil and polite.<br /><br />
-                <!--Your Callsigne if you have--
-              <br />
-              </p>
-
-              <!-- Username Display/Input -->
-              <div class="mb-2 sm:mb-4 flex flex-wrap items-center">
-                <span class="text-white text-xs sm:text-sm mr-2 mb-2 sm:mb-0">Chatting as:</span>
-                {#if showUsernameInput}
-                  <input class="glass-input text-white py-1 px-2 rounded-lg outline-none text-xs sm:text-sm flex-grow mr-2 mb-2 sm:mb-0" bind:value={username} placeholder="Enter your name/callsign" on:keydown={(e) => e.key === "Enter" && saveUsername()} />
-                  <button class="glass-button text-white py-1 px-3 mb-2 lg:mb-0 rounded-lg text-xs sm:text-sm" on:click={saveUsername}> Save </button>
-                {:else}
-                  <span class="glass-username text-white text-xs sm:text-sm px-3 py-1 rounded-lg mr-2 mb-2 sm:mb-0">
-                    {username || "Anonymous"}
-                  </span>
-                  <button class="glass-button text-white py-1 px-3 mb-2 lg:mb-0 rounded-lg text-xs sm:text-sm" on:click={editUsername}> Edit </button>
-                {/if}
-              </div>
-
-              <!-- Chat Messages -->
-              <div class="bg-gray-900 rounded-lg p-2 sm:p-3 mb-2 sm:mb-4 h-48 sm:h-64 overflow-y-auto custom-scrollbar" bind:this={chatMessages}>
-                {#each $messages as { id, text } (id)}
-                  {@const formattedMessage = formatFrequencyMessage(text)}
-                  <div class="mb-2 sm:mb-3 text-left" in:fly={{ y: 20, duration: 300, easing: quintOut }}>
-                    <div class="inline-block bg-gray-800 rounded-lg p-2 max-w-full">
-                      <p class="text-white text-xs sm:text-sm break-words">
-                        <span class="font-semibold text-blue-300">{formattedMessage.username}</span>
-                        <span class="text-xs text-gray-400 ml-2">{formattedMessage.timestamp}</span>
-                      </p>
-                      <p class="text-white text-xs sm:text-sm break-words mt-1">
-                        {#if formattedMessage.isFormatted}
-                          {@html renderParts(formattedMessage.beforeFreq)}
-                          <a href="#" class="text-blue-300 hover:underline" on:click|preventDefault={() => handleFrequencyClick(formattedMessage.frequency, formattedMessage.demodulation)}>
-                            {(formattedMessage.frequency / 1000).toFixed(3)} kHz ({formattedMessage.demodulation})
-                          </a>
-                          {@html renderParts(formattedMessage.afterFreq)}
-                        {:else}
-                          {@html renderParts(formattedMessage.parts)}
-                        {/if}
-                      </p>
+                <div class="w-full mb-6">
+                  <div id="colormap-select" class="relative">
+                    <select
+                      bind:value={currentColormap}
+                      on:change={handleWaterfallColormapSelect}
+                      class="glass-select block w-full pl-3 pr-10 py-2 text-sm rounded-lg text-gray-200 appearance-none focus:outline-none"
+                    >
+                      {#each availableColormaps as colormap}
+                        <option value={colormap}>{colormap}</option>
+                      {/each}
+                    </select>
+                    <div
+                      class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-400"
+                    >
+                      <svg
+                        class="fill-current h-4 w-4"
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                        />
+                      </svg>
                     </div>
                   </div>
-                {/each}
-              </div>
+                </div>
+                <div class="w-full mb-6">
+                  <h3 class="text-white text-lg font-semibold mb-2">Zoom</h3>
+                  <div id="zoom-controls" class="grid grid-cols-4 gap-2">
+                    {#each [{ action: "+", title: "Zoom in", icon: "zoom-in", text: "In" }, { action: "-", title: "Zoom out", icon: "zoom-out", text: "Out" }, { action: "max", title: "Zoom to max", icon: "maximize", text: "Max" }, { action: "min", title: "Zoom to min", icon: "minimize", text: "Min" }] as { action, title, icon, text }}
+                      <button
+                        class="retro-button text-white font-bold h-10 text-sm rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out bg-gray-700 hover:bg-gray-600"
+                        on:click={(e) => handleWaterfallMagnify(e, action)}
+                        {title}
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          class="h-4 w-4 mr-2"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        >
+                          {#if icon === "zoom-in"}
+                            <circle cx="11" cy="11" r="8" />
+                            <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                            <line x1="11" y1="8" x2="11" y2="14" />
+                            <line x1="8" y1="11" x2="14" y2="11" />
+                          {:else if icon === "zoom-out"}
+                            <circle cx="11" cy="11" r="8" />
+                            <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                            <line x1="8" y1="11" x2="14" y2="11" />
+                          {:else if icon === "maximize"}
+                            <path
+                              d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"
+                            />
+                          {:else if icon === "minimize"}
+                            <path
+                              d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"
+                            />
+                          {/if}
+                        </svg>
+                        <span>{text}</span>
+                      </button>
+                    {/each}
+                  </div>
+                  <hr class="border-gray-600 my-2" />
+                </div>
+                <div class="w-full mb-6">
+                  <!-- START of waterfal control buttons -->
+                  {#if buttons}
+                    <div class="w-full mb-6">
+                      <div class="grid grid-cols-4 gap-2">
+                        <button
+                          id="waterfall-toggle"
+                          class="retro-button text-sm text-white font-bold h-10 text-base rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out {waterfallDisplay ===
+                          true
+                            ? 'bg-blue-600 pressed scale-95'
+                            : 'bg-gray-700 hover:bg-gray-600'}"
+                          on:click={handleWaterfallChange}
+                          title="Waterfall Toggle"
+                        >
+                          Waterfall
+                        </button>
 
-              <!-- Message Input and Buttons -->
-              <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
-                <input class="glass-input text-white py-2 px-3 rounded-lg outline-none text-xs sm:text-sm flex-grow" bind:value={newMessage} on:keydown={handleEnterKey} placeholder="Type a message..." />
-                <div class="flex space-x-2">
-                  <button class="glass-button text-white font-semibold py-2 px-4 rounded-lg flex items-center justify-center text-xs sm:text-sm flex-grow sm:flex-grow-0" on:click={sendMessage}>
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" viewBox="0 0 20 20" fill="currentColor">
-                      <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" />
-                    </svg>
-                    Send
-                  </button>
-                  <button class="glass-button text-white font-semibold py-2 px-4 rounded-lg flex items-center justify-center text-xs sm:text-sm flex-grow sm:flex-grow-0" on:click={pasteFrequency}>
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" viewBox="0 0 20 20" fill="currentColor">
-                      <path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" />
-                      <path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z" />
-                    </svg>
-                    Paste Freq
-                  </button>
+                        <button
+                          id="spectrum-toggle"
+                          class="retro-button text-sm text-white font-bold h-10 text-base rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out {spectrumDisplay ===
+                          true
+                            ? 'bg-blue-600 pressed scale-95'
+                            : 'bg-gray-700 hover:bg-gray-600'}"
+                          on:click={handleSpectrumChange}
+                          title="Spectrum Toggle"
+                        >
+                          Spectrum
+                        </button>
+                        <button
+                          id="auto-adjust"
+                          class="retro-button text-sm text-white font-bold h-10 text-base rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out {autoAdjustEnabled ===
+                          true
+                            ? 'bg-blue-600 pressed scale-95'
+                            : 'bg-gray-700 hover:bg-gray-600'}"
+                          on:click={() => handleAutoAdjust()}
+                          title="Auto Adjust"
+                        >
+                          Auto Adjust
+                        </button>
+                        <button
+                          id="bigger-waterfall"
+                          class="retro-button text-sm text-white font-bold h-10 text-base rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out {biggerWaterfall ===
+                          true
+                            ? 'bg-blue-600 pressed scale-95'
+                            : 'bg-gray-700 hover:bg-gray-600'}"
+                          on:click={handleWaterfallSizeChange}
+                          title="Height (+)"
+                        >
+                          Height (+)
+                        </button>
+                      </div>
+                      <hr class="border-gray-600 my-2" />
+                    </div>
+                  {:else}
+                    <!-- END of Waterfall Control Buttons -->
+
+                    <div class="w-full mb-6">
+                      <div class="grid grid-cols-1 sm:grid-cols-4 gap-2">
+                        <div
+                          id="waterfall-toggle"
+                          class="flex flex-col items-center"
+                        >
+                          <span class="text-sm text-gray-300 mb-1 text-center"
+                            >Waterfall</span
+                          >
+                          <label class="toggle-switch">
+                            {#if waterfallDisplay}
+                              <input
+                                type="checkbox"
+                                checked
+                                on:change={handleWaterfallChange}
+                              />
+                            {:else}
+                              <input
+                                type="checkbox"
+                                on:change={handleWaterfallChange}
+                              />
+                            {/if}
+                            <span class="toggle-slider"></span>
+                          </label>
+                        </div>
+
+                        <div
+                          id="spectrum-toggle"
+                          class="flex flex-col items-center"
+                        >
+                          <span class="text-sm text-gray-300 mb-1"
+                            >Spectrum</span
+                          >
+                          <label class="toggle-switch">
+                            {#if spectrumDisplay}
+                              <input
+                                type="checkbox"
+                                checked
+                                on:change={handleSpectrumChange}
+                              />
+                            {:else}
+                              <input
+                                type="checkbox"
+                                on:change={handleSpectrumChange}
+                              />
+                            {/if}
+                            <span class="toggle-slider"></span>
+                          </label>
+                        </div>
+
+                        <div
+                          id="auto-adjust"
+                          class="flex flex-col items-center"
+                        >
+                          <span class="text-sm text-gray-300 mb-1"
+                            >Auto Adjust</span
+                          >
+                          <label class="toggle-switch">
+                            <input
+                              type="checkbox"
+                              on:change={() => handleAutoAdjust()}
+                            />
+                            <span class="toggle-slider"></span>
+                          </label>
+                        </div>
+
+                        <div
+                          id="bigger-waterfall"
+                          class="flex flex-col items-center"
+                        >
+                          <span class="text-sm text-gray-300 mb-1 text-center"
+                            >Height (+)</span
+                          >
+                          <label class="toggle-switch">
+                            <input
+                              type="checkbox"
+                              on:change={handleWaterfallSizeChange}
+                            />
+                            <span class="toggle-slider"></span>
+                          </label>
+                        </div>
+                      </div>
+                      <hr class="border-gray-600 my-2" />
+                    </div>
+                  {/if}
+                </div>
+
+                <button
+                  id="bookmark-button"
+                  class="glass-button text-white font-bold py-2 px-4 rounded-lg flex items-center w-full justify-center"
+                  on:click={toggleBookmarkPopup}
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-5 w-5 mr-2"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
+                    <path
+                      d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z"
+                    />
+                  </svg>
+                  Bookmarks
+                </button>
+
+                <div
+                  id="user_count_container"
+                  class="w-full mt-4 bg-gradient-to-r from-purple-600 to-blue-600 rounded-lg p-1"
+                >
+                  <div
+                    id="total_user_count"
+                    class="bg-gray-800 rounded-md p-2 text-center flex justify-between items-center"
+                  >
+                    <!-- Content will be populated by JavaScript -->
+                  </div>
+                </div>
+
+                <!-- Bookmark Popup -->
+                {#if showBookmarkPopup}
+                  <div
+                    class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+                  >
+                    <div
+                      class="bg-gray-800 p-6 rounded-lg max-w-lg w-full max-h-[80vh] flex flex-col"
+                    >
+                      <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-xl font-bold text-white">Bookmarks</h2>
+                        <button
+                          class="text-gray-400 hover:text-white"
+                          on:click={toggleBookmarkPopup}
+                        >
+                          <svg
+                            class="w-6 h-6"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                            xmlns="http://www.w3.org/2000/svg"
+                          >
+                            <path
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                              stroke-width="2"
+                              d="M6 18L18 6M6 6l12 12"
+                            ></path>
+                          </svg>
+                        </button>
+                      </div>
+
+                      <!-- Add Bookmark Section -->
+                      <div class="mb-6">
+                        <label
+                          class="block text-sm font-medium text-gray-300 mb-2"
+                          >Add New Bookmark</label
+                        >
+                        <div class="flex items-center gap-2">
+                          <input
+                            class="glass-input text-white text-sm rounded-lg focus:outline-none px-3 py-2 flex-grow"
+                            bind:value={newBookmarkName}
+                            placeholder="Bookmark name"
+                          />
+                          <button
+                            class="glass-button text-white font-bold py-2 px-4 rounded-lg flex items-center"
+                            on:click={addBookmark}
+                          >
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              class="h-5 w-5 mr-2"
+                              viewBox="0 0 20 20"
+                              fill="currentColor"
+                            >
+                              <path
+                                fill-rule="evenodd"
+                                d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
+                                clip-rule="evenodd"
+                              />
+                            </svg>
+                            Add
+                          </button>
+                        </div>
+                      </div>
+
+                      <!-- Current Link Section -->
+                      <div class="mb-6">
+                        <label
+                          class="block text-sm font-medium text-gray-300 mb-2"
+                          >Current Link</label
+                        >
+                        <div class="flex items-center gap-2">
+                          <input
+                            type="text"
+                            class="glass-input text-white text-sm rounded-lg focus:outline-none px-3 py-2 flex-grow"
+                            value={link}
+                            readonly
+                          />
+                          <button
+                            class="glass-button text-white font-bold py-2 px-4 rounded-lg flex items-center"
+                            on:click={handleLinkCopyClick}
+                          >
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              class="h-5 w-5 mr-2"
+                              viewBox="0 0 20 20"
+                              fill="currentColor"
+                            >
+                              <path
+                                d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z"
+                              />
+                              <path
+                                d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z"
+                              />
+                            </svg>
+                            Copy
+                          </button>
+                        </div>
+                      </div>
+
+                      <!-- Bookmarks List -->
+                      <div class="overflow-y-auto flex-grow h-80">
+                        <label
+                          class="block text-sm font-medium text-gray-300 mb-2"
+                          >Saved Bookmarks</label
+                        >
+                        {#each $bookmarks as bookmark, index}
+                          <div
+                            class="glass-panel rounded-lg p-3 flex items-center justify-between mb-2"
+                          >
+                            <div class="flex flex-col">
+                              <span class="text-white text-sm"
+                                >{bookmark.name}</span
+                              >
+                              <span class="text-gray-400 text-xs"
+                                >{(bookmark.frequency / 1000).toFixed(3)} kHz</span
+                              >
+                            </div>
+                            <div class="flex gap-2">
+                              <button
+                                class="glass-button text-white font-bold py-1 px-3 rounded-lg flex items-center"
+                                on:click={() => goToBookmark(bookmark)}
+                              >
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  class="h-4 w-4 mr-1"
+                                  viewBox="0 0 20 20"
+                                  fill="currentColor"
+                                >
+                                  <path
+                                    fill-rule="evenodd"
+                                    d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z"
+                                    clip-rule="evenodd"
+                                  />
+                                </svg>
+                                Go
+                              </button>
+                              <button
+                                class="glass-button text-white font-bold py-1 px-3 rounded-lg flex items-center"
+                                on:click={() => copy(bookmark.link)}
+                              >
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  class="h-4 w-4 mr-1"
+                                  viewBox="0 0 20 20"
+                                  fill="currentColor"
+                                >
+                                  <path
+                                    d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z"
+                                  />
+                                  <path
+                                    d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z"
+                                  />
+                                </svg>
+                                Copy
+                              </button>
+                              <button
+                                class="glass-button text-white font-bold py-1 px-3 rounded-lg flex items-center"
+                                on:click={() => deleteBookmark(index)}
+                              >
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  class="h-4 w-4 mr-1"
+                                  viewBox="0 0 20 20"
+                                  fill="currentColor"
+                                >
+                                  <path
+                                    fill-rule="evenodd"
+                                    d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
+                                    clip-rule="evenodd"
+                                  />
+                                </svg>
+                                Delete
+                              </button>
+                            </div>
+                          </div>
+                        {/each}
+                      </div>
+                    </div>
+                  </div>
+                {/if}
+              </div>
+            </div>
+
+            <div
+              class="flex flex-col rounded p-2 justify-center"
+              id="chat-column"
+            >
+              <div
+                class="p-3 sm:p-5 flex flex-col bg-gray-800 border border-gray-700 rounded-lg w-full mb-8"
+                id="chat-box"
+              >
+                <h2
+                  class="text-xl sm:text-2xl font-semibold text-gray-100 mb-2 sm:mb-4"
+                >
+                  Chat
+                </h2>
+
+                <!-- Username Display/Input -->
+                <div class="mb-2 sm:mb-4 flex flex-wrap items-center">
+                  <span class="text-white text-xs sm:text-sm mr-2 mb-2 sm:mb-0"
+                    >Chatting as:</span
+                  >
+                  {#if showUsernameInput}
+                    <input
+                      class="glass-input text-white py-1 px-2 rounded-lg outline-none text-xs sm:text-sm flex-grow mr-2 mb-2 sm:mb-0"
+                      bind:value={username}
+                      placeholder="Enter your name/callsign"
+                      on:keydown={(e) => e.key === "Enter" && saveUsername()}
+                    />
+                    <button
+                      class="glass-button text-white py-1 px-3 mb-2 lg:mb-0 rounded-lg text-xs sm:text-sm"
+                      on:click={saveUsername}
+                    >
+                      Save
+                    </button>
+                  {:else}
+                    <span
+                      class="glass-username text-white text-xs sm:text-sm px-3 py-1 rounded-lg mr-2 mb-2 sm:mb-0"
+                    >
+                      {username || "Anonymous"}
+                    </span>
+                    <button
+                      class="glass-button text-white py-1 px-3 mb-2 lg:mb-0 rounded-lg text-xs sm:text-sm"
+                      on:click={editUsername}
+                    >
+                      Edit
+                    </button>
+                  {/if}
+                </div>
+
+                <!-- Chat Messages -->
+                <div
+                  class="bg-gray-900 rounded-lg p-2 sm:p-3 mb-2 sm:mb-4 h-48 sm:h-64 overflow-y-auto custom-scrollbar"
+                  bind:this={chatMessages}
+                >
+                  {#each $messages as { id, text } (id)}
+                    {@const formattedMessage = formatFrequencyMessage(text)}
+                    <div
+                      class="mb-2 sm:mb-3 text-left"
+                      in:fly={{ y: 20, duration: 300, easing: quintOut }}
+                    >
+                      <div
+                        class="inline-block bg-gray-800 rounded-lg p-2 max-w-full"
+                      >
+                        <p class="text-white text-xs sm:text-sm break-words">
+                          <span class="font-semibold text-blue-300"
+                            >{formattedMessage.username}</span
+                          >
+                          <span class="text-xs text-gray-400 ml-2"
+                            >{formattedMessage.timestamp}</span
+                          >
+                        </p>
+                        <p
+                          class="text-white text-xs sm:text-sm break-words mt-1"
+                        >
+                          {#if formattedMessage.isFormatted}
+                            {@html renderParts(formattedMessage.beforeFreq)}
+                            <a
+                              href="#"
+                              class="text-blue-300 hover:underline"
+                              on:click|preventDefault={() =>
+                                handleFrequencyClick(
+                                  formattedMessage.frequency,
+                                  formattedMessage.demodulation,
+                                )}
+                            >
+                              {(formattedMessage.frequency / 1000).toFixed(3)} kHz
+                              ({formattedMessage.demodulation})
+                            </a>
+                            {@html renderParts(formattedMessage.afterFreq)}
+                          {:else}
+                            {@html renderParts(formattedMessage.parts)}
+                          {/if}
+                        </p>
+                      </div>
+                    </div>
+                  {/each}
+                </div>
+
+                <!-- Message Input and Buttons -->
+                <div
+                  class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2"
+                >
+                  <input
+                    class="glass-input text-white py-2 px-3 rounded-lg outline-none text-xs sm:text-sm flex-grow"
+                    bind:value={newMessage}
+                    on:keydown={handleEnterKey}
+                    placeholder="Type a message..."
+                  />
+                  <div class="flex space-x-2">
+                    <button
+                      class="glass-button text-white font-semibold py-2 px-4 rounded-lg flex items-center justify-center text-xs sm:text-sm flex-grow sm:flex-grow-0"
+                      on:click={sendMessage}
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        class="h-4 w-4 mr-2"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                      >
+                        <path
+                          d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"
+                        />
+                      </svg>
+                      Send
+                    </button>
+                    <button
+                      class="glass-button text-white font-semibold py-2 px-4 rounded-lg flex items-center justify-center text-xs sm:text-sm flex-grow sm:flex-grow-0"
+                      on:click={pasteFrequency}
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        class="h-4 w-4 mr-2"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                      >
+                        <path
+                          d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z"
+                        />
+                        <path
+                          d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z"
+                        />
+                      </svg>
+                      Paste Freq
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-	  {:else}
-	  {/if}
-          <!--To disable Chatbox: Delte Code till above this here -->
         </div>
+        <footer class="mt-4 mb-4 text-center text-gray-400 text-sm">
+          <span class="text-sm text-gray-400">PhantomSDR+ | v{VERSION}</span>
+        </footer>
       </div>
-      <footer class="mt-4 mb-4 text-center text-gray-400 text-sm">
-        <span class="text-sm text-gray-400">PhantomSDR+ | v{VERSION}</span>
-        <!--<a href="./websdr_privacy.html" class="font-bold text-blue-500 hover:underline" target="_blank"> View Privacy Policy</a>-->
-      </footer>
     </div>
   </div>
 </main>
 
 <svelte:head>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet" />
-  <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap"
+    rel="stylesheet"
+  />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400;1,700&display=swap"
+    rel="stylesheet"
+  />
 </svelte:head>
 
 <style global lang="postcss">
@@ -2734,7 +3633,8 @@ Download
   }
 
   :root {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
+      Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
   }
 
   @media (min-width: 1372px) {
@@ -2838,11 +3738,8 @@ Download
     box-sizing: content-box;
   }
 
-  /* Here you can Change the Background of WebSDR, Picture must be in assets folder*/
   .bg-custom-dark {
-    /* background-color: #1c1c1c; /* Original: A very dark gray with a tiny hint of warmth */
-    background: url("./assets/background.jpg") no-repeat center center fixed;
-    background-size: cover;
+    background-color: #1c1c1c; /* A very dark gray with a tiny hint of warmth */
   }
 
   .glass-username {
@@ -2970,7 +3867,11 @@ Download
   }
 
   .glass-button.active {
-    background: linear-gradient(135deg, rgba(50, 50, 80, 0.8), rgba(60, 50, 80, 0.8));
+    background: linear-gradient(
+      135deg,
+      rgba(50, 50, 80, 0.8),
+      rgba(60, 50, 80, 0.8)
+    );
     border-color: rgba(120, 100, 180, 0.4);
     box-shadow:
       0 2px 4px rgba(0, 0, 0, 0.2),
@@ -3013,33 +3914,6 @@ Download
     background: rgba(16, 185, 129, 0.2);
     border-color: rgba(16, 185, 129, 0.4);
   }
-
-  .myButton {
-   -moz-box-shadow: 1px 1px 3px -1px #414445;
-   -webkit-box-shadow: 1px 1px 3px -1px #414445;
-   box-shadow: 1px 1px 3px -1px #414445;
-   background:linear-gradient(to bottom, #ededed 5%, #c2c0c2 100%);
-   background-color:#ededed;
-   border-radius:6px;
-   border:1px solid #dcdcdc;
-   display:inline-block;
-   cursor:pointer;
-   color:#050505;
-   font-family:Arial;
-   font-size:12px;
-   font-weight:normal;
-   padding:0px 6px;
-   text-decoration:none;
-   text-shadow:0px 1px 0px #ffffff;
-}
-.myButton:hover {
-   background:linear-gradient(to bottom, #c2c0c2 5%, #ededed 100%);
-   background-color:#c2c0c2;
-}
-.myButton:active {
-   position:relative;
-   top:1px;
-}
 
   .slide-transition {
     transition: max-height 300ms cubic-bezier(0.23, 1, 0.32, 1);
@@ -3133,5 +4007,3 @@ Download
     }
   }
 </style>
-
-
