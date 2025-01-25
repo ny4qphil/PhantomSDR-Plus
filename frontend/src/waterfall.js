@@ -74,7 +74,7 @@ export default class SpectrumWaterfall {
       },
       {
         ITU: 123,
-        name: 'LW', min: -40, max: 120, publishBand: false, startFreq: 148500, endFreq: 283500, stepi: 1000, color: 'rgba(199, 12, 193, 0.6)',
+        name: 'LW', min: -40, max: 120, publishBand: true, startFreq: 148500, endFreq: 283500, stepi: 1000, color: 'rgba(199, 12, 193, 0.6)',
         modes: [{ mode: MODES.AM, startFreq: 148500, endFreq: 283500 }]
       },
       {
