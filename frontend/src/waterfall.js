@@ -69,217 +69,217 @@ export default class SpectrumWaterfall {
       },
       {
         ITU: 123,
-        name: 'LF', min: -40, max: 120, published: true, amateurBand: false, startFreq: 30000, endFreq: 300000, stepi: 1000, color: 'rgba(199, 12, 193, 0.6)',
+        name: 'LF', min: -40, max: 120, publishBand: true, amateurBand: false, startFreq: 30000, endFreq: 300000, stepi: 1000, color: 'rgba(199, 12, 193, 0.6)',
         modes: [{ mode: MODES.CW, startFreq: 30000, endFreq: 300000 }]
       },
       {
         ITU: 123,
-        name: 'LW', min: -40, max: 120, published: true, amateurBand: false, startFreq: 148500, endFreq: 283500, stepi: 1000, color: 'rgba(199, 12, 193, 0.6)',
+        name: 'LW', min: -40, max: 120, publishBand: true: true, amateurBand: false, startFreq: 148500, endFreq: 283500, stepi: 1000, color: 'rgba(199, 12, 193, 0.6)',
         modes: [{ mode: MODES.AM, startFreq: 148500, endFreq: 283500 }]
       },
       {
         ITU: 123,
-        name: '2200m', min: -40, max: 120, published: true, amateurBand: true, startFreq: 135700, endFreq: 137800, stepi: 1000, color: 'rgba(50, 168, 72, 0.6)',
+        name: '2200m', min: -40, max: 120, publishBand: true: true, amateurBand: true, startFreq: 135700, endFreq: 137800, stepi: 1000, color: 'rgba(50, 168, 72, 0.6)',
         modes: [
           { mode: MODES.CW, startFreq: 135700, endFreq: 137800 },
           { mode: MODES.USB, startFreq: 135700, endFreq: 137800 }]
       },
       {
         ITU: 123,
-        name: '630m', min: -40, max: 120, published: true, amateurBand: true, startFreq: 472000, endFreq: 479000, stepi: 1000, color: 'rgba(50, 168, 72, 0.6)',
+        name: '630m', min: -40, max: 120, publishBand: true: true, amateurBand: true, startFreq: 472000, endFreq: 479000, stepi: 1000, color: 'rgba(50, 168, 72, 0.6)',
         modes: [
           { mode: MODES.CW, startFreq: 472000, endFreq: 475000 },
           { mode: MODES.USB, startFreq: 475000, endFreq: 479000 }]
       },
       {
         ITU: 1,
-        name: 'MW', min: -40, max: 120, published: true, amateurBand: false, startFreq: 530000, endFreq: 1700000, stepi: 9000, color: 'rgba(199, 12, 193, 0.6)',
+        name: 'MW', min: -40, max: 120, publishBand: true: true, amateurBand: false, startFreq: 530000, endFreq: 1700000, stepi: 9000, color: 'rgba(199, 12, 193, 0.6)',
         modes: [{ mode: MODES.AM, startFreq: 530000, endFreq: 1700000 }]
       },
       {
         ITU: 2,
-        name: 'MW', min: -40, max: 120, published: true, amateurBand: false, startFreq: 530000, endFreq: 1700000, stepi: 10000, color: 'rgba(199, 12, 193, 0.6)',
+        name: 'MW', min: -40, max: 120, publishBand: true: true, amateurBand: false, startFreq: 530000, endFreq: 1700000, stepi: 10000, color: 'rgba(199, 12, 193, 0.6)',
         modes: [{ mode: MODES.AM, startFreq: 530000, endFreq: 1700000 }]
       },
       {
         ITU: 3,
-        name: 'MW', min: -40, max: 120, published: true, amateurBand: false, startFreq: 530000, endFreq: 1700000, stepi: 9000, color: 'rgba(199, 12, 193, 0.6)',
+        name: 'MW', min: -40, max: 120, publishBand: true: true, amateurBand: false, startFreq: 530000, endFreq: 1700000, stepi: 9000, color: 'rgba(199, 12, 193, 0.6)',
         modes: [{ mode: MODES.AM, startFreq: 530000, endFreq: 1700000 }]
       },
       {
         ITU: 123,
-        name: 'NAV', min: -40, max: 120, published: true, amateurBand: false, startFreq: 1700000, endFreq: 1800000, stepi: 1000, color: '#ffffff00',
+        name: 'NAV', min: -40, max: 120, publishBand: true: true, amateurBand: false, startFreq: 1700000, endFreq: 1800000, stepi: 1000, color: '#ffffff00',
         modes: [{ mode: MODES.AM, startFreq: 1700000, endFreq: 1800000 }]
       },
       {
         ITU: 123,
-        name: '160m', min: -40, max: 120, published: true, amateurBand: true, startFreq: 1800000, endFreq: 2000000, stepi: 1000, color: 'rgba(50, 168, 72, 0.6)',
+        name: '160m', min: -40, max: 120, publishBand: true: true, amateurBand: true, startFreq: 1800000, endFreq: 2000000, stepi: 1000, color: 'rgba(50, 168, 72, 0.6)',
         modes: [
           { mode: MODES.CW, startFreq: 1800000, endFreq: 1840000 },
           { mode: MODES.LSB, startFreq: 1840000, endFreq: 2000000 }]
       },
       {
         ITU: 123,
-        name: 'MM', min: -40, max: 120, published: true, amateurBand: false, startFreq: 2000000, endFreq: 3500000, stepi: 1000, color: '#ffffff00',
+        name: 'MM', min: -40, max: 120, publishBand: true: true, amateurBand: false, startFreq: 2000000, endFreq: 3500000, stepi: 1000, color: '#ffffff00',
         modes: [{ mode: MODES.AM, startFreq: 2000000, endFreq: 3500000 }]
       },
       {
         ITU: 1,
-        name: '80m', min: -40, max: 120, published: true, amateurBand: true, startFreq: 3500000, endFreq: 3800000, stepi: 1000, color: 'rgba(50, 168, 72, 0.6)',
+        name: '80m', min: -40, max: 120, publishBand: true: true, amateurBand: true, startFreq: 3500000, endFreq: 3800000, stepi: 1000, color: 'rgba(50, 168, 72, 0.6)',
         modes: [
           { mode: MODES.CW, startFreq: 3500000, endFreq: 3600000 },
           { mode: MODES.LSB, startFreq: 3600000, endFreq: 3800000 }]
       },
       {
         ITU: 2,
-        name: '80m', min: -40, max: 120, published: true, amateurBand: true, startFreq: 3500000, endFreq: 4000000, stepi: 1000, color: 'rgba(50, 168, 72, 0.6)',
+        name: '80m', min: -40, max: 120, publishBand: true: true, amateurBand: true, startFreq: 3500000, endFreq: 4000000, stepi: 1000, color: 'rgba(50, 168, 72, 0.6)',
         modes: [
           { mode: MODES.CW, startFreq: 3500000, endFreq: 3600000 },
           { mode: MODES.LSB, startFreq: 3600000, endFreq: 4000000 }]
       },
       {
         ITU: 3,
-        name: '80m', min: -40, max: 120, published: true, amateurBand: true, startFreq: 3500000, endFreq: 3900000, stepi: 1000, color: 'rgba(50, 168, 72, 0.6)',
+        name: '80m', min: -40, max: 120, publishBand: true: true, amateurBand: true, startFreq: 3500000, endFreq: 3900000, stepi: 1000, color: 'rgba(50, 168, 72, 0.6)',
         modes: [
           { mode: MODES.CW, startFreq: 3500000, endFreq: 3600000 },
           { mode: MODES.LSB, startFreq: 3600000, endFreq: 3900000 }]
       },
       {
         ITU: 1,
-        name: '60m', min: -40, max: 120, published: true, amateurBand: true, startFreq: 5351500, endFreq: 5366650, stepi: 1000, color: 'rgba(50, 168, 72, 0.6)',
+        name: '60m', min: -40, max: 120, publishBand: true: true, amateurBand: true, startFreq: 5351500, endFreq: 5366650, stepi: 1000, color: 'rgba(50, 168, 72, 0.6)',
         modes: [
           { mode: MODES.CW, startFreq: 5351500, endFreq: 5354000 },
           { mode: MODES.USB, startFreq: 5354000, endFreq: 5366500 }]
       },
       {
         ITU: 2,
-        name: '60m', min: -40, max: 120, published: true, amateurBand: true, startFreq: 5330500, endFreq: 5406500, stepi: 1000, color: 'rgba(50, 168, 72, 0.6)',
+        name: '60m', min: -40, max: 120, publishBand: true: true, amateurBand: true, startFreq: 5330500, endFreq: 5406500, stepi: 1000, color: 'rgba(50, 168, 72, 0.6)',
         modes: [{ mode: MODES.USB, startFreq: 5330500, endFreq: 5406500 }]
       },
       {
         ITU: 3,
-        name: '60m', min: -40, max: 120, published: true, amateurBand: true, startFreq: 5351500, endFreq: 5366650, stepi: 1000, color: 'rgba(50, 168, 72, 0.6)',
+        name: '60m', min: -40, max: 120, publishBand: true: true, amateurBand: true, startFreq: 5351500, endFreq: 5366650, stepi: 1000, color: 'rgba(50, 168, 72, 0.6)',
         modes: [
           { mode: MODES.CW, startFreq: 5351500, endFreq: 5354000 },
           { mode: MODES.USB, startFreq: 5354000, endFreq: 5366500 }]
       },
       {
         ITU: 123,
-        name: '49m AM', min: -40, max: 120, published: true, amateurBand: false, startFreq: 5900000, endFreq: 6200000, stepi: 1000, color: 'rgba(199, 12, 193, 0.6)',
+        name: '49m AM', min: -40, max: 120, publishBand: true: true, amateurBand: false, startFreq: 5900000, endFreq: 6200000, stepi: 1000, color: 'rgba(199, 12, 193, 0.6)',
         modes: [{ mode: MODES.AM, startFreq: 5900000, endFreq: 6200000 }]
       },
       {
         ITU: 1,
-        name: '40m', min: -40, max: 120, published: true, amateurBand: true, startFreq: 7000000, endFreq: 7200000, stepi: 1000, color: 'rgba(50, 168, 72, 0.6)',
+        name: '40m', min: -40, max: 120, publishBand: true: true, amateurBand: true, startFreq: 7000000, endFreq: 7200000, stepi: 1000, color: 'rgba(50, 168, 72, 0.6)',
         modes: [
           { mode: MODES.CW, startFreq: 7000000, endFreq: 7040000 },
           { mode: MODES.LSB, startFreq: 7040000, endFreq: 7200000 }]
       },
       {
         ITU: 2,
-        name: '40m', min: -40, max: 120, published: true, amateurBand: true, startFreq: 7000000, endFreq: 7300000, stepi: 1000, color: 'rgba(50, 168, 72, 0.6)',
+        name: '40m', min: -40, max: 120, publishBand: true: true, amateurBand: true, startFreq: 7000000, endFreq: 7300000, stepi: 1000, color: 'rgba(50, 168, 72, 0.6)',
         modes: [
           { mode: MODES.CW, startFreq: 7000000, endFreq: 7050000 },
           { mode: MODES.LSB, startFreq: 7050000, endFreq: 7300000 }]
       },
       {
         ITU: 3,
-        name: '40m', min: -40, max: 120, published: true, amateurBand: true, startFreq: 7000000, endFreq: 7200000, stepi: 1000, color: 'rgba(50, 168, 72, 0.6)',
+        name: '40m', min: -40, max: 120, publishBand: true: true, amateurBand: true, startFreq: 7000000, endFreq: 7200000, stepi: 1000, color: 'rgba(50, 168, 72, 0.6)',
         modes: [
           { mode: MODES.CW, startFreq: 7000000, endFreq: 7040000 },
           { mode: MODES.LSB, startFreq: 7040000, endFreq: 7200000 }]
       },
       {
         ITU: 1,
-        name: '41m AM', min: -40, max: 120, published: true, amateurBand: false, startFreq: 7200000, endFreq: 7450000, stepi: 1000, color: 'rgba(199, 12, 193, 0.6)',
+        name: '41m AM', min: -40, max: 120, publishBand: true: true, amateurBand: false, startFreq: 7200000, endFreq: 7450000, stepi: 1000, color: 'rgba(199, 12, 193, 0.6)',
         modes: [{ mode: MODES.AM, startFreq: 7200000, endFreq: 7450000 }]
       },
       {
         ITU: 2,
-        name: '41m AM', min: -40, max: 120, published: true, amateurBand: false, startFreq: 7300000, endFreq: 7450000, stepi: 1000, color: 'rgba(199, 12, 193, 0.6)',
+        name: '41m AM', min: -40, max: 120, publishBand: true: true, amateurBand: false, startFreq: 7300000, endFreq: 7450000, stepi: 1000, color: 'rgba(199, 12, 193, 0.6)',
         modes: [{ mode: MODES.AM, startFreq: 7300000, endFreq: 7450000 }]
       },
       {
         ITU: 3,
-        name: '41m AM', min: -40, max: 120, published: true, amateurBand: false, startFreq: 7200000, endFreq: 7450000, stepi: 1000, color: 'rgba(199, 12, 193, 0.6)',
+        name: '41m AM', min: -40, max: 120, publishBand: true: true, amateurBand: false, startFreq: 7200000, endFreq: 7450000, stepi: 1000, color: 'rgba(199, 12, 193, 0.6)',
         modes: [{ mode: MODES.AM, startFreq: 7200000, endFreq: 7450000 }]
       },
       {
         ITU: 123,
-        name: '31m AM', min: -40, max: 120, published: true, amateurBand: false, startFreq: 9400000, endFreq: 9900000, stepi: 1000, color: 'rgba(199, 12, 193, 0.6)',
+        name: '31m AM', min: -40, max: 120, publishBand: true: true, amateurBand: false, startFreq: 9400000, endFreq: 9900000, stepi: 1000, color: 'rgba(199, 12, 193, 0.6)',
         modes: [{ mode: MODES.AM, startFreq: 9400000, endFreq: 9900000 }]
       },
       {
         ITU: 123,
-        name: '30m', min: -40, max: 120, published: true, amateurBand: true, startFreq: 10100000, endFreq: 10150000, stepi: 1000, color: 'rgba(50, 168, 72, 0.6)',
+        name: '30m', min: -40, max: 120, publishBand: true: true, amateurBand: true, startFreq: 10100000, endFreq: 10150000, stepi: 1000, color: 'rgba(50, 168, 72, 0.6)',
         modes: [{ mode: MODES.CW, startFreq: 10100000, endFreq: 10150000 }]
       },
       {
         ITU: 123,
-        name: '25m AM', min: -40, max: 120, published: true, amateurBand: false, startFreq: 11600000, endFreq: 12200000, stepi: 1000, color: 'rgba(199, 12, 193, 0.6)',
+        name: '25m AM', min: -40, max: 120, publishBand: true: true, amateurBand: false, startFreq: 11600000, endFreq: 12200000, stepi: 1000, color: 'rgba(199, 12, 193, 0.6)',
         modes: [{ mode: MODES.AM, startFreq: 11600000, endFreq: 12200000 }]
       },
       {
         ITU: 123,
-        name: '22m AM', min: -40, max: 120, published: true, amateurBand: false, startFreq: 13570000, endFreq: 13870000, stepi: 1000, color: 'rgba(199, 12, 193, 0.6)',
+        name: '22m AM', min: -40, max: 120, publishBand: true: true, amateurBand: false, startFreq: 13570000, endFreq: 13870000, stepi: 1000, color: 'rgba(199, 12, 193, 0.6)',
         modes: [{ mode: MODES.AM, startFreq: 13570000, endFreq: 13870000 }]
       },
       {
         ITU: 123,
-        name: '20m', min: -40, max: 120, published: true, amateurBand: true, startFreq: 14000000, endFreq: 14350000, stepi: 1000, color: 'rgba(50, 168, 72, 0.6)',
+        name: '20m', min: -40, max: 120, publishBand: true: true, amateurBand: true, startFreq: 14000000, endFreq: 14350000, stepi: 1000, color: 'rgba(50, 168, 72, 0.6)',
         modes: [
           { mode: MODES.CW, startFreq: 14000000, endFreq: 14070000 },
           { mode: MODES.USB, startFreq: 14070000, endFreq: 14350000 }]
       },
       {
         ITU: 123,
-        name: '19m AM', min: -40, max: 120, published: true, amateurBand: false, startFreq: 15100000, endFreq: 15830000, stepi: 1000, color: 'rgba(199, 12, 193, 0.6)',
+        name: '19m AM', min: -40, max: 120, publishBand: true: true, amateurBand: false, startFreq: 15100000, endFreq: 15830000, stepi: 1000, color: 'rgba(199, 12, 193, 0.6)',
         modes: [{ mode: MODES.AM, startFreq: 15100000, endFreq: 15830000 }]
       },
       {
         ITU: 123,
-        name: '16m AM', min: -40, max: 120, published: true, amateurBand: false, startFreq: 17480000, endFreq: 17900000, stepi: 1000, color: 'rgba(199, 12, 193, 0.6)',
+        name: '16m AM', min: -40, max: 120, publishBand: true: true, amateurBand: false, startFreq: 17480000, endFreq: 17900000, stepi: 1000, color: 'rgba(199, 12, 193, 0.6)',
         modes: [{ mode: MODES.AM, startFreq: 17480000, endFreq: 17900000 }]
       },
       {
         ITU: 123,
-        name: '17m', min: -40, max: 120, published: true, amateurBand: true, startFreq: 18068000, endFreq: 18168000, stepi: 1000, color: 'rgba(50, 168, 72, 0.6)',
+        name: '17m', min: -40, max: 120, publishBand: true: true, amateurBand: true, startFreq: 18068000, endFreq: 18168000, stepi: 1000, color: 'rgba(50, 168, 72, 0.6)',
         modes: [
           { mode: MODES.CW, startFreq: 18068000, endFreq: 18100000 },
           { mode: MODES.USB, startFreq: 18100000, endFreq: 18168000 }]
       },
       {
         ITU: 123,
-        name: '15m AM', min: -40, max: 120, published: true, amateurBand: false, startFreq: 18900000, endFreq: 19020000, stepi: 1000, color: 'rgba(199, 12, 193, 0.6)',
+        name: '15m AM', min: -40, max: 120, publishBand: true: true, amateurBand: false, startFreq: 18900000, endFreq: 19020000, stepi: 1000, color: 'rgba(199, 12, 193, 0.6)',
         modes: [{ mode: MODES.AM, startFreq: 18900000, endFreq: 19020000 }]
       },
       {
         ITU: 123,
-        name: '15m', min: -40, max: 120, published: true, amateurBand: true, startFreq: 21000000, endFreq: 21450000, stepi: 1000, color: 'rgba(50, 168, 72, 0.6)',
+        name: '15m', min: -40, max: 120, publishBand: true: true, amateurBand: true, startFreq: 21000000, endFreq: 21450000, stepi: 1000, color: 'rgba(50, 168, 72, 0.6)',
         modes: [
           { mode: MODES.CW, startFreq: 21000000, endFreq: 21070000 },
           { mode: MODES.USB, startFreq: 21070000, endFreq: 21450000 }]
       },
       {
         ITU: 123,
-        name: '13m AM', min: -40, max: 120, published: true, amateurBand: false, startFreq: 21450000, endFreq: 21850000, stepi: 1000, color: 'rgba(199, 12, 193, 0.6)',
+        name: '13m AM', min: -40, max: 120, publishBand: true: true, amateurBand: false, startFreq: 21450000, endFreq: 21850000, stepi: 1000, color: 'rgba(199, 12, 193, 0.6)',
         modes: [{ mode: MODES.AM, startFreq: 21450000, endFreq: 21850000 }]
       },
       {
         ITU: 123,
-        name: '12m', min: -40, max: 120, published: true, amateurBand: true, startFreq: 24890000, endFreq: 24990000, stepi: 1000, color: 'rgba(50, 168, 72, 0.6)',
+        name: '12m', min: -40, max: 120, publishBand: true: true, amateurBand: true, startFreq: 24890000, endFreq: 24990000, stepi: 1000, color: 'rgba(50, 168, 72, 0.6)',
         modes: [
           { mode: MODES.CW, startFreq: 24890000, endFreq: 24920000 },
           { mode: MODES.USB, startFreq: 24920000, endFreq: 24990000 }]
       },
       {
         ITU: 123,
-        name: '11m AM', min: -40, max: 120, published: true, amateurBand: false, startFreq: 25600000, endFreq: 26100000, stepi: 1000, color: 'rgba(199, 12, 193, 0.6)',
+        name: '11m AM', min: -40, max: 120, publishBand: true: true, amateurBand: false, startFreq: 25600000, endFreq: 26100000, stepi: 1000, color: 'rgba(199, 12, 193, 0.6)',
         modes: [{ mode: MODES.AM, startFreq: 25600000, endFreq: 26100000 }]
       },
       {
         ITU: 1,
-        name: 'CB', min: -40, max: 120, published: true, amateurBand: false, startFreq: 26965000, endFreq: 27405000, stepi: 1000, color: 'rgba(3, 227, 252, 0.6)',
+        name: 'CB', min: -40, max: 120, publishBand: true: true, amateurBand: false, startFreq: 26965000, endFreq: 27405000, stepi: 1000, color: 'rgba(3, 227, 252, 0.6)',
         modes: [
           { mode: MODES.AM, startFreq: 26965000, endFreq: 27300000 },
           { mode: MODES.USB, startFreq: 27305000, endFreq: 27405000 }
@@ -287,7 +287,7 @@ export default class SpectrumWaterfall {
       },
       {
         ITU: 2,
-        name: 'CB', min: -40, max: 120, published: true, amateurBand: false, startFreq: 26965000, endFreq: 27405000, stepi: 1000, color: 'rgba(3, 227, 252, 0.6)',
+        name: 'CB', min: -40, max: 120, publishBand: true: true, amateurBand: false, startFreq: 26965000, endFreq: 27405000, stepi: 1000, color: 'rgba(3, 227, 252, 0.6)',
         modes: [
           { mode: MODES.AM, startFreq: 26965000, endFreq: 27300000 },
           { mode: MODES.USB, startFreq: 27305000, endFreq: 27405000 }
@@ -295,19 +295,19 @@ export default class SpectrumWaterfall {
       },
       {
         ITU: 123,
-        name: '11m SSB', min: -40, max: 120, published: true, amateurBand: false, startFreq: 27405000, endFreq: 28000000, stepi: 1000, color: 'rgba(199, 12, 193, 0.6)',
+        name: '11m SSB', min: -40, max: 120, publishBand: true: true, amateurBand: false, startFreq: 27405000, endFreq: 28000000, stepi: 1000, color: 'rgba(199, 12, 193, 0.6)',
         modes: [{ mode: MODES.USB, startFreq: 27405000, endFreq: 28000000 }]
       },
       {
         ITU: 123,
-        name: '10m', min: -40, max: 120, published: true, amateurBand: true, startFreq: 28000000, endFreq: 29700000, stepi: 1000, color: 'rgba(50, 168, 72, 0.6)',
+        name: '10m', min: -40, max: 120, publishBand: true: true, amateurBand: true, startFreq: 28000000, endFreq: 29700000, stepi: 1000, color: 'rgba(50, 168, 72, 0.6)',
         modes: [
           { mode: MODES.CW, startFreq: 28000000, endFreq: 28070000 },
           { mode: MODES.USB, startFreq: 28070000, endFreq: 29700000 }]
       },
       {
         ITU: 123,
-        name: '6m', min: -40, max: 120, published: true, amateurBand: true, startFreq: 50000000, endFreq: 54000000, stepi: 1000, color: 'rgba(50, 168, 72, 0.6)',
+        name: '6m', min: -40, max: 120, publishBand: true: true, amateurBand: true, startFreq: 50000000, endFreq: 54000000, stepi: 1000, color: 'rgba(50, 168, 72, 0.6)',
         modes: [
           { mode: MODES.CW, startFreq: 50000000, endFreq: 50100000 },
           { mode: MODES.USB, startFreq: 50100000, endFreq: 54000000 },
@@ -315,12 +315,12 @@ export default class SpectrumWaterfall {
       },
       {
         ITU: 1,
-        name: '4m', min: -40, max: 120, published: true, amateurBand: true, startFreq: 69950000, endFreq: 69950000, stepi: 1000, color: 'rgba(50, 168, 72, 0.6)',
+        name: '4m', min: -40, max: 120, publishBand: true: true, amateurBand: true, startFreq: 69950000, endFreq: 69950000, stepi: 1000, color: 'rgba(50, 168, 72, 0.6)',
         modes: [{ mode: MODES.FM, startFreq: 69950000, endFreq: 69950000 }]
       },
       {
         ITU: 1,
-        name: '2m', min: -40, max: 120, published: true, amateurBand: true, startFreq: 144000000, endFreq: 146000000, stepi: 25000, color: 'rgba(50, 168, 72, 0.6)',
+        name: '2m', min: -40, max: 120, publishBand: true: true, amateurBand: true, startFreq: 144000000, endFreq: 146000000, stepi: 25000, color: 'rgba(50, 168, 72, 0.6)',
         modes: [
           { mode: MODES.CW, startFreq: 144000000, endFreq: 144150000 },
           { mode: MODES.USB, startFreq: 144150000, endFreq: 144930000 },
@@ -328,7 +328,7 @@ export default class SpectrumWaterfall {
       },
       {
         ITU: 2,
-        name: '2m', min: -40, max: 120, published: true, amateurBand: true, startFreq: 144000000, endFreq: 148000000, stepi: 25000, color: 'rgba(50, 168, 72, 0.6)',
+        name: '2m', min: -40, max: 120, publishBand: true: true, amateurBand: true, startFreq: 144000000, endFreq: 148000000, stepi: 25000, color: 'rgba(50, 168, 72, 0.6)',
         modes: [
           { mode: MODES.CW, startFreq: 144000000, endFreq: 144100000 },
           { mode: MODES.USB, startFreq: 144100000, endFreq: 144300000 },
@@ -336,7 +336,7 @@ export default class SpectrumWaterfall {
       },
       {
         ITU: 2,
-        name: '1.25m', min: -40, max: 120, published: true, amateurBand: true, startFreq: 220000000, endFreq: 225000000, stepi: 25000, color: 'rgba(50, 168, 72, 0.6)',
+        name: '1.25m', min: -40, max: 120, publishBand: true: true, amateurBand: true, startFreq: 220000000, endFreq: 225000000, stepi: 25000, color: 'rgba(50, 168, 72, 0.6)',
         modes: [
           { mode: MODES.CW, startFreq: 222000000, endFreq: 222250000 },
           { mode: MODES.USB, startFreq: 222070000, endFreq: 222250000 },
@@ -344,7 +344,7 @@ export default class SpectrumWaterfall {
       },
       {
         ITU: 2,
-        name: '70cm', min: -40, max: 120, published: true, amateurBand: true, startFreq: 430000000, endFreq: 440000000, stepi: 25000, color: 'rgba(50, 168, 72, 0.6)',
+        name: '70cm', min: -40, max: 120, publishBand: true: true, amateurBand: true, startFreq: 430000000, endFreq: 440000000, stepi: 25000, color: 'rgba(50, 168, 72, 0.6)',
         modes: [
           { mode: MODES.CW, startFreq: 430000000, endFreq: 430100000 },
           { mode: MODES.USB, startFreq: 430100000, endFreq: 432100000 },
