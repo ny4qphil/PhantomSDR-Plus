@@ -75,6 +75,7 @@ Otherwise, 'npm audit fix' and 'npm run build' will not function as they should.
 To build the frontend, simply change to the frontend directory and enter the following commands :
 ```
 npm install
+npm i svelte-device-info --save
 npm audit fix
 npm run build
 ```
