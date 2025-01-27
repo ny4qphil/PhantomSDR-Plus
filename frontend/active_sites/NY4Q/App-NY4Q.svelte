@@ -48,6 +48,8 @@
     siteSDRBandwidth,
     siteRegion,
     siteChatEnabled,
+    siteCity,
+    siteAntenna,
   } from "../site_information.json";
   // End of Information Area import //
 
@@ -95,6 +97,7 @@
   // the integer for 80m is 7. //
   let bandArray = waterfall.bands;
   let currentBand = 7; // 80m
+  let prevBand = currentBand;
 
   // Begin Tuning Steps declarations
   let defaultStep,
@@ -286,6 +289,7 @@
   let vfoModeA = true;
   let vfoAFrequency = siteSDRBaseFrequency;
   let vfoBFrequency = siteSDRBaseFrequency;
+  let initialVFOB = true;
   let vfoAMode = "LSB";
   let vfoBMode = "LSB";
   let vfoAStep = 50;
@@ -444,7 +448,7 @@
     updateLink();
     setTimeout(function () {
       toggleModePopup();
-    }, 1500);
+    }, 500);
   }
 
   // Demodulation controls
@@ -850,8 +854,7 @@
   // This function was added to track band changes //
   // and makes the band buttons track along with frequency //
   // adjustments. //
-  let prevBand,
-    stepi = 0;
+  let stepi = 0;
   function updateBandButton() {
     currentBand = -1;
     for (var i = 0; i < bandArray.length; i++) {
@@ -862,12 +865,6 @@
       ) {
         currentBand = i;
         newStaticBandwidth = 0; // To reset the IF Filter button //
-        if (bandArray[i].max < 256) {
-          min_waterfall = bandArray[i].min;
-          max_waterfall = bandArray[i].max;
-          handleMinMove();
-          handleMaxMove();
-        }
         if (prevBand != currentBand) {
           currentTuneStep = bandArray[i].stepi;
         }
@@ -1155,6 +1152,14 @@
 
   function toggleVFO() {
     const [waterfallL, waterfallR] = waterfall.getWaterfallRange();
+    if (initialVFOB) {
+      initialVFOB = false;
+      vfoBMode = demodulation;
+      vfoBwaterfallL = waterfallL;
+      vfoBwaterfallR = waterfallR;
+      vfoBStep = currentTuneStep;
+      vfoBFrequency = frequencyInputComponent.getFrequency();
+    }
     if (vfoModeA) {
       vfo = "VFO B";
       vfoAFrequency = frequency * 1000;
@@ -1162,37 +1167,30 @@
       vfoAwaterfallL = waterfallL;
       vfoAwaterfallR = waterfallR;
       vfoAStep = currentTuneStep;
-      // First time in, you need to make sure nothing is undefined //
-      if (vfoBwaterfallR === 0 && vfoBwaterfallR === 0) {
-        handleBandChange(12);
-      } else {
-        frequencyInputComponent.setFrequency(vfoBFrequency);
-        handleFrequencyChange({ detail: vfoBFrequency });
-        SetMode(vfoBMode);
-        waterfall.setWaterfallRange(vfoBwaterfallL, vfoBwaterfallR);
-        frequencyMarkerComponent.updateFrequencyMarkerPositions();
-        handleTuningStep(vfoBStep);
-        updatePassband();
-      }
+      SetMode(vfoBMode);
+      waterfall.setWaterfallRange(vfoBwaterfallL, vfoBwaterfallR);
+      frequencyInputComponent.setFrequency(vfoBFrequency);
+      handleFrequencyChange({ detail: vfoBFrequency });
+      frequencyMarkerComponent.updateFrequencyMarkerPositions();
+      updatePassband();
     }
     if (!vfoModeA) {
-      const [waterfallL, waterfallR] = waterfall.getWaterfallRange();
       vfo = "VFO A";
       vfoBFrequency = frequency * 1000;
       vfoBMode = demodulation;
       vfoBwaterfallL = waterfallL;
       vfoBwaterfallR = waterfallR;
       vfoBStep = currentTuneStep;
-      SetMode(vfoAMode);
       handleTuningStep(vfoAStep);
+      SetMode(vfoAMode);
+      waterfall.setWaterfallRange(vfoAwaterfallL, vfoAwaterfallR);
       frequencyInputComponent.setFrequency(vfoAFrequency);
       handleFrequencyChange({ detail: vfoAFrequency });
-      waterfall.setWaterfallRange(vfoAwaterfallL, vfoAwaterfallR);
       frequencyMarkerComponent.updateFrequencyMarkerPositions();
-      handleTuningStep(vfoAStep);
       updatePassband();
     }
     vfoModeA = !vfoModeA;
+    handleFineTuningStep(0); // Needed for a waterfall bug //
   }
 
   let currentStep = 0;
@@ -1833,9 +1831,10 @@
       (bandArray[newBand].endFreq - bandArray[newBand].startFreq) / 2 +
         bandArray[newBand].startFreq,
     );
-    let waterfallEndSpan = parseFloat(bandArray[newBand].endFreq / 7.15255);
-    let waterfallStartSpan = parseFloat(bandArray[newBand].startFreq / 7.15255);
-    let waterfallSpan = (waterfallEndSpan - waterfallStartSpan) / 2;
+    let ratio = siteSDRBandwidth / waterfall.waterfallMaxSize;
+    let waterfallEndSpan = parseFloat(bandArray[newBand].endFreq / ratio);
+    let waterfallStartSpan = parseFloat(bandArray[newBand].startFreq / ratio);
+    let waterfallSpan = parseFloat((waterfallEndSpan - waterfallStartSpan) / 2);
     waterfallSpan = waterfallSpan + waterfallSpan * 0.01; // 10% above band edge
     frequencyInputComponent.setFrequency(centerFreq);
     handleFrequencyChange({ detail: centerFreq });
@@ -1848,8 +1847,8 @@
     l = Math.floor(m - 512);
     r = Math.ceil(m + 512);
     // Below sets the waterfall brightness //
-    min_waterfall = -40;
-    max_waterfall = 120;
+    min_waterfall = bandArray[newBand].min;
+    max_waterfall = bandArray[newBand].max;
     handleMinMove();
     handleMaxMove();
     // End waterfall brightness //
@@ -1871,9 +1870,10 @@
       (bandArray[newBand].endFreq - bandArray[newBand].startFreq) / 2 +
         bandArray[newBand].startFreq,
     );
-    let waterfallEndSpan = parseFloat(bandArray[newBand].endFreq / 7.15255);
-    let waterfallStartSpan = parseFloat(bandArray[newBand].startFreq / 7.15255);
-    let waterfallSpan = (waterfallEndSpan - waterfallStartSpan) / 2;
+    let ratio = siteSDRBandwidth / waterfall.waterfallMaxSize;
+    let waterfallEndSpan = parseFloat(bandArray[newBand].endFreq / ratio);
+    let waterfallStartSpan = parseFloat(bandArray[newBand].startFreq / ratio);
+    let waterfallSpan = parseFloat((waterfallEndSpan - waterfallStartSpan) / 2);
     waterfallSpan = waterfallSpan + waterfallSpan * 0.01; // 10% above band edge
     frequencyInputComponent.setFrequency(centerFreq);
     handleFrequencyChange({ detail: centerFreq });
@@ -1886,8 +1886,8 @@
     l = Math.floor(m - 512);
     r = Math.ceil(m + 512);
     // Below sets the waterfall brightness //
-    min_waterfall = -40;
-    max_waterfall = 120;
+    min_waterfall = bandArray[newBand].min;
+    max_waterfall = bandArray[newBand].max;
     handleMinMove();
     handleMaxMove();
     // End waterfall brightness //
@@ -1901,7 +1901,7 @@
     currentBand = newBand;
     setTimeout(function () {
       toggleBandPopup();
-    }, 1500);
+    }, 500);
   }
   // End of Band Selection Function //
 
@@ -1935,7 +1935,7 @@
     newStaticBandwidth = newstaticbandwidth; // This will update the IF Filter button //
     setTimeout(function () {
       toggleIFPopup();
-    }, 1500);
+    }, 500);
   }
 
   // Begin Fine Tuning Steps Function
@@ -3048,7 +3048,7 @@
                             ? 'bg-blue-600 pressed scale-95'
                             : 'bg-gray-700 hover:bg-gray-600'}"
                           on:click={(e) =>
-                            handleBandwidthOffsetClick(e, bandwidthoffset)}
+                            handleBandwidthOffsetClick(bandwidthoffset)}
                           title="{bandwidthoffset} kHz"
                         >
                           {bandwidthoffset}
