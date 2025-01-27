@@ -250,7 +250,7 @@ export default class SpectrumWaterfall {
       },
       {
         ITU: 123,
-        name: '15m AM', min: -40, max: 120, publishBand: rue, amateurBand: false, startFreq: 18900000, endFreq: 19020000, stepi: 1000, color: 'rgba(199, 12, 193, 0.6)',
+        name: '15m AM', min: -40, max: 120, publishBand: true, amateurBand: false, startFreq: 18900000, endFreq: 19020000, stepi: 1000, color: 'rgba(199, 12, 193, 0.6)',
         modes: [{ mode: MODES.AM, startFreq: 18900000, endFreq: 19020000 }]
       },
       {
