@@ -7,28 +7,23 @@ import { encode, decode } from "./modules/ft8.js";
 import { AudioContext, ConvolverNode, IIRFilterNode, GainNode, AudioBuffer, AudioBufferSourceNode, DynamicsCompressorNode, MediaStreamAudioDestinationNode } from 'standardized-audio-context'
 import { BiquadFilterNode } from 'standardized-audio-context';
 
-// Added to allow for adjustment of the //
-// dynamic audio buffer //
-let bufferLimit = 0.5;
-let bufferThreshold = 0.1;
-// End of dynamic audio buffer mod //
-// AGC enable and setting //
-let agcEnabled = false;
-let agcSpeed = 0;
-//
-// End AGC section //
-
-
 export default class SpectrumAudio {
 
-constructor(endpoint) {
+  constructor(endpoint) {
 
-    
+
     // For Recording
     this.isRecording = false;
     this.recordedAudio = [];
 
+    // Added to allow for adjustment of the //
+    // dynamic audio buffer //
+    this.bufferLimit = 0.5;
+    this.bufferThreshold = 0.1;
 
+    // AGC enable and setting //
+    this.agcEnabled = false;
+    this.agcSpeed = 0;
 
     this.endpoint = endpoint
 
@@ -53,16 +48,15 @@ constructor(endpoint) {
     this.squelchThreshold = 0
     this.power = 1
     this.ctcss = false
-     // Remove the element with id startaudio from the DOM
-      
+    // Remove the element with id startaudio from the DOM
+
 
     if (this.audioCtx && this.audioCtx.state == 'running') {
       startaudio = document.getElementById('startaudio')
       if (startaudio) {
         startaudio.remove()
       }
-    }else
-    {
+    } else {
       // for chrome
       const userGestureFunc = () => {
         if (this.audioCtx && this.audioCtx.state !== 'running') {
@@ -77,7 +71,7 @@ constructor(endpoint) {
       }
       document.documentElement.addEventListener('mousedown', userGestureFunc)
     }
-    
+
 
     this.mode = 0
     this.d = 10
@@ -123,44 +117,44 @@ constructor(endpoint) {
       this.resolvePromise()
       return
     }
-  
+
     this.audioStartTime = this.audioCtx.currentTime
     this.playTime = this.audioCtx.currentTime + 0.1
     this.playStartTime = this.audioCtx.currentTime
-  
+
     this.decoder = createDecoder(settings.audio_compression, this.audioMaxSps, this.trueAudioSps, this.audioOutputSps)
-    
+
     // Bass boost (lowshelf filter)
     this.bassBoost = new BiquadFilterNode(this.audioCtx)
     this.bassBoost.type = 'lowshelf'
     this.bassBoost.frequency.value = 150
     this.bassBoost.Q.value = 0.7
     this.bassBoost.gain.value = 6
-  
+
     // Bandpass filter for speech enhancement
     this.bandpass = new BiquadFilterNode(this.audioCtx)
     this.bandpass.type = 'peaking'
     this.bandpass.frequency.value = 1800
     this.bandpass.Q.value = 1.2
     this.bandpass.gain.value = 3
-  
+
     // High-pass filter
     this.highPass = new BiquadFilterNode(this.audioCtx)
     this.highPass.type = 'highpass'
     this.highPass.frequency.value = 60
     this.highPass.Q.value = 0.7
-    
+
     // Presence boost
     this.presenceBoost = new BiquadFilterNode(this.audioCtx)
     this.presenceBoost.type = 'peaking'
     this.presenceBoost.frequency.value = 3500
     this.presenceBoost.Q.value = 1.5
     this.presenceBoost.gain.value = 4
-    
+
     // Convolver node for additional filtering
     this.convolverNode = new ConvolverNode(this.audioCtx)
     this.setLowpass(15000)
-  
+
     // Dynamic compressor
     this.compressor = new DynamicsCompressorNode(this.audioCtx)
     this.compressor.threshold.value = -24
@@ -168,16 +162,16 @@ constructor(endpoint) {
     this.compressor.ratio.value = 12
     this.compressor.attack.value = 0.003
     this.compressor.release.value = 0.25
-  
+
     // Gain node
     this.gainNode = new GainNode(this.audioCtx)
     this.setGain(5)
-  
+
 
 
     // Add MediaStreamDestination node
     this.destinationNode = new MediaStreamAudioDestinationNode(this.audioCtx);
-  
+
     // Connect nodes in the correct order
     this.convolverNode.connect(this.highPass)
     this.highPass.connect(this.bandpass)
@@ -187,15 +181,15 @@ constructor(endpoint) {
     this.compressor.connect(this.gainNode)
     this.gainNode.connect(this.destinationNode);
     this.gainNode.connect(this.audioCtx.destination)
-  
+
     this.audioInputNode = this.convolverNode
-  
+
     // Initial filter update based on current demodulation
     this.updateFilters()
-  
+
     this.resolvePromise(settings)
   }
-  
+
   updateFilters() {
     switch (this.demodulation) {
       case 'USB':
@@ -259,25 +253,24 @@ constructor(endpoint) {
 
 
   // Audio Buffer Delay function that sets the new values for //
-        // bufferLimit and bufferThreshold //
-  setAudioBufferDelay(newAudioBufferLimit,newAudioBufferThreshold) {
-          bufferThreshold = newAudioBufferThreshold;
-          bufferLimit = newAudioBufferLimit;
+  // bufferLimit and bufferThreshold //
+  setAudioBufferDelay(newAudioBufferLimit, newAudioBufferThreshold) {
+    this.bufferThreshold = newAudioBufferThreshold;
+    this.bufferLimit = newAudioBufferLimit;
   }
 
-  setAGCStateSpeed(newState,newSpeed) {
-          agcEnabled = newState;
-          agcSpeed = newSpeed;
-          console.log("AGC State = " + agcEnabled + " | " + "AGC Speed = " + agcSpeed);
+  setAGCStateSpeed(newState, newSpeed) {
+    this.agcEnabled = newState;
+    this.agcSpeed = newSpeed;
+    console.log("AGC State = " + agcEnabled + " | " + "AGC Speed = " + agcSpeed);
   }
-// End of added Section //
+  // End of added Section //
 
-  setFT8Decoding(value)
-  {
+  setFT8Decoding(value) {
     this.decodeFT8 = value;
   }
 
-  
+
 
   setFmDeemph(tau) {
     if (tau === 0) {
@@ -417,16 +410,14 @@ constructor(endpoint) {
   }
 
   updateAudioParams() {
-    if(this.demodulation == "CW")
-    {
+    if (this.demodulation == "CW") {
       this.audioSocket.send(JSON.stringify({
         cmd: 'window',
         l: this.audioLOffset,
         m: this.audioMOffset,
         r: this.audioROffset
       }))
-    }else
-    {
+    } else {
       this.audioSocket.send(JSON.stringify({
         cmd: 'window',
         l: this.audioL,
@@ -434,14 +425,13 @@ constructor(endpoint) {
         r: this.audioR
       }))
     }
-    
+
   }
 
   setAudioDemodulation(demodulation) {
 
     this.demodulation = demodulation
-    if(demodulation == "CW")
-    {
+    if (demodulation == "CW") {
       demodulation = "USB"
     }
     this.updateFilters()
@@ -457,14 +447,14 @@ constructor(endpoint) {
     this.audioR = Math.ceil(audioR);
     this.actualL = audioL;
     this.actualR = audioR;
-  
+
     this.audioLOffset = Math.floor(audioLOffset);
     this.audioMOffset = audioMOffset;
     this.audioROffset = Math.ceil(audioROffset);
     this.actualLOffset = audioLOffset;
     this.actualROffset = audioROffset;
 
-  
+
     this.updateAudioParams();
   }
 
@@ -481,9 +471,9 @@ constructor(endpoint) {
   }
 
   setGain(gain) {
-    gain /= 35; 
-    this.gain = gain 
-    this.gainNode.gain.value = gain 
+    gain /= 35;
+    this.gain = gain
+    this.gainNode.gain.value = gain
   }
 
   setMute(mute) {
@@ -497,8 +487,7 @@ constructor(endpoint) {
     }))
   }
 
-  setCTCSSFilter(ctcss)
-  {
+  setCTCSSFilter(ctcss) {
     this.ctcss = ctcss;
     this.updateFilters();
   }
@@ -535,26 +524,26 @@ constructor(endpoint) {
 
 
   gridSquareToLatLong(gridSquare) {
-      const l = gridSquare.toUpperCase();
-      let lon = ((l.charCodeAt(0) - 'A'.charCodeAt(0)) * 20) - 180;
-      let lat = ((l.charCodeAt(1) - 'A'.charCodeAt(0)) * 10) - 90;
+    const l = gridSquare.toUpperCase();
+    let lon = ((l.charCodeAt(0) - 'A'.charCodeAt(0)) * 20) - 180;
+    let lat = ((l.charCodeAt(1) - 'A'.charCodeAt(0)) * 10) - 90;
 
-      if (l.length >= 4) {
-          lon += ((l.charCodeAt(2) - '0'.charCodeAt(0)) * 2);
-          lat += (l.charCodeAt(3) - '0'.charCodeAt(0));
-      }
-      
-      if (l.length == 6) {
-          lon += ((l.charCodeAt(4) - 'A'.charCodeAt(0)) * (5 / 60));
-          lat += ((l.charCodeAt(5) - 'A'.charCodeAt(0)) * (2.5 / 60));
-          lon += (5 / 120); // center of the square for 6-char grid
-          lat += (1.25 / 120); // center of the square for 6-char grid
-      } else if (l.length == 4) {
-          lon += 1; // center of the square for 4-char grid
-          lat += 0.5; // center of the square for 4-char grid
-      }
+    if (l.length >= 4) {
+      lon += ((l.charCodeAt(2) - '0'.charCodeAt(0)) * 2);
+      lat += (l.charCodeAt(3) - '0'.charCodeAt(0));
+    }
 
-      return [lat, lon];
+    if (l.length == 6) {
+      lon += ((l.charCodeAt(4) - 'A'.charCodeAt(0)) * (5 / 60));
+      lat += ((l.charCodeAt(5) - 'A'.charCodeAt(0)) * (2.5 / 60));
+      lon += (5 / 120); // center of the square for 6-char grid
+      lat += (1.25 / 120); // center of the square for 6-char grid
+    } else if (l.length == 4) {
+      lon += 1; // center of the square for 4-char grid
+      lat += 0.5; // center of the square for 4-char grid
+    }
+
+    return [lat, lon];
   }
 
 
@@ -569,13 +558,13 @@ constructor(endpoint) {
   extractGridLocators(message) {
     // Regular expression for matching grid locators
     const regex = /[A-R]{2}[0-9]{2}([A-X]{2})?/gi;
-    
+
     // Find matches in the provided message
     const matches = message.match(regex);
-    
+
     // Ensure unique matches, as the same locator might appear more than once
     const uniqueLocators = matches ? Array.from(new Set(matches)) : [];
-    
+
     return uniqueLocators;
   }
 
@@ -584,26 +573,26 @@ constructor(endpoint) {
     function toRad(x) {
       return x * Math.PI / 180;
     }
-  
+
     var R = 6371; // km
-    var dLat = toRad(lat2-lat1);
-    var dLon = toRad(lon2-lon1);
-    var a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-            Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
-            Math.sin(dLon/2) * Math.sin(dLon/2);
-    var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    var dLat = toRad(lat2 - lat1);
+    var dLon = toRad(lon2 - lon1);
+    var a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     var d = R * c;
     return d;
   }
-  
-  
+
+
 
 
   updateCollectionStatus() {
     const now = new Date();
     const seconds = now.getSeconds();
     const waitSeconds = 15 - (seconds % 15);
-    
+
     if (waitSeconds === 15 && !this.isCollecting) {
       this.startCollection();
     } else if (waitSeconds === 1 && this.isCollecting) {
@@ -618,38 +607,38 @@ constructor(endpoint) {
 
   async stopCollection() {
     this.isCollecting = false;
-    if(this.decodeFT8) {
+    if (this.decodeFT8) {
       const bigFloat32Array = new Float32Array(this.accumulator.flat());
       let decodedMessages = await decode(bigFloat32Array);
       const messagesListDiv = document.getElementById('ft8MessagesList');
-  
+
       let baseLocation = this.gridSquareToLatLong(this.grid_locator);
-  
+
       for (let message of decodedMessages) {
         let locators = this.extractGridLocators(message.text);
-  
-        if(locators.length > 0) {
+
+        if (locators.length > 0) {
           let targetLocation = this.gridSquareToLatLong(locators[0]);
           let distance = this.calculateDistance(baseLocation[0], baseLocation[1], targetLocation[0], targetLocation[1]);
-  
+
           if (distance > this.farthestDistance) {
             this.farthestDistance = distance;
             document.getElementById('farthest-distance').textContent = `Farthest Distance: ${this.farthestDistance.toFixed(2)} km`;
           }
-  
+
           const messageDiv = document.createElement('div');
           messageDiv.classList.add('glass-message', 'p-2', 'rounded-lg', 'text-sm', 'flex', 'justify-between', 'items-center');
-  
+
           // Message content
           const messageContent = document.createElement('div');
           messageContent.classList.add('flex-grow');
           messageContent.textContent = message.text;
           messageDiv.appendChild(messageContent);
-  
+
           // Locators and distance
           const infoDiv = document.createElement('div');
           infoDiv.classList.add('flex', 'flex-col', 'items-end', 'ml-2', 'text-xs');
-  
+
           // Locators
           const locatorsDiv = document.createElement('div');
           locators.forEach((locator, index) => {
@@ -662,18 +651,18 @@ constructor(endpoint) {
             locatorsDiv.appendChild(locatorLink);
           });
           infoDiv.appendChild(locatorsDiv);
-  
+
           // Distance
           const distanceDiv = document.createElement('div');
           distanceDiv.textContent = `${distance.toFixed(2)} km`;
           infoDiv.appendChild(distanceDiv);
-  
+
           messageDiv.appendChild(infoDiv);
-  
+
           messagesListDiv.appendChild(messageDiv);
         }
       }
-  
+
       setTimeout(() => {
         messagesListDiv.scrollTop = messagesListDiv.scrollHeight;
       }, 500);
@@ -683,7 +672,7 @@ constructor(endpoint) {
   // FT8 END
 
 
-  
+
 
   playAudio(pcmArray) {
     if (this.mute || (this.squelchMute && this.squelch)) {
@@ -692,85 +681,62 @@ constructor(endpoint) {
     if (this.audioCtx.state !== 'running') {
       return
     }
-  
+
     if (this.isCollecting && this.decodeFT8) {
       this.accumulator.push(...pcmArray);
     }
- 
+
 
     const curPlayTime = this.playPCM(pcmArray, this.playTime, this.audioOutputSps, 1)
 
     // Dynamic adjustment of play time
     const currentTime = this.audioCtx.currentTime;
     // The line below was commented out by NY4Q to allow for a mod to //
-          // adjust the dynamic limits of this function. //
-     //const bufferThreshold = 0.1; // 100ms buffer
-          // The line below was modified by NY4Q - 0.1 was swapped //
-          // out for the variable bufferThreshold. //
-    if ((this.playTime - currentTime) <= bufferThreshold) {
+    // adjust the dynamic limits of this function. //
+    //const bufferThreshold = 0.1; // 100ms buffer //
+    if ((this.playTime - currentTime) <= this.bufferThreshold) {
       // Underrun: increase buffer
-      this.playTime = (currentTime + bufferThreshold + curPlayTime);
-            // removed 0.5 and placed bufferLimit in its place - NY4Q //
-    } else if ((this.playTime - currentTime) > bufferLimit) { // Originally at 0.5
+      this.playTime = (currentTime + this.bufferThreshold + curPlayTime);
+      // removed 0.5 and placed bufferLimit in its place - NY4Q //
+    } else if ((this.playTime - currentTime) > this.bufferLimit) { // Originally at 0.5
       // Overrun: decrease buffer
-      this.playTime = (currentTime + bufferThreshold);
+      this.playTime = (currentTime + this.bufferThreshold);
     } else {
       // Normal operation: advance play time
       this.playTime += curPlayTime;
     }
 
-
-
-
-  
-    //const currentTime = this.audioCtx.currentTime;
-    //const bufferThreshold = 0.1; // 100ms buffer
-  
- //   if (this.playTime - currentTime <= bufferThreshold) {
-      // Underrun: increase buffer
-   //   this.playTime = currentTime + bufferThreshold + curPlayTime;
-    //} else if (this.playTime - currentTime > 0.5) {
-      // Overrun: decrease buffer
-     // this.playTime = currentTime + bufferThreshold;
-    //} else {
-      // Normal operation: advance play time
-      //this.playTime += curPlayTime;
-    //}
-
-
-
-
     if (this.isRecording) {
       this.recordedAudio.push(...pcmArray);
     }
   }
-  
+
   playPCM(buffer, playTime, sampleRate, scale) {
     if (!this.audioInputNode) {
       console.warn('Audio not initialized');
       return 0;
     }
     const source = new AudioBufferSourceNode(this.audioCtx);
-    const audioBuffer = new AudioBuffer({ 
-      length: buffer.length, 
-      numberOfChannels: 1, 
-      sampleRate: this.audioOutputSps 
+    const audioBuffer = new AudioBuffer({
+      length: buffer.length,
+      numberOfChannels: 1,
+      sampleRate: this.audioOutputSps
     });
-  
+
     audioBuffer.copyToChannel(buffer, 0, 0);
-  
+
     source.buffer = audioBuffer;
     source.connect(this.audioInputNode);
-  
+
     const scheduledTime = Math.max(playTime, this.audioCtx.currentTime);
     source.start(scheduledTime);
-  
+
     source.onended = () => {
       source.disconnect();
     };
 
 
-  
+
     return audioBuffer.duration;
   }
 
@@ -781,7 +747,7 @@ constructor(endpoint) {
     this.recordedChunks = [];
 
     this.mediaRecorder = new MediaRecorder(this.destinationNode.stream);
-    
+
     this.mediaRecorder.ondataavailable = (event) => {
       if (event.data.size > 0) {
         this.recordedChunks.push(event.data);
@@ -805,7 +771,7 @@ constructor(endpoint) {
     }
 
     const blob = new Blob(this.recordedChunks, { type: 'audio/webm' });
-    
+
     // Convert blob to ArrayBuffer
     blob.arrayBuffer().then(arrayBuffer => {
       // Decode the audio data
@@ -820,7 +786,7 @@ constructor(endpoint) {
         //
         const audioHour = audioDate.getHours();
         const audioMinute = audioDate.getMinutes();
-	const audioSeconds = audioDate.getSeconds();
+        const audioSeconds = audioDate.getSeconds();
         //
         const audioFullDate = audioYear + '-' + audioDay + '-' + audioMonth;
         const audioTime = audioHour + '-' + audioMinute + '-' + audioSeconds;
@@ -884,6 +850,6 @@ constructor(endpoint) {
 
     return arrayBuffer;
   }
-  
+
 }
 
