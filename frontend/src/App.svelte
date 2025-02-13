@@ -59,6 +59,7 @@
   let isRecording = false;
   let canDownload = false;
 
+  let waterfallValue;
   let waterfallCanvas;
   let spectrumCanvas;
   let graduationCanvas;
@@ -399,10 +400,11 @@
   // compares it to the startFreq & endFreq from waterfall.js and if all that //
   // passes, then a Band Button is printed to the SDR interface. //
   function printBandButton(startFreq, endFreq, publish) {
-    let sdrStartFreq = siteSDRBaseFrequency;
-    let sdrBandwidth = siteSDRBandwidth;
     if (publish) {
-      return endFreq >= sdrStartFreq && endFreq <= sdrStartFreq + sdrBandwidth;
+      return (
+        endFreq >= siteSDRBaseFrequency &&
+        endFreq <= siteSDRBaseFrequency + siteSDRBandwidth
+      );
     } else {
       return false;
     }
@@ -829,6 +831,7 @@
   let NBEnabled = false;
   let ANEnabled = false;
   let CTCSSSupressEnabled = false;
+
   function handleNRChange() {
     NREnabled = !NREnabled;
     audio.decoder.set_nr(NREnabled);
@@ -1105,6 +1108,11 @@
 
     // Update the link
     updateLink();
+
+    // Close the window
+    setTimeout(function () {
+      toggleBookmarkPopup();
+    }, 500);
   }
 
   function copyToClipboard(text) {
@@ -1129,10 +1137,11 @@
     localStorage.setItem("bookmarks", JSON.stringify(bookmarksToSave));
   }
 
-  let showBookmarkPopup,
-    showModePopup,
-    showBandPopup,
-    showIFPopup = false;
+  let showBookmarkPopup = false,
+    showModePopup = false,
+    showBandPopup = false,
+    showIFPopup = false,
+    showAGCPopup = false;
 
   function toggleBookmarkPopup() {
     showBookmarkPopup = !showBookmarkPopup;
@@ -1148,6 +1157,10 @@
 
   function toggleIFPopup() {
     showIFPopup = !showIFPopup;
+  }
+
+  function toggleAGCPopup() {
+    showAGCPopup = !showAGCPopup;
   }
 
   function toggleVFO() {
@@ -1482,7 +1495,7 @@
     };
 
     /* const storageParameters = loadFromLocalStorage()
-    updateParameters(storageParameters) */
+      updateParameters(storageParameters) */
     const linkParameters = parseLink(location.search.slice(1));
     updateParameters(linkParameters);
 
@@ -1810,22 +1823,24 @@
     currentAGC = newAGC;
     switch (newAGC) {
       case 0:
-        audio.setAGCStateSpeed(false, 0);
+        audio.setAGC(0);
         break;
       case 1:
-        audio.setAGCStateSpeed(true, 1);
+        audio.setAGC(1);
         break;
       case 2:
-        audio.setAGCStateSpeed(true, 2);
+        audio.setAGC(2);
         break;
       case 3:
-        audio.setAGCStateSpeed(true, 3);
+        audio.setAGC(3);
         break;
     }
+    setTimeout(function () {
+      toggleAGCPopup();
+    }, 500);
   }
 
   // This Band Selection function handles band changes sent from the Band Selection section of the main page //
-  // The 7.15255 float below is (total_watefall_span / maximum_frequency_sampled) //
   function handleBandChange(newBand) {
     let centerFreq = parseFloat(
       (bandArray[newBand].endFreq - bandArray[newBand].startFreq) / 2 +
@@ -1858,13 +1873,17 @@
     handleFrequencyChange({ detail: centerFreq });
     waterfall.setWaterfallRange(l, r);
     frequencyMarkerComponent.updateFrequencyMarkerPositions();
+    if (bandArray[newBand].initialFreq != 0) {
+      frequencyInputComponent.setFrequency(bandArray[newBand].initialFreq);
+      handleFrequencyChange({ detail: bandArray[newBand].initialFreq });
+      console.log("ba.IF = " + bandArray[newBand].initialFreq);
+    }
     updatePassband();
     currentBand = newBand;
   }
   // End of Band Selection Function //
 
   // This Band Selection function handles band changes sent from the Band Selection section of the main page //
-  // The 7.15255 float below is (total_watefall_span / maximum_frequency_sampled) //
   function handleBandChangePopup(newBand) {
     let centerFreq = parseFloat(
       (bandArray[newBand].endFreq - bandArray[newBand].startFreq) / 2 +
@@ -1897,6 +1916,11 @@
     handleFrequencyChange({ detail: centerFreq });
     waterfall.setWaterfallRange(l, r);
     frequencyMarkerComponent.updateFrequencyMarkerPositions();
+    if (bandArray[newBand].initialFreq != 0) {
+      frequencyInputComponent.setFrequency(bandArray[newBand].initialFreq);
+      handleFrequencyChange({ detail: bandArray[newBand].initialFreq });
+      console.log("ba.IF = " + bandArray[newBand].initialFreq);
+    }
     updatePassband();
     currentBand = newBand;
     setTimeout(function () {
@@ -2310,11 +2334,11 @@
                   <div
                     class="absolute bg-blue-500 bg-opacity-20 border-2 border-blue-500 transition-all duration-300 ease-in-out pointer-events-none"
                     style="
-                    top: {highlightPosition.top}px;
-                    left: {highlightPosition.left}px;
-                    width: {highlightPosition.width}px;
-                    height: {highlightPosition.height}px;
-                  "
+                      top: {highlightPosition.top}px;
+                      left: {highlightPosition.left}px;
+                      width: {highlightPosition.width}px;
+                      height: {highlightPosition.height}px;
+                    "
                     transition:scale={{ duration: 300, start: 0.95 }}
                   ></div>
                 {/if}
@@ -2360,113 +2384,85 @@
             <div
               class="p-5 flex flex-col items-center bg-gray-800 lg:border lg:border-gray-700 rounded-none rounded-t-lg lg:rounded-none lg:rounded-l-lg"
             >
-              <h3 class="text-lg font-semibold text-gray-100 mb-6">Audio</h3>
-              <div class="control-group" id="volume-slider">
-                <button
-                  class="glass-button text-white font-bold rounded-full w-10 h-10 flex items-center justify-center mr-4"
-                  on:click={handleMuteChange}
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 24 24"
-                    fill="currentColor"
-                    class="w-5 h-5"
-                  >
-                    {#if mute}
-                      <path
-                        d="M13.5 4.06c0-1.336-1.616-2.005-2.56-1.06l-4.5 4.5H4.508c-1.141 0-2.318.664-2.66 1.905A9.76 9.76 0 001.5 12c0 .898.121 1.768.35 2.595.341 1.24 1.518 1.905 2.659 1.905h1.93l4.5 4.5c.945.945 2.561.276 2.561-1.06V4.06zM17.78 9.22a.75.75 0 10-1.06 1.06L18.44 12l-1.72 1.72a.75.75 0 001.06 1.06L19.5 13.06l1.72 1.72a.75.75 0 101.06-1.06L20.56 12l1.72-1.72a.75.75 0 00-1.06-1.06L19.5 10.94l-1.72-1.72z"
-                      />
-                    {:else}
-                      <path
-                        d="M13.5 4.06c0-1.336-1.616-2.005-2.56-1.06l-4.5 4.5H4.508c-1.141 0-2.318.664-2.66 1.905A9.76 9.76 0 001.5 12c0 .898.121 1.768.35 2.595.341 1.24 1.518 1.905 2.659 1.905h1.93l4.5 4.5c.945.945 2.561.276 2.561-1.06V4.06zM18.584 5.106a.75.75 0 011.06 0c3.808 3.807 3.808 9.98 0 13.788a.75.75 0 11-1.06-1.06 8.25 8.25 0 000-11.668.75.75 0 010-1.06z"
-                      />
-                    {/if}
-                  </svg>
-                </button>
-                <div class="slider-container">
-                  <input
-                    type="range"
-                    bind:value={volume}
-                    on:input={handleVolumeChange}
-                    class="glass-slider"
-                    disabled={mute}
-                    min="0"
-                    max="100"
-                    step="1"
-                  />
-                </div>
-                <span class="value-display text-gray-300 ml-4">{volume}%</span>
-              </div>
+              <h3 class="text-white text-lg font-semibold mb-4">
+                Waterfall Controls
+              </h3>
 
-              <div class="control-group mt-4" id="squelch-slider">
-                <button
-                  class="glass-button text-white font-bold rounded-full w-10 h-10 flex items-center justify-center mr-4"
-                  style="background: {squelchEnable
-                    ? 'rgba(16, 185, 129, 0.2)'
-                    : 'rgba(255, 255, 255, 0.05)'}"
-                  on:click={handleSquelchChange}
-                >
-                  <span class="text-xs font-semibold">SQ</span>
-                </button>
-                <div class="slider-container">
-                  <input
-                    type="range"
-                    bind:value={squelch}
-                    on:input={handleSquelchMove}
-                    class="glass-slider"
-                    min="-150"
-                    max="0"
-                    step="1"
-                  />
-                </div>
-                <span class="value-display text-gray-300 ml-4">{squelch}db</span
-                >
-              </div>
-              <!-- Audio Buffer Slider -->
-              <div class="control-group mt-4" id="audio-buffer-slider">
-                <button
-                  class="glass-button text-white font-bold rounded-full w-10 h-10 flex items-center justify-center mr-4"
-                  style="background: {audioBufferDelayEnabled
-                    ? 'rgba(16, 185, 129, 0.2)'
-                    : 'rgba(255, 255, 255, 0.05)'}"
-                  on:click={() =>
-                    handleAudioBufferDelayMove((audioBufferDelay += 1))}
-                >
-                  <span class="text-white text-xs font-semibold">Buffer</span>
-                </button>
-                <div class="slider-container">
-                  <input
-                    type="range"
-                    bind:value={audioBufferDelay}
-                    on:input={handleAudioBufferDelayMove(audioBufferDelay)}
-                    class="glass-slider"
-                    min="1"
-                    max="5"
-                    step="1"
-                  />
-                </div>
-                <span class="value-display text-gray-300 ml-4"
-                  >×{audioBufferDelay}</span
-                >
-                <hr class="border-gray-600 my-2" />
-              </div>
-              <!-- End of Buffer -->
-
-              <!-- Begin Filter Selection -->
-              <h3 class="text-white text-lg font-semibold mb-2">Filters</h3>
               <div class="w-full mb-6">
-                <div id="moreoptions" class="grid grid-cols-4 gap-2">
-                  {#each [{ option: "NR", icon: "wave-square", enabled: NREnabled }, { option: "NB", icon: "zap", enabled: NBEnabled }, { option: "AN", icon: "shield", enabled: ANEnabled }, { option: "CTCSS", icon: "filter", enabled: CTCSSSupressEnabled }] as { option, icon, enabled }}
+                <div
+                  id="brightness-controls"
+                  class="flex items-center justify-between mb-2"
+                >
+                  <span class="text-gray-300 text-sm w-10">Min:</span>
+                  <div class="slider-container w-48 mx-2">
+                    <input
+                      type="range"
+                      bind:value={min_waterfall}
+                      min="-100"
+                      max="255"
+                      step="1"
+                      class="glass-slider w-full"
+                      on:input={handleMinMove}
+                    />
+                  </div>
+                  <span class="text-gray-300 text-sm w-10 text-right"
+                    >{min_waterfall}</span
+                  >
+                </div>
+                <div class="flex items-center justify-between">
+                  <span class="text-gray-300 text-sm w-10">Max:</span>
+                  <div class="slider-container w-48 mx-2">
+                    <input
+                      type="range"
+                      bind:value={max_waterfall}
+                      min="0"
+                      max="255"
+                      step="1"
+                      class="glass-slider w-full"
+                      on:input={handleMaxMove}
+                    />
+                  </div>
+                  <span class="text-gray-300 text-sm w-10 text-right"
+                    >{max_waterfall}</span
+                  >
+                </div>
+              </div>
+
+              <div class="w-full mb-6">
+                <div id="colormap-select" class="relative">
+                  <select
+                    bind:value={currentColormap}
+                    on:change={handleWaterfallColormapSelect}
+                    class="glass-select block w-full pl-3 pr-10 py-2 text-sm rounded-lg text-gray-200 appearance-none focus:outline-none"
+                  >
+                    {#each availableColormaps as colormap}
+                      <option value={colormap}>{colormap}</option>
+                    {/each}
+                  </select>
+                  <div
+                    class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-400"
+                  >
+                    <svg
+                      class="fill-current h-4 w-4"
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                      />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+
+              <div class="w-full mb-6">
+                <h3 class="text-white text-lg font-semibold mb-2">Zoom</h3>
+                <div id="zoom-controls" class="grid grid-cols-4 gap-2">
+                  {#each [{ action: "+", title: "Zoom in", icon: "zoom-in", text: "In" }, { action: "-", title: "Zoom out", icon: "zoom-out", text: "Out" }, { action: "max", title: "Zoom to max", icon: "maximize", text: "Max" }, { action: "min", title: "Zoom to min", icon: "minimize", text: "Min" }] as { action, title, icon, text }}
                     <button
-                      class="retro-button text-white font-bold h-10 text-sm rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out {enabled
-                        ? 'bg-blue-600 pressed scale-95'
-                        : 'bg-gray-700 hover:bg-gray-600'}"
-                      on:click={() => {
-                        if (option === "NR") handleNRChange();
-                        else if (option === "NB") handleNBChange();
-                        else if (option === "AN") handleANChange();
-                        else handleCTCSSChange();
-                      }}
+                      class="retro-button text-white font-bold h-10 text-sm rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out bg-gray-700 hover:bg-gray-600"
+                      on:click={(e) => handleWaterfallMagnify(e, action)}
+                      {title}
                     >
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
@@ -2478,28 +2474,167 @@
                         stroke-linecap="round"
                         stroke-linejoin="round"
                       >
-                        {#if icon === "wave-square"}
-                          <path d="M0 15h3v-3h3v3h3v-3h3v3h3v-3h3v3h3v-3h3" />
-                        {:else if icon === "zap"}
-                          <polygon
-                            points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"
-                          />
-                        {:else if icon === "shield"}
+                        {#if icon === "zoom-in"}
+                          <circle cx="11" cy="11" r="8" />
+                          <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                          <line x1="11" y1="8" x2="11" y2="14" />
+                          <line x1="8" y1="11" x2="14" y2="11" />
+                        {:else if icon === "zoom-out"}
+                          <circle cx="11" cy="11" r="8" />
+                          <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                          <line x1="8" y1="11" x2="14" y2="11" />
+                        {:else if icon === "maximize"}
                           <path
-                            d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"
+                            d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"
                           />
-                        {:else if icon === "filter"}
-                          <polygon
-                            points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"
+                        {:else if icon === "minimize"}
+                          <path
+                            d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"
                           />
                         {/if}
                       </svg>
-                      <span>{option}</span>
+                      <span>{text}</span>
                     </button>
                   {/each}
                 </div>
-                <hr class="border-gray-600 my-2" />
-                <!-- End Filter Selection -->
+              </div>
+
+              <div class="w-full mb-6">
+                <!-- START of waterfal control buttons -->
+                {#if buttons}
+                  <div class="w-full mb-6">
+                    <div class="grid grid-cols-4 gap-2">
+                      <button
+                        id="waterfall-toggle"
+                        class="retro-button text-sm text-white font-bold h-10 text-base rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out {waterfallDisplay ===
+                        true
+                          ? 'bg-blue-600 pressed scale-95'
+                          : 'bg-gray-700 hover:bg-gray-600'}"
+                        on:click={handleWaterfallChange}
+                        title="Waterfall Toggle"
+                      >
+                        Waterfall
+                      </button>
+
+                      <button
+                        id="spectrum-toggle"
+                        class="retro-button text-sm text-white font-bold h-10 text-base rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out {spectrumDisplay ===
+                        true
+                          ? 'bg-blue-600 pressed scale-95'
+                          : 'bg-gray-700 hover:bg-gray-600'}"
+                        on:click={handleSpectrumChange}
+                        title="Spectrum Toggle"
+                      >
+                        Spectrum
+                      </button>
+                      <button
+                        id="auto-adjust"
+                        class="retro-button text-sm text-white font-bold h-10 text-base rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out {autoAdjustEnabled ===
+                        true
+                          ? 'bg-blue-600 pressed scale-95'
+                          : 'bg-gray-700 hover:bg-gray-600'}"
+                        on:click={() => handleAutoAdjust()}
+                        title="Auto Adjust"
+                      >
+                        Auto Adjust
+                      </button>
+                      <button
+                        id="bigger-waterfall"
+                        class="retro-button text-sm text-white font-bold h-10 text-base rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out {biggerWaterfall ===
+                        true
+                          ? 'bg-blue-600 pressed scale-95'
+                          : 'bg-gray-700 hover:bg-gray-600'}"
+                        on:click={handleWaterfallSizeChange}
+                        title="Height (+)"
+                      >
+                        Height (+)
+                      </button>
+                    </div>
+                    <hr class="border-gray-600 my-2" />
+                  </div>
+                {:else}
+                  <!-- END of Waterfall Control Buttons -->
+
+                  <div class="w-full mb-6">
+                    <div class="grid grid-cols-1 sm:grid-cols-4 gap-2">
+                      <div
+                        id="waterfall-toggle"
+                        class="flex flex-col items-center"
+                      >
+                        <span class="text-sm text-gray-300 mb-1 text-center"
+                          >Waterfall</span
+                        >
+                        <label class="toggle-switch">
+                          {#if waterfallDisplay}
+                            <input
+                              type="checkbox"
+                              checked
+                              on:change={handleWaterfallChange}
+                            />
+                          {:else}
+                            <input
+                              type="checkbox"
+                              on:change={handleWaterfallChange}
+                            />
+                          {/if}
+                          <span class="toggle-slider"></span>
+                        </label>
+                      </div>
+
+                      <div
+                        id="spectrum-toggle"
+                        class="flex flex-col items-center"
+                      >
+                        <span class="text-sm text-gray-300 mb-1">Spectrum</span>
+                        <label class="toggle-switch">
+                          {#if spectrumDisplay}
+                            <input
+                              type="checkbox"
+                              checked
+                              on:change={handleSpectrumChange}
+                            />
+                          {:else}
+                            <input
+                              type="checkbox"
+                              on:change={handleSpectrumChange}
+                            />
+                          {/if}
+                          <span class="toggle-slider"></span>
+                        </label>
+                      </div>
+
+                      <div id="auto-adjust" class="flex flex-col items-center">
+                        <span class="text-sm text-gray-300 mb-1"
+                          >Auto Adjust</span
+                        >
+                        <label class="toggle-switch">
+                          <input
+                            type="checkbox"
+                            on:change={() => handleAutoAdjust()}
+                          />
+                          <span class="toggle-slider"></span>
+                        </label>
+                      </div>
+
+                      <div
+                        id="bigger-waterfall"
+                        class="flex flex-col items-center"
+                      >
+                        <span class="text-sm text-gray-300 mb-1 text-center"
+                          >Height (+)</span
+                        >
+                        <label class="toggle-switch">
+                          <input
+                            type="checkbox"
+                            on:change={handleWaterfallSizeChange}
+                          />
+                          <span class="toggle-slider"></span>
+                        </label>
+                      </div>
+                    </div>
+                    <hr class="border-gray-600 my-2" />
+                  </div>
+                {/if}
               </div>
 
               <!-- Decoder Options -->
@@ -2767,13 +2902,12 @@
                     <hr class="border-gray-600 my-2" />
                   </div>
 
-                  <!-- Phil -->
                   <!-- Begin Popup Buttons Menu -->
                   <div class="w-full mt-4">
-                    <div class="grid grid-cols-4 sm:grid-cols-4 gap-2">
+                    <div class="grid grid-cols-5 sm:grid-cols-5 gap-2">
                       <button
                         id="vfo-ab-button"
-                        class="glass-button text-white font-bold py-2 px-4 rounded-lg flex items-center w-full justify-center {toggleVFO ===
+                        class="glass-button text-white text-sm font-bold py-2 px-4 rounded-lg flex items-center w-full justify-center {toggleVFO ===
                         vfo
                           ? 'bg-green-600 pressed scale-95'
                           : 'bg-blue-700 hover:bg-gray-600'}"
@@ -2795,7 +2929,7 @@
 
                       <button
                         id="mode-button"
-                        class="glass-button text-white font-bold py-2 px-4 rounded-lg flex items-center w-full justify-center"
+                        class="glass-button text-white text-sm font-bold py-2 px-4 rounded-lg flex items-center w-full justify-center"
                         on:click={toggleModePopup}
                       >
                         <svg
@@ -2819,7 +2953,7 @@
                             class="bg-gray-800 p-6 rounded-lg max-w-lg w-full max-h-[80vh] flex flex-col"
                           >
                             <div class="flex justify-between items-center mb-4">
-                              <h2 class="text-xl font-bold text-white">
+                              <h2 class="text-sm font-bold text-white">
                                 Modes
                               </h2>
                               <button
@@ -2849,7 +2983,7 @@
                             >
                               {#each ["USB", "LSB", "CW", "AM", "FM"] as mode}
                                 <button
-                                  class="retro-button text-white font-bold h-10 text-sm rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out {demodulation ===
+                                  class="retro-button text-white text-sm font-bold h-10 text-sm rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out {demodulation ===
                                   mode
                                     ? 'bg-blue-600 pressed scale-95'
                                     : 'bg-gray-700 hover:bg-gray-600'}"
@@ -2866,7 +3000,7 @@
                       <!-- Begin Bands Popup Menu -->
                       <button
                         id="band-popup-button"
-                        class="glass-button text-white font-bold py-2 px-4 rounded-lg flex items-center w-full justify-center"
+                        class="glass-button text-sm text-white font-bold py-2 px-4 rounded-lg flex items-center w-full justify-center"
                         on:click={toggleBandPopup}
                       >
                         <svg
@@ -2882,7 +3016,7 @@
                         Band
                       </button>
 
-                      <!-- Bookmark Popup -->
+                      <!-- Band Popup -->
                       {#if showBandPopup}
                         <div
                           class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
@@ -2891,7 +3025,7 @@
                             class="bg-gray-800 p-6 rounded-lg max-w-lg w-full max-h-[80vh] flex flex-col"
                           >
                             <div class="flex justify-between items-center mb-4">
-                              <h2 class="text-xl font-bold text-white">
+                              <h2 class="text-sm font-bold text-white">
                                 Bands
                               </h2>
                               <button
@@ -2920,17 +3054,41 @@
                               {#each bandArray as bandData, index}
                                 {#if verifyRegion(bandData.ITU)}
                                   {#if printBandButton(bandData.startFreq, bandData.endFreq, bandData.publishBand)}
-                                    <button
-                                      id="band-selector"
-                                      class="retro-button text-sm text-white fontrbold h-7 text-base rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out {currentBand ===
-                                      index
-                                        ? 'bg-blue-600 pressed scale-95'
-                                        : 'bg-gray-700 hover:bg-gray-600'}"
-                                      on:click={() =>
-                                        handleBandChangePopup(index)}
-                                      title={bandData.name}
-                                      >{bandData.name}
-                                    </button>
+                                    {#if bandData.amateurBand}
+                                      <button
+                                        id="band-selector"
+                                        class="retro-button text-sm text-white fontrbold h-7 text-base rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out {currentBand ===
+                                        index
+                                          ? 'bg-blue-600 pressed scale-95'
+                                          : 'bg-gray-700 hover:bg-gray-600'}"
+                                        on:click={() =>
+                                          handleBandChangePopup(index)}
+                                        title={bandData.name}
+                                        >{bandData.name}
+                                      </button>
+                                    {/if}<!--End Amateur Check-->
+                                  {/if}
+                                {:else}{/if}
+                              {/each}
+                            </div>
+                            <hr class="border-gray-600 my-2" />
+                            <div class="grid grid-cols-5 sm:grid-cols-5 gap-2">
+                              {#each bandArray as bandData, index}
+                                {#if verifyRegion(bandData.ITU)}
+                                  {#if printBandButton(bandData.startFreq, bandData.endFreq, bandData.publishBand)}
+                                    {#if !bandData.amateurBand}
+                                      <button
+                                        id="band-selector"
+                                        class="retro-button text-sm text-white fontrbold h-7 text-base rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out {currentBand ===
+                                        index
+                                          ? 'bg-blue-600 pressed scale-95'
+                                          : 'bg-gray-700 hover:bg-gray-600'}"
+                                        on:click={() =>
+                                          handleBandChangePopup(index)}
+                                        title={bandData.name}
+                                        >{bandData.name}
+                                      </button>
+                                    {/if}<!--End Amateur Check-->
                                   {/if}
                                 {:else}{/if}
                               {/each}
@@ -2943,7 +3101,7 @@
                       <!-- Begin IF Filters Popup Menu -->
                       <button
                         id="if-filter-popup-button"
-                        class="glass-button text-white font-bold py-2 px-4 rounded-lg flex items-center w-full justify-center"
+                        class="glass-button text-white text-sm font-bold py-2 px-4 rounded-lg flex items-center w-full justify-center"
                         on:click={toggleIFPopup}
                       >
                         <svg
@@ -2958,7 +3116,7 @@
                         </svg>IF Filters
                       </button>
 
-                      <!-- Bookmark Popup -->
+                      <!-- IF Filters Popup -->
                       {#if showIFPopup}
                         <div
                           class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
@@ -2967,7 +3125,7 @@
                             class="bg-gray-800 p-6 rounded-lg max-w-lg w-full max-h-[80vh] flex flex-col"
                           >
                             <div class="flex justify-between items-center mb-4">
-                              <h2 class="text-xl font-bold text-white">
+                              <h2 class="text-sm font-bold text-white">
                                 Static IF Filters
                               </h2>
                               <button
@@ -3029,6 +3187,122 @@
                         </div>
                       {/if}
                       <!-- End IF Filters Popup Menu -->
+
+                      <!-- START -->
+
+                      <button
+                        id="agc-popup-button"
+                        class="glass-button text-white text-sm font-bold py-2 px-4 rounded-lg flex items-center w-full justify-center
+                            bg-green-600 pressed scale-95"
+                        on:click={() => toggleAGCPopup()}
+                        title="AGC"
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          class="h-5 w-5 mr-2"
+                          viewBox="0 0 20 20"
+                          fill="currentColor"
+                        >
+                          <path
+                            d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z"
+                          />
+                        </svg>
+                        AGC
+                      </button>
+
+                      <!-- AGC Popup -->
+                      {#if showAGCPopup}
+                        <div
+                          class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+                        >
+                          <div
+                            class="bg-gray-800 p-6 rounded-lg max-w-lg w-full max-h-[80vh] flex flex-col"
+                          >
+                            <div class="flex justify-between items-center mb-4">
+                              <h2 class="text-sm font-bold text-white">
+                                AGC Speeds
+                              </h2>
+                              <button
+                                class="text-gray-400 hover:text-white"
+                                on:click={toggleAGCPopup}
+                              >
+                                <svg
+                                  class="w-6 h-6"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                  xmlns="http://www.w3.org/2000/svg"
+                                >
+                                  <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M6 18L18 6M6 6l12 12"
+                                  ></path>
+                                </svg>
+                              </button>
+                            </div>
+                            <!-- Content Starts -->
+
+                            <!-- AGC Selection -->
+                            <h3 class="text-white text-sm font-semibold mb-4">
+                              AGC
+                            </h3>
+                            <div class="w-full mb-6">
+                              <div
+                                class="grid grid-cols-1 sm:grid-cols-4 gap-2"
+                              >
+                                <button
+                                  id="agc-selection"
+                                  class="retro-button text-white text-sm font-bold h-10 text-base rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out {currentAGC ===
+                                  0
+                                    ? 'bg-blue-600 pressed scale-95'
+                                    : 'bg-gray-700 hover:bg-gray-600'}"
+                                  on:click={() => handleAGCChange(0)}
+                                  title="Auto"
+                                  >Auto
+                                </button>
+
+                                <button
+                                  class="retro-button text-white text-sm font-bold h-10 text-base rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out {currentAGC ===
+                                  1
+                                    ? 'bg-blue-600 pressed scale-95'
+                                    : 'bg-gray-700 hover:bg-gray-600'}"
+                                  on:click={() => handleAGCChange(1)}
+                                  title="Fast AGC"
+                                  >Fast
+                                </button>
+
+                                <button
+                                  class="retro-button text-white text-sm font-bold h-10 text-base rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out {currentAGC ===
+                                  2
+                                    ? 'bg-blue-600 pressed scale-95'
+                                    : 'bg-gray-700 hover:bg-gray-600'}"
+                                  on:click={() => handleAGCChange(2)}
+                                  title="Mid AGC"
+                                  >Mid
+                                </button>
+
+                                <button
+                                  class="retro-button text-white text-sm font-bold h-10 text-base rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out {currentAGC ===
+                                  3
+                                    ? 'bg-blue-600 pressed scale-95'
+                                    : 'bg-gray-700 hover:bg-gray-600'}"
+                                  on:click={() => handleAGCChange(3)}
+                                  title="Slow AGC"
+                                  >Slow
+                                </button>
+                              </div>
+                              <hr class="border-gray-600 my-2" />
+                            </div>
+                            <!-- End AGC Section -->
+
+                            <!-- Content Ends -->
+                          </div>
+                        </div>
+                      {/if}
+
+                      <!-- END -->
                     </div>
                   </div>
                   <!-- End of Popup Buttons Menu -->
@@ -3100,84 +3374,114 @@
             <div
               class="flex flex-col items-center bg-gray-800 p-6 lg:border lg:border-gray-700 rounded-none rounded-b-lg lg:rounded-none lg:rounded-r-lg"
             >
-              <h3 class="text-white text-lg font-semibold mb-4">
-                Waterfall Controls
-              </h3>
-
-              <div class="w-full mb-6">
-                <div
-                  id="brightness-controls"
-                  class="flex items-center justify-between mb-2"
+              <h3 class="text-lg font-semibold text-gray-100 mb-6">Audio</h3>
+              <div class="control-group" id="volume-slider">
+                <button
+                  class="glass-button text-white font-bold rounded-full w-10 h-10 flex items-center justify-center mr-4"
+                  on:click={handleMuteChange}
                 >
-                  <span class="text-gray-300 text-sm w-10">Min:</span>
-                  <div class="slider-container w-48 mx-2">
-                    <input
-                      type="range"
-                      bind:value={min_waterfall}
-                      min="-100"
-                      max="255"
-                      step="1"
-                      class="glass-slider w-full"
-                      on:input={handleMinMove}
-                    />
-                  </div>
-                  <span class="text-gray-300 text-sm w-10 text-right"
-                    >{min_waterfall}</span
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                    class="w-5 h-5"
                   >
+                    {#if mute}
+                      <path
+                        d="M13.5 4.06c0-1.336-1.616-2.005-2.56-1.06l-4.5 4.5H4.508c-1.141 0-2.318.664-2.66 1.905A9.76 9.76 0 001.5 12c0 .898.121 1.768.35 2.595.341 1.24 1.518 1.905 2.659 1.905h1.93l4.5 4.5c.945.945 2.561.276 2.561-1.06V4.06zM17.78 9.22a.75.75 0 10-1.06 1.06L18.44 12l-1.72 1.72a.75.75 0 001.06 1.06L19.5 13.06l1.72 1.72a.75.75 0 101.06-1.06L20.56 12l1.72-1.72a.75.75 0 00-1.06-1.06L19.5 10.94l-1.72-1.72z"
+                      />
+                    {:else}
+                      <path
+                        d="M13.5 4.06c0-1.336-1.616-2.005-2.56-1.06l-4.5 4.5H4.508c-1.141 0-2.318.664-2.66 1.905A9.76 9.76 0 001.5 12c0 .898.121 1.768.35 2.595.341 1.24 1.518 1.905 2.659 1.905h1.93l4.5 4.5c.945.945 2.561.276 2.561-1.06V4.06zM18.584 5.106a.75.75 0 011.06 0c3.808 3.807 3.808 9.98 0 13.788a.75.75 0 11-1.06-1.06 8.25 8.25 0 000-11.668.75.75 0 010-1.06z"
+                      />
+                    {/if}
+                  </svg>
+                </button>
+                <div class="slider-container">
+                  <input
+                    type="range"
+                    bind:value={volume}
+                    on:input={handleVolumeChange}
+                    class="glass-slider"
+                    disabled={mute}
+                    min="0"
+                    max="100"
+                    step="1"
+                  />
                 </div>
-                <div class="flex items-center justify-between">
-                  <span class="text-gray-300 text-sm w-10">Max:</span>
-                  <div class="slider-container w-48 mx-2">
-                    <input
-                      type="range"
-                      bind:value={max_waterfall}
-                      min="0"
-                      max="255"
-                      step="1"
-                      class="glass-slider w-full"
-                      on:input={handleMaxMove}
-                    />
-                  </div>
-                  <span class="text-gray-300 text-sm w-10 text-right"
-                    >{max_waterfall}</span
-                  >
-                </div>
+                <span class="value-display text-gray-300 ml-4">{volume}%</span>
               </div>
 
-              <div class="w-full mb-6">
-                <div id="colormap-select" class="relative">
-                  <select
-                    bind:value={currentColormap}
-                    on:change={handleWaterfallColormapSelect}
-                    class="glass-select block w-full pl-3 pr-10 py-2 text-sm rounded-lg text-gray-200 appearance-none focus:outline-none"
-                  >
-                    {#each availableColormaps as colormap}
-                      <option value={colormap}>{colormap}</option>
-                    {/each}
-                  </select>
-                  <div
-                    class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-400"
-                  >
-                    <svg
-                      class="fill-current h-4 w-4"
-                      xmlns="http://www.w3.org/2000/svg"
-                      viewBox="0 0 20 20"
-                    >
-                      <path
-                        d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                      />
-                    </svg>
-                  </div>
+              <div class="control-group mt-4" id="squelch-slider">
+                <button
+                  class="glass-button text-white font-bold rounded-full w-10 h-10 flex items-center justify-center mr-4"
+                  style="background: {squelchEnable
+                    ? 'rgba(16, 185, 129, 0.2)'
+                    : 'rgba(255, 255, 255, 0.05)'}"
+                  on:click={handleSquelchChange}
+                >
+                  <span class="text-xs font-semibold">SQ</span>
+                </button>
+                <div class="slider-container">
+                  <input
+                    type="range"
+                    bind:value={squelch}
+                    on:input={handleSquelchMove}
+                    class="glass-slider"
+                    min="-150"
+                    max="0"
+                    step="1"
+                  />
                 </div>
+                <span class="value-display text-gray-300 ml-4">{squelch}db</span
+                >
               </div>
+
+              <!-- Audio Buffer Slider -->
+              <div class="control-group mt-4" id="audio-buffer-slider">
+                <button
+                  class="glass-button text-white font-bold rounded-full w-10 h-10 flex items-center justify-center mr-4"
+                  style="background: {audioBufferDelayEnabled
+                    ? 'rgba(16, 185, 129, 0.2)'
+                    : 'rgba(255, 255, 255, 0.05)'}"
+                  on:click={() =>
+                    handleAudioBufferDelayMove((audioBufferDelay += 1))}
+                >
+                  <span class="text-white text-xs font-semibold">Buffer</span>
+                </button>
+                <div class="slider-container">
+                  <input
+                    type="range"
+                    bind:value={audioBufferDelay}
+                    on:input={handleAudioBufferDelayMove(audioBufferDelay)}
+                    class="glass-slider"
+                    min="1"
+                    max="5"
+                    step="1"
+                  />
+                </div>
+                <span class="value-display text-gray-300 ml-4"
+                  >×{audioBufferDelay}</span
+                >
+                <hr class="border-gray-600 my-2" />
+              </div>
+              <!-- End of Buffer -->
+
+              <!-- Begin Filter Selection -->
+              <h3 class="text-white text-lg font-semibold mb-2">Filters</h3>
               <div class="w-full mb-6">
-                <h3 class="text-white text-lg font-semibold mb-2">Zoom</h3>
-                <div id="zoom-controls" class="grid grid-cols-4 gap-2">
-                  {#each [{ action: "+", title: "Zoom in", icon: "zoom-in", text: "In" }, { action: "-", title: "Zoom out", icon: "zoom-out", text: "Out" }, { action: "max", title: "Zoom to max", icon: "maximize", text: "Max" }, { action: "min", title: "Zoom to min", icon: "minimize", text: "Min" }] as { action, title, icon, text }}
+                <div id="moreoptions" class="grid grid-cols-4 gap-2">
+                  {#each [{ option: "NR", icon: "wave-square", enabled: NREnabled }, { option: "NB", icon: "zap", enabled: NBEnabled }, { option: "AN", icon: "shield", enabled: ANEnabled }, { option: "CTCSS", icon: "filter", enabled: CTCSSSupressEnabled }] as { option, icon, enabled }}
                     <button
-                      class="retro-button text-white font-bold h-10 text-sm rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out bg-gray-700 hover:bg-gray-600"
-                      on:click={(e) => handleWaterfallMagnify(e, action)}
-                      {title}
+                      class="retro-button text-white font-bold h-10 text-sm rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out {enabled
+                        ? 'bg-blue-600 pressed scale-95'
+                        : 'bg-gray-700 hover:bg-gray-600'}"
+                      on:click={() => {
+                        if (option === "NR") handleNRChange();
+                        else if (option === "NB") handleNBChange();
+                        else if (option === "AN") handleANChange();
+                        else handleCTCSSChange();
+                      }}
                     >
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
@@ -3189,378 +3493,239 @@
                         stroke-linecap="round"
                         stroke-linejoin="round"
                       >
-                        {#if icon === "zoom-in"}
-                          <circle cx="11" cy="11" r="8" />
-                          <line x1="21" y1="21" x2="16.65" y2="16.65" />
-                          <line x1="11" y1="8" x2="11" y2="14" />
-                          <line x1="8" y1="11" x2="14" y2="11" />
-                        {:else if icon === "zoom-out"}
-                          <circle cx="11" cy="11" r="8" />
-                          <line x1="21" y1="21" x2="16.65" y2="16.65" />
-                          <line x1="8" y1="11" x2="14" y2="11" />
-                        {:else if icon === "maximize"}
-                          <path
-                            d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"
+                        {#if icon === "wave-square"}
+                          <path d="M0 15h3v-3h3v3h3v-3h3v3h3v-3h3v3h3v-3h3" />
+                        {:else if icon === "zap"}
+                          <polygon
+                            points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"
                           />
-                        {:else if icon === "minimize"}
+                        {:else if icon === "shield"}
                           <path
-                            d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"
+                            d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"
+                          />
+                        {:else if icon === "filter"}
+                          <polygon
+                            points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"
                           />
                         {/if}
                       </svg>
-                      <span>{text}</span>
+                      <span>{option}</span>
                     </button>
                   {/each}
                 </div>
                 <hr class="border-gray-600 my-2" />
-              </div>
-              <div class="w-full mb-6">
-                <!-- START of waterfal control buttons -->
-                {#if buttons}
-                  <div class="w-full mb-6">
-                    <div class="grid grid-cols-4 gap-2">
-                      <button
-                        id="waterfall-toggle"
-                        class="retro-button text-sm text-white font-bold h-10 text-base rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out {waterfallDisplay ===
-                        true
-                          ? 'bg-blue-600 pressed scale-95'
-                          : 'bg-gray-700 hover:bg-gray-600'}"
-                        on:click={handleWaterfallChange}
-                        title="Waterfall Toggle"
-                      >
-                        Waterfall
-                      </button>
+                <!-- End Filter Selection -->
 
-                      <button
-                        id="spectrum-toggle"
-                        class="retro-button text-sm text-white font-bold h-10 text-base rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out {spectrumDisplay ===
-                        true
-                          ? 'bg-blue-600 pressed scale-95'
-                          : 'bg-gray-700 hover:bg-gray-600'}"
-                        on:click={handleSpectrumChange}
-                        title="Spectrum Toggle"
-                      >
-                        Spectrum
-                      </button>
-                      <button
-                        id="auto-adjust"
-                        class="retro-button text-sm text-white font-bold h-10 text-base rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out {autoAdjustEnabled ===
-                        true
-                          ? 'bg-blue-600 pressed scale-95'
-                          : 'bg-gray-700 hover:bg-gray-600'}"
-                        on:click={() => handleAutoAdjust()}
-                        title="Auto Adjust"
-                      >
-                        Auto Adjust
-                      </button>
-                      <button
-                        id="bigger-waterfall"
-                        class="retro-button text-sm text-white font-bold h-10 text-base rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out {biggerWaterfall ===
-                        true
-                          ? 'bg-blue-600 pressed scale-95'
-                          : 'bg-gray-700 hover:bg-gray-600'}"
-                        on:click={handleWaterfallSizeChange}
-                        title="Height (+)"
-                      >
-                        Height (+)
-                      </button>
-                    </div>
-                    <hr class="border-gray-600 my-2" />
-                  </div>
-                {:else}
-                  <!-- END of Waterfall Control Buttons -->
+                <!-- Begin Bookmark Button Area -->
+                <button
+                  id="bookmark-button"
+                  class="glass-button text-white font-bold py-2 px-4 rounded-lg flex items-center w-full justify-center"
+                  on:click={toggleBookmarkPopup}
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-5 w-5 mr-2"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
+                    <path
+                      d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z"
+                    />
+                  </svg>
+                  Bookmarks
+                </button>
 
-                  <div class="w-full mb-6">
-                    <div class="grid grid-cols-1 sm:grid-cols-4 gap-2">
-                      <div
-                        id="waterfall-toggle"
-                        class="flex flex-col items-center"
-                      >
-                        <span class="text-sm text-gray-300 mb-1 text-center"
-                          >Waterfall</span
+                <div
+                  id="user_count_container"
+                  class="w-full mt-4 bg-gradient-to-r from-purple-600 to-blue-600 rounded-lg p-1"
+                >
+                  <div
+                    id="total_user_count"
+                    class="bg-gray-800 rounded-md p-2 text-center flex justify-between items-center"
+                  ></div>
+                </div>
+
+                <!-- Bookmark Popup -->
+                {#if showBookmarkPopup}
+                  <div
+                    class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+                  >
+                    <div
+                      class="bg-gray-800 p-6 rounded-lg max-w-lg w-full max-h-[80vh] flex flex-col"
+                    >
+                      <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-xl font-bold text-white">Bookmarks</h2>
+                        <button
+                          class="text-gray-400 hover:text-white"
+                          on:click={toggleBookmarkPopup}
                         >
-                        <label class="toggle-switch">
-                          {#if waterfallDisplay}
-                            <input
-                              type="checkbox"
-                              checked
-                              on:change={handleWaterfallChange}
-                            />
-                          {:else}
-                            <input
-                              type="checkbox"
-                              on:change={handleWaterfallChange}
-                            />
-                          {/if}
-                          <span class="toggle-slider"></span>
-                        </label>
+                          <svg
+                            class="w-6 h-6"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                            xmlns="http://www.w3.org/2000/svg"
+                          >
+                            <path
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                              stroke-width="2"
+                              d="M6 18L18 6M6 6l12 12"
+                            ></path>
+                          </svg>
+                        </button>
                       </div>
 
-                      <div
-                        id="spectrum-toggle"
-                        class="flex flex-col items-center"
-                      >
-                        <span class="text-sm text-gray-300 mb-1">Spectrum</span>
-                        <label class="toggle-switch">
-                          {#if spectrumDisplay}
-                            <input
-                              type="checkbox"
-                              checked
-                              on:change={handleSpectrumChange}
-                            />
-                          {:else}
-                            <input
-                              type="checkbox"
-                              on:change={handleSpectrumChange}
-                            />
-                          {/if}
-                          <span class="toggle-slider"></span>
-                        </label>
-                      </div>
-
-                      <div id="auto-adjust" class="flex flex-col items-center">
-                        <span class="text-sm text-gray-300 mb-1"
-                          >Auto Adjust</span
+                      <!-- Add Bookmark Section -->
+                      <div class="mb-6">
+                        <label
+                          class="block text-sm font-medium text-gray-300 mb-2"
+                          >Add New Bookmark</label
                         >
-                        <label class="toggle-switch">
+                        <div class="flex items-center gap-2">
                           <input
-                            type="checkbox"
-                            on:change={() => handleAutoAdjust()}
+                            class="glass-input text-white text-sm rounded-lg focus:outline-none px-3 py-2 flex-grow"
+                            bind:value={newBookmarkName}
+                            placeholder="Bookmark name"
                           />
-                          <span class="toggle-slider"></span>
-                        </label>
+                          <button
+                            class="glass-button text-white font-bold py-2 px-4 rounded-lg flex items-center"
+                            on:click={addBookmark}
+                          >
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              class="h-5 w-5 mr-2"
+                              viewBox="0 0 20 20"
+                              fill="currentColor"
+                            >
+                              <path
+                                fill-rule="evenodd"
+                                d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
+                                clip-rule="evenodd"
+                              />
+                            </svg>
+                            Add
+                          </button>
+                        </div>
                       </div>
 
-                      <div
-                        id="bigger-waterfall"
-                        class="flex flex-col items-center"
-                      >
-                        <span class="text-sm text-gray-300 mb-1 text-center"
-                          >Height (+)</span
+                      <!-- Current Link Section -->
+                      <div class="mb-6">
+                        <label
+                          class="block text-sm font-medium text-gray-300 mb-2"
+                          >Current Link</label
                         >
-                        <label class="toggle-switch">
+                        <div class="flex items-center gap-2">
                           <input
-                            type="checkbox"
-                            on:change={handleWaterfallSizeChange}
+                            type="text"
+                            class="glass-input text-white text-sm rounded-lg focus:outline-none px-3 py-2 flex-grow"
+                            value={link}
+                            readonly
                           />
-                          <span class="toggle-slider"></span>
-                        </label>
+                          <button
+                            class="glass-button text-white font-bold py-2 px-4 rounded-lg flex items-center"
+                            on:click={handleLinkCopyClick}
+                          >
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              class="h-5 w-5 mr-2"
+                              viewBox="0 0 20 20"
+                              fill="currentColor"
+                            >
+                              <path
+                                d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z"
+                              />
+                              <path
+                                d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z"
+                              />
+                            </svg>
+                            Copy
+                          </button>
+                        </div>
+                      </div>
+
+                      <!-- Bookmarks List -->
+                      <div class="overflow-y-auto flex-grow h-80">
+                        <label
+                          class="block text-sm font-medium text-gray-300 mb-2"
+                          >Saved Bookmarks</label
+                        >
+                        {#each $bookmarks as bookmark, index}
+                          <div
+                            class="glass-panel rounded-lg p-3 flex items-center justify-between mb-2"
+                          >
+                            <div class="flex flex-col">
+                              <span class="text-white text-sm"
+                                >{bookmark.name}</span
+                              >
+                              <span class="text-gray-400 text-xs"
+                                >{(bookmark.frequency / 1000).toFixed(3)} kHz</span
+                              >
+                            </div>
+                            <div class="flex gap-2">
+                              <button
+                                class="glass-button text-white font-bold py-1 px-3 rounded-lg flex items-center"
+                                on:click={() => goToBookmark(bookmark)}
+                              >
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  class="h-4 w-4 mr-1"
+                                  viewBox="0 0 20 20"
+                                  fill="currentColor"
+                                >
+                                  <path
+                                    fill-rule="evenodd"
+                                    d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z"
+                                    clip-rule="evenodd"
+                                  />
+                                </svg>
+                                Go
+                              </button>
+                              <button
+                                class="glass-button text-white font-bold py-1 px-3 rounded-lg flex items-center"
+                                on:click={() => copy(bookmark.link)}
+                              >
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  class="h-4 w-4 mr-1"
+                                  viewBox="0 0 20 20"
+                                  fill="currentColor"
+                                >
+                                  <path
+                                    d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z"
+                                  />
+                                  <path
+                                    d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z"
+                                  />
+                                </svg>
+                                Copy
+                              </button>
+                              <button
+                                class="glass-button text-white font-bold py-1 px-3 rounded-lg flex items-center"
+                                on:click={() => deleteBookmark(index)}
+                              >
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  class="h-4 w-4 mr-1"
+                                  viewBox="0 0 20 20"
+                                  fill="currentColor"
+                                >
+                                  <path
+                                    fill-rule="evenodd"
+                                    d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
+                                    clip-rule="evenodd"
+                                  />
+                                </svg>
+                                Delete
+                              </button>
+                            </div>
+                          </div>
+                        {/each}
                       </div>
                     </div>
-                    <hr class="border-gray-600 my-2" />
                   </div>
                 {/if}
               </div>
-
-              <!-- Begin Bookmark Button Area -->
-              <button
-                id="bookmark-button"
-                class="glass-button text-white font-bold py-2 px-4 rounded-lg flex items-center w-full justify-center"
-                on:click={toggleBookmarkPopup}
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  class="h-5 w-5 mr-2"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" />
-                </svg>
-                Bookmarks
-              </button>
-
-              <div
-                id="user_count_container"
-                class="w-full mt-4 bg-gradient-to-r from-purple-600 to-blue-600 rounded-lg p-1"
-              >
-                <div
-                  id="total_user_count"
-                  class="bg-gray-800 rounded-md p-2 text-center flex justify-between items-center"
-                >
-                  <!-- Content will be populated by JavaScript -->
-                </div>
-              </div>
-
-              <!-- Bookmark Popup -->
-              {#if showBookmarkPopup}
-                <div
-                  class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
-                >
-                  <div
-                    class="bg-gray-800 p-6 rounded-lg max-w-lg w-full max-h-[80vh] flex flex-col"
-                  >
-                    <div class="flex justify-between items-center mb-4">
-                      <h2 class="text-xl font-bold text-white">Bookmarks</h2>
-                      <button
-                        class="text-gray-400 hover:text-white"
-                        on:click={toggleBookmarkPopup}
-                      >
-                        <svg
-                          class="w-6 h-6"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                          xmlns="http://www.w3.org/2000/svg"
-                        >
-                          <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            d="M6 18L18 6M6 6l12 12"
-                          ></path>
-                        </svg>
-                      </button>
-                    </div>
-
-                    <!-- Add Bookmark Section -->
-                    <div class="mb-6">
-                      <label
-                        class="block text-sm font-medium text-gray-300 mb-2"
-                        >Add New Bookmark</label
-                      >
-                      <div class="flex items-center gap-2">
-                        <input
-                          class="glass-input text-white text-sm rounded-lg focus:outline-none px-3 py-2 flex-grow"
-                          bind:value={newBookmarkName}
-                          placeholder="Bookmark name"
-                        />
-                        <button
-                          class="glass-button text-white font-bold py-2 px-4 rounded-lg flex items-center"
-                          on:click={addBookmark}
-                        >
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            class="h-5 w-5 mr-2"
-                            viewBox="0 0 20 20"
-                            fill="currentColor"
-                          >
-                            <path
-                              fill-rule="evenodd"
-                              d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
-                              clip-rule="evenodd"
-                            />
-                          </svg>
-                          Add
-                        </button>
-                      </div>
-                    </div>
-
-                    <!-- Current Link Section -->
-                    <div class="mb-6">
-                      <label
-                        class="block text-sm font-medium text-gray-300 mb-2"
-                        >Current Link</label
-                      >
-                      <div class="flex items-center gap-2">
-                        <input
-                          type="text"
-                          class="glass-input text-white text-sm rounded-lg focus:outline-none px-3 py-2 flex-grow"
-                          value={link}
-                          readonly
-                        />
-                        <button
-                          class="glass-button text-white font-bold py-2 px-4 rounded-lg flex items-center"
-                          on:click={handleLinkCopyClick}
-                        >
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            class="h-5 w-5 mr-2"
-                            viewBox="0 0 20 20"
-                            fill="currentColor"
-                          >
-                            <path
-                              d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z"
-                            />
-                            <path
-                              d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z"
-                            />
-                          </svg>
-                          Copy
-                        </button>
-                      </div>
-                    </div>
-
-                    <!-- Bookmarks List -->
-                    <div class="overflow-y-auto flex-grow h-80">
-                      <label
-                        class="block text-sm font-medium text-gray-300 mb-2"
-                        >Saved Bookmarks</label
-                      >
-                      {#each $bookmarks as bookmark, index}
-                        <div
-                          class="glass-panel rounded-lg p-3 flex items-center justify-between mb-2"
-                        >
-                          <div class="flex flex-col">
-                            <span class="text-white text-sm"
-                              >{bookmark.name}</span
-                            >
-                            <span class="text-gray-400 text-xs"
-                              >{(bookmark.frequency / 1000).toFixed(3)} kHz</span
-                            >
-                          </div>
-                          <div class="flex gap-2">
-                            <button
-                              class="glass-button text-white font-bold py-1 px-3 rounded-lg flex items-center"
-                              on:click={() => goToBookmark(bookmark)}
-                            >
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                class="h-4 w-4 mr-1"
-                                viewBox="0 0 20 20"
-                                fill="currentColor"
-                              >
-                                <path
-                                  fill-rule="evenodd"
-                                  d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z"
-                                  clip-rule="evenodd"
-                                />
-                              </svg>
-                              Go
-                            </button>
-                            <button
-                              class="glass-button text-white font-bold py-1 px-3 rounded-lg flex items-center"
-                              on:click={() => copy(bookmark.link)}
-                            >
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                class="h-4 w-4 mr-1"
-                                viewBox="0 0 20 20"
-                                fill="currentColor"
-                              >
-                                <path
-                                  d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z"
-                                />
-                                <path
-                                  d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z"
-                                />
-                              </svg>
-                              Copy
-                            </button>
-                            <button
-                              class="glass-button text-white font-bold py-1 px-3 rounded-lg flex items-center"
-                              on:click={() => deleteBookmark(index)}
-                            >
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                class="h-4 w-4 mr-1"
-                                viewBox="0 0 20 20"
-                                fill="currentColor"
-                              >
-                                <path
-                                  fill-rule="evenodd"
-                                  d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
-                                  clip-rule="evenodd"
-                                />
-                              </svg>
-                              Delete
-                            </button>
-                          </div>
-                        </div>
-                      {/each}
-                    </div>
-                  </div>
-                </div>
-              {/if}
             </div>
           </div>
 
@@ -3832,7 +3997,7 @@
 
   .basic-button {
     @apply text-blue-500 border border-blue-500 font-bold uppercase transition-all duration-100 text-center text-xs px-2 py-1
-            peer-checked:bg-blue-600 peer-checked:text-white;
+              peer-checked:bg-blue-600 peer-checked:text-white;
   }
   .basic-button:hover {
     @apply border-blue-400 text-white;
