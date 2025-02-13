@@ -7,6 +7,8 @@ import { encode, decode } from "./modules/ft8.js";
 import { AudioContext, ConvolverNode, IIRFilterNode, GainNode, AudioBuffer, AudioBufferSourceNode, DynamicsCompressorNode, MediaStreamAudioDestinationNode } from 'standardized-audio-context'
 import { BiquadFilterNode } from 'standardized-audio-context';
 
+import { fft, ifft } from 'fft-js';
+
 export default class SpectrumAudio {
 
   constructor(endpoint) {
@@ -20,10 +22,6 @@ export default class SpectrumAudio {
     // dynamic audio buffer //
     this.bufferLimit = 0.5;
     this.bufferThreshold = 0.1;
-
-    // AGC enable and setting //
-    this.agcEnabled = false;
-    this.agcSpeed = 0;
 
     this.endpoint = endpoint
 
@@ -49,6 +47,33 @@ export default class SpectrumAudio {
     this.power = 1
     this.ctcss = false
     // Remove the element with id startaudio from the DOM
+
+    // AGC parameters
+    this.agcAttackTime = 0.1; // 100ms attack time
+    this.agcReleaseTime = 0.03; // 30ms release time
+    this.agcLookaheadTime = 0.1; // 100ms lookahead time
+    this.agcTargetLevel = 0.5; // Target level (0.5 = -6 dBFS)
+    this.agcMaxGain = 1000; // Maximum gain multiplier
+
+
+    // AGC state variables
+    this.agcGain = 1;
+    this.agcEnvelope = 0;
+    this.agcLookaheadBuffer = [];
+
+    // AGC enable and setting //
+    this.agcEnabled = false;
+
+    // Noise blanker parameters
+    this.nbEnabled = false;
+    this.nbFFTSize = 512;
+    this.nbOverlap = 256; // 50% overlap
+    this.nbAverageWindows = 12;
+    this.nbThreshold = 0.125;
+    this.nbBuffer = new Float32Array(this.nbFFTSize);
+    this.nbSpectrumAverage = new Float32Array(this.nbFFTSize / 2);
+    this.nbSpectrumHistory = Array(this.nbAverageWindows).fill().map(() => new Float32Array(this.nbFFTSize / 2));
+    this.nbHistoryIndex = 0;
 
 
     if (this.audioCtx && this.audioCtx.state == 'running') {
@@ -106,6 +131,140 @@ export default class SpectrumAudio {
     this.audioSocket.close()
     this.decoder.free()
   }
+
+  applyAGC(pcmArray) {
+
+    pcmArray = this.applyNoiseBlanker(pcmArray);
+
+
+    const attackCoeff = Math.exp(-1 / (this.agcAttackTime * this.audioOutputSps));
+    const releaseCoeff = Math.exp(-1 / (this.agcReleaseTime * this.audioOutputSps));
+    const lookaheadSamples = Math.floor(this.agcLookaheadTime * this.audioOutputSps);
+
+    const processedArray = new Float32Array(pcmArray.length);
+
+    // Fill lookahead buffer if needed
+    while (this.agcLookaheadBuffer.length < lookaheadSamples) {
+      this.agcLookaheadBuffer.push(0);
+    }
+
+    for (let i = 0; i < pcmArray.length; i++) {
+      // Add current sample to lookahead buffer
+      this.agcLookaheadBuffer.push(pcmArray[i]);
+
+      // Get sample from lookahead buffer
+      const sample = this.agcLookaheadBuffer.shift();
+
+      // Calculate envelope
+      const sampleAbs = Math.abs(sample);
+      if (sampleAbs > this.agcEnvelope) {
+        this.agcEnvelope = attackCoeff * this.agcEnvelope + (1 - attackCoeff) * sampleAbs;
+      } else {
+        this.agcEnvelope = releaseCoeff * this.agcEnvelope + (1 - releaseCoeff) * sampleAbs;
+      }
+
+      // Calculate gain
+      const desiredGain = this.agcTargetLevel / (this.agcEnvelope + 1e-6);
+      this.agcGain = Math.min(desiredGain, this.agcMaxGain) * 0.1;
+
+      // Apply gain
+      processedArray[i] = sample * this.agcGain;
+    }
+
+    return processedArray;
+  }
+
+  setAGC(newAGCSpeed) {
+    this.agcEnabled = true;
+    switch (newAGCSpeed) {
+      case 0: // AGC Off
+        this.agcEnabled = false;
+        break;
+      case 1: // AGC Speed Fast
+        this.agcAttackTime = 0.1; // 100ms attack time
+        this.agcReleaseTime = 0.03; // 30ms release time
+        this.agcLookaheadTime = 0.1; // 100ms lookahead time
+        this.agcTargetLevel = 0.5; // Target level (0.5 = -6 dBFS)
+        this.agcMaxGain = 1000; // Maximum gain multiplier
+        break;
+      case 2: // AGC Speed Medium
+        this.agcAttackTime = 0.1; // 100ms attack time
+        this.agcReleaseTime = 0.03; // 30ms release time
+        this.agcLookaheadTime = 0.1; // 100ms lookahead time
+        this.agcTargetLevel = 0.5; // Target level (0.5 = -6 dBFS)
+        this.agcMaxGain = 1000; // Maximum gain multiplier
+        break;
+      case 3: // AGC Speed Slow
+        this.agcAttackTime = 0.1; // 100ms attack time
+        this.agcReleaseTime = 0.03; // 30ms release time
+        this.agcLookaheadTime = 0.1; // 100ms lookahead time
+        this.agcTargetLevel = 0.5; // Target level (0.5 = -6 dBFS)
+        this.agcMaxGain = 1000; // Maximum gain multiplier
+        break;
+    }
+    console.log("agcEnabled = " + agcEnabled + " | " + "AGC Speed = " + newAGCSpeed);
+  }
+
+  applyNoiseBlanker(pcmArray) {
+    if (!this.nb) return pcmArray;
+
+    const processedArray = new Float32Array(pcmArray.length);
+
+    for (let i = 0; i < pcmArray.length; i += this.nbOverlap) {
+      // Fill the buffer
+      this.nbBuffer.set(pcmArray.subarray(i, i + this.nbFFTSize));
+
+      // Perform FFT
+      const phasors = fft(Array.from(this.nbBuffer));
+
+      // Calculate magnitude spectrum
+      const magnitudeSpectrum = new Float32Array(this.nbFFTSize / 2);
+      for (let j = 0; j < this.nbFFTSize / 2; j++) {
+        magnitudeSpectrum[j] = Math.sqrt(phasors[j][0] * phasors[j][0] + phasors[j][1] * phasors[j][1]);
+      }
+
+      // Update average spectrum
+      this.nbSpectrumHistory[this.nbHistoryIndex].set(magnitudeSpectrum);
+      this.nbHistoryIndex = (this.nbHistoryIndex + 1) % this.nbAverageWindows;
+
+      for (let j = 0; j < this.nbFFTSize / 2; j++) {
+        this.nbSpectrumAverage[j] = this.nbSpectrumHistory.reduce((sum, spectrum) => sum + spectrum[j], 0) / this.nbAverageWindows;
+      }
+
+      // Calculate average signal level
+      const avgSignalLevel = this.nbSpectrumAverage.reduce((sum, val) => sum + val, 0) / this.nbSpectrumAverage.length;
+
+      // Dynamic threshold based on average signal level
+      const dynamicThreshold = this.nbThreshold * avgSignalLevel;
+
+      // Scale current spectrum
+      for (let j = 0; j < this.nbFFTSize / 2; j++) {
+        const ratio = magnitudeSpectrum[j] / this.nbSpectrumAverage[j];
+        const scale = ratio > 1 ? 1 / Math.pow(ratio, 0.5) : 1; // More gradual scaling
+        phasors[j][0] *= scale;
+        phasors[j][1] *= scale;
+      }
+
+      // Inverse FFT
+      const complexSignal = ifft(phasors);
+
+      // Apply noise reduction
+      for (let j = 0; j < this.nbFFTSize; j++) {
+        const magnitude = Math.sqrt(complexSignal[j][0] * complexSignal[j][0] + complexSignal[j][1] * complexSignal[j][1]);
+
+        if (magnitude > dynamicThreshold) {
+          console.log("Noise detected!");
+          const reductionFactor = dynamicThreshold / magnitude;
+          processedArray[i + j] = pcmArray[i + j] * reductionFactor;
+        } else {
+          processedArray[i + j] = pcmArray[i + j];
+        }
+      }
+    }
+
+    return processedArray;
+  }
+
 
   initAudio(settings) {
     const sampleRate = this.audioOutputSps
@@ -259,12 +418,6 @@ export default class SpectrumAudio {
     this.bufferLimit = newAudioBufferLimit;
   }
 
-  setAGCStateSpeed(newState, newSpeed) {
-    this.agcEnabled = newState;
-    this.agcSpeed = newSpeed;
-    console.log("AGC State = " + agcEnabled + " | " + "AGC Speed = " + agcSpeed);
-  }
-  // End of added Section //
 
   setFT8Decoding(value) {
     this.decodeFT8 = value;
@@ -682,6 +835,11 @@ export default class SpectrumAudio {
       return
     }
 
+    // Apply AGC
+    if (this.agcEnabled) {
+      pcmArray = this.applyAGC(pcmArray);
+    }
+
     if (this.isCollecting && this.decodeFT8) {
       this.accumulator.push(...pcmArray);
     }
@@ -852,4 +1010,3 @@ export default class SpectrumAudio {
   }
 
 }
-
