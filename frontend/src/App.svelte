@@ -831,7 +831,6 @@
   let NBEnabled = false;
   let ANEnabled = false;
   let CTCSSSupressEnabled = false;
-  let agcEnabled = false;
 
   function handleNRChange() {
     NREnabled = !NREnabled;
