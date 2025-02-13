@@ -202,7 +202,7 @@ export default class SpectrumAudio {
         this.agcMaxGain = 1000; // Maximum gain multiplier
         break;
     }
-    console.log("agcEnabled = " + agcEnabled + " | " + "AGC Speed = " + newAGCSpeed);
+    console.log("agcEnabled = " + this.agcEnabled + " | " + "AGC Speed = " + newAGCSpeed);
   }
 
   applyNoiseBlanker(pcmArray) {
