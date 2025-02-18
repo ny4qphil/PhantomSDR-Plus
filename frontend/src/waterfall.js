@@ -211,7 +211,7 @@ export default class SpectrumWaterfall {
             },
             {
                 ITU: 123,
-                name: '30m', min: -40, max: 120, publishBand: true, amateurBand: true, startFreq: 10100000, endFreq: 10150000, initialFreq: 10136000, stepi: 1000, color: 'rgba(50, 168, 72, 0.6)',
+                name: '30m', min: -45, max: 120, publishBand: true, amateurBand: true, startFreq: 10100000, endFreq: 10150000, initialFreq: 10136000, stepi: 1000, color: 'rgba(50, 168, 72, 0.6)',
                 modes: [{ mode: MODES.CW, startFreq: 10100000, endFreq: 10150000 }]
             },
             {
@@ -226,7 +226,7 @@ export default class SpectrumWaterfall {
             },
             {
                 ITU: 123,
-                name: '20m', min: -40, max: 120, publishBand: true, amateurBand: true, startFreq: 14000000, endFreq: 14350000, initialFreq: 14185000, stepi: 1000, color: 'rgba(50, 168, 72, 0.6)',
+                name: '20m', min: -50, max: 120, publishBand: true, amateurBand: true, startFreq: 14000000, endFreq: 14350000, initialFreq: 14185000, stepi: 1000, color: 'rgba(50, 168, 72, 0.6)',
                 modes: [
                     { mode: MODES.CW, startFreq: 14000000, endFreq: 14070000 },
                     { mode: MODES.USB, startFreq: 14070000, endFreq: 14350000 }]
@@ -243,7 +243,7 @@ export default class SpectrumWaterfall {
             },
             {
                 ITU: 123,
-                name: '17m', min: -40, max: 120, publishBand: true, amateurBand: true, startFreq: 18068000, endFreq: 18168000, initialFreq: 18140000, stepi: 1000, color: 'rgba(50, 168, 72, 0.6)',
+                name: '17m', min: -60, max: 120, publishBand: true, amateurBand: true, startFreq: 18068000, endFreq: 18168000, initialFreq: 18140000, stepi: 1000, color: 'rgba(50, 168, 72, 0.6)',
                 modes: [
                     { mode: MODES.CW, startFreq: 18068000, endFreq: 18100000 },
                     { mode: MODES.USB, startFreq: 18100000, endFreq: 18168000 }]
@@ -255,7 +255,7 @@ export default class SpectrumWaterfall {
             },
             {
                 ITU: 123,
-                name: '15m', min: -40, max: 120, publishBand: true, amateurBand: true, startFreq: 21000000, endFreq: 21450000, initialFreq: 21250000, stepi: 1000, color: 'rgba(50, 168, 72, 0.6)',
+                name: '15m', min: -60, max: 120, publishBand: true, amateurBand: true, startFreq: 21000000, endFreq: 21450000, initialFreq: 21250000, stepi: 1000, color: 'rgba(50, 168, 72, 0.6)',
                 modes: [
                     { mode: MODES.CW, startFreq: 21000000, endFreq: 21070000 },
                     { mode: MODES.USB, startFreq: 21070000, endFreq: 21450000 }]
@@ -267,7 +267,7 @@ export default class SpectrumWaterfall {
             },
             {
                 ITU: 123,
-                name: '12m', min: -40, max: 120, publishBand: true, amateurBand: true, startFreq: 24890000, endFreq: 24990000, initialFreq: 24940000, stepi: 1000, color: 'rgba(50, 168, 72, 0.6)',
+                name: '12m', min: -62, max: 120, publishBand: true, amateurBand: true, startFreq: 24890000, endFreq: 24990000, initialFreq: 24940000, stepi: 1000, color: 'rgba(50, 168, 72, 0.6)',
                 modes: [
                     { mode: MODES.CW, startFreq: 24890000, endFreq: 24920000 },
                     { mode: MODES.USB, startFreq: 24920000, endFreq: 24990000 }]
@@ -287,7 +287,7 @@ export default class SpectrumWaterfall {
             },
             {
                 ITU: 2,
-                name: 'CB', min: -40, max: 120, publishBand: true, amateurBand: true, startFreq: 26965000, endFreq: 27405000, initialFreq: 27025000, stepi: 1000, color: 'rgba(3, 227, 252, 0.6)',
+                name: 'CB', min: -60, max: 120, publishBand: true, amateurBand: true, startFreq: 26965000, endFreq: 27405000, initialFreq: 27025000, stepi: 1000, color: 'rgba(3, 227, 252, 0.6)',
                 modes: [
                     { mode: MODES.AM, startFreq: 26965000, endFreq: 27300000 },
                     { mode: MODES.USB, startFreq: 27305000, endFreq: 27405000 }
@@ -300,7 +300,7 @@ export default class SpectrumWaterfall {
             },
             {
                 ITU: 123,
-                name: '10m', min: -40, max: 120, publishBand: true, amateurBand: true, startFreq: 28000000, endFreq: 29700000, initialFreq: 28425000, stepi: 1000, color: 'rgba(50, 168, 72, 0.6)',
+                name: '10m', min: -60, max: 120, publishBand: true, amateurBand: true, startFreq: 28000000, endFreq: 29700000, initialFreq: 28425000, stepi: 1000, color: 'rgba(50, 168, 72, 0.6)',
                 modes: [
                     { mode: MODES.CW, startFreq: 28000000, endFreq: 28070000 },
                     { mode: MODES.USB, startFreq: 28070000, endFreq: 29700000 }]
@@ -1249,7 +1249,6 @@ export default class SpectrumWaterfall {
         const r = this.waterfallR
         // For UI to pass in a custom scale amount
         const scale = e.scaleAmount || 0.85
-
         // Prevent zooming beyond a certain point
         if (r - l <= 128 && zoomAmount < 0) {
             return false
@@ -1263,7 +1262,44 @@ export default class SpectrumWaterfall {
             this.zoomFactor = this.zoomFactor + 1
         }
 
+        const centerfreq = (r - l) * x / this.canvasWidth + l
+        let widthL = centerfreq - l
+        let widthR = r - centerfreq
+        if (zoomAmount < 0) {
+            widthL *= scale
+            widthR *= scale
+        } else if (zoomAmount > 0) {
+            widthL *= 1 / scale
+            widthR *= 1 / scale
+        }
+        const waterfallL = Math.round(centerfreq - widthL)
+        const waterfallR = Math.round(centerfreq + widthR)
 
+        this.setWaterfallRange(waterfallL, waterfallR)
+
+        return false
+    }
+
+    sliderZoom(zoom) {
+        // For UI to pass custom zoom range
+        const x = this.canvasWidth / 2
+        const zoomAmount = zoom
+        const l = this.waterfallL
+        const r = this.waterfallR
+        // For UI to pass in a custom scale amount
+        const scale = 0.85
+        // Prevent zooming beyond a certain point
+        if (r - l <= 128 && zoomAmount < 0) {
+            return false
+        }
+        if (zoomAmount > 0) {
+            if (this.zoomFactor != 1) {
+                this.zoomFactor = this.zoomFactor - 1
+            }
+        } else if (zoomAmount < 0) {
+
+            this.zoomFactor = this.zoomFactor + 1
+        }
 
         const centerfreq = (r - l) * x / this.canvasWidth + l
         let widthL = centerfreq - l
