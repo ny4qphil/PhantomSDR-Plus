@@ -2500,8 +2500,7 @@
                     {/if}
 
                     <!-- alles neu  -->
-                    <!-- Audio Begins -->
-
+                    <!-- Waterfall / Spectrum Begins -->
                     <div
                         class="flex flex-col xl:flex-row rounded p-5 justify-center rounded"
                         id="middle-column"
@@ -2509,193 +2508,236 @@
                         <div
                             class="p-5 flex flex-col items-center bg-gray-800 lg:border lg:border-gray-700 rounded-none rounded-t-lg lg:rounded-none lg:rounded-l-lg"
                         >
-                            <h3 class="text-white text-lg font-semibold mb-4">
-                                Waterfall Controls
-                            </h3>
+                            {#if !waterfallDisplay && !spectrumDisplay}
+                                <div class="w-72 mb-6"></div>
+                            {/if}
 
-                            <div class="w-full mb-6">
-                                <div
-                                    id="brightness-controls"
-                                    class="flex items-center justify-between mb-2"
-                                >
-                                    <span class="text-gray-300 text-sm w-10"
-                                        >Min:</span
+                            {#if waterfallDisplay || spectrumDisplay}
+                                {#if waterfallDisplay && spectrumDisplay}
+                                    <h3
+                                        class="text-white text-base font-semibold mb-4"
                                     >
-                                    <div class="slider-container w-48 mx-2">
-                                        <input
-                                            type="range"
-                                            bind:value={min_waterfall}
-                                            min="-100"
-                                            max="255"
-                                            step="1"
-                                            class="glass-slider w-full"
-                                            on:input={handleMinMove}
-                                        />
-                                    </div>
-                                    <span
-                                        class="text-gray-300 text-sm w-10 text-right"
-                                        >{min_waterfall}</span
+                                        Display Contrast
+                                    </h3>
+                                {:else if spectrumDisplay && !waterfallDisplay}
+                                    <h3
+                                        class="text-white text-base font-semibold mb-4"
                                     >
-                                </div>
-                                <div class="flex items-center justify-between">
-                                    <span class="text-gray-300 text-sm w-10"
-                                        >Max:</span
+                                        Spectrum Contrast
+                                    </h3>
+                                {:else if !spectrumDisplay && waterfallDisplay}
+                                    <h3
+                                        class="text-white text-base font-semibold mb-4"
                                     >
-                                    <div class="slider-container w-48 mx-2">
-                                        <input
-                                            type="range"
-                                            bind:value={max_waterfall}
-                                            min="0"
-                                            max="255"
-                                            step="1"
-                                            class="glass-slider w-full"
-                                            on:input={handleMaxMove}
-                                        />
-                                    </div>
-                                    <span
-                                        class="text-gray-300 text-sm w-10 text-right"
-                                        >{max_waterfall}</span
-                                    >
-                                </div>
-                            </div>
-
-                            <div class="w-full mb-6">
-                                <div id="colormap-select" class="relative">
-                                    <select
-                                        bind:value={currentColormap}
-                                        on:change={handleWaterfallColormapSelect}
-                                        class="glass-select block w-full pl-3 pr-10 py-2 text-sm rounded-lg text-gray-200 appearance-none focus:outline-none"
-                                    >
-                                        {#each availableColormaps as colormap}
-                                            <option value={colormap}
-                                                >{colormap}</option
-                                            >
-                                        {/each}
-                                    </select>
+                                        Waterfall Contrast
+                                    </h3>
+                                {/if}
+                                <div class="w-full mb-6">
                                     <div
-                                        class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-400"
+                                        id="brightness-controls"
+                                        class="flex items-center justify-between mb-2"
                                     >
-                                        <svg
-                                            class="fill-current h-4 w-4"
-                                            xmlns="http://www.w3.org/2000/svg"
-                                            viewBox="0 0 20 20"
+                                        <span class="text-gray-300 text-sm w-10"
+                                            >Min:</span
                                         >
-                                            <path
-                                                d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                                        <div class="slider-container w-48 mx-2">
+                                            <input
+                                                type="range"
+                                                bind:value={min_waterfall}
+                                                min="-100"
+                                                max="255"
+                                                step="1"
+                                                class="glass-slider w-full"
+                                                on:input={handleMinMove}
                                             />
-                                        </svg>
+                                        </div>
+                                        <span
+                                            class="text-gray-300 text-sm w-10 text-right"
+                                            >{min_waterfall}</span
+                                        >
+                                    </div>
+                                    <div
+                                        class="flex items-center justify-between"
+                                    >
+                                        <span class="text-gray-300 text-sm w-10"
+                                            >Max:</span
+                                        >
+                                        <div class="slider-container w-48 mx-2">
+                                            <input
+                                                type="range"
+                                                bind:value={max_waterfall}
+                                                min="0"
+                                                max="255"
+                                                step="1"
+                                                class="glass-slider w-full"
+                                                on:input={handleMaxMove}
+                                            />
+                                        </div>
+                                        <span
+                                            class="text-gray-300 text-sm w-10 text-right"
+                                            >{max_waterfall}</span
+                                        >
                                     </div>
                                 </div>
-                            </div>
-
-                            <div class="flex items-center justify-between">
-                                <span class="text-gray-300 text-sm w-10"
-                                    >Min</span
-                                >
-                                <div class="slider-container w-48 mx-2">
-                                    <input
-                                        type="range"
-                                        bind:value={zoom}
-                                        min="-64"
-                                        max="64"
-                                        step="1"
-                                        class="glass-slider w-full"
-                                        on:input={handleSliderZoom(zoom)}
-                                    />
-                                </div>
-                                <span
-                                    class="text-gray-300 text-sm w-10 text-right"
-                                    >Max</span
-                                >
-                            </div>
-                            <hr class="border-gray-600 my-2" />
-
-                            <div class="w-full mb-6">
-                                <!--
-                  <h3 class="text-white text-lg font-semibold mb-2">Zoom</h3>
--->
-                                <div
-                                    id="zoom-controls"
-                                    class="grid grid-cols-4 gap-2"
-                                >
-                                    {#each [{ action: "-", title: "Zoom out", icon: "zoom-out", text: "Out" }, { action: "+", title: "Zoom in ", icon: "zoom-in", text: "In" }, { action: "min", title: "Zoom to min", icon: "minimize", text: "Min" }, { action: "max", title: "Zoom to max", icon: "maximize", text: "Max" }] as { action, title, icon, text }}
-                                        <button
-                                            class="retro-button text-white font-bold h-10 text-sm rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out bg-gray-700 hover:bg-gray-600"
-                                            on:click={(e) =>
-                                                handleWaterfallMagnify(
-                                                    e,
-                                                    action,
-                                                )}
-                                            {title}
+                            {/if}
+                            {#if waterfallDisplay}
+                                <div class="w-full mb-6">
+                                    <div id="colormap-select" class="relative">
+                                        <select
+                                            bind:value={currentColormap}
+                                            on:change={handleWaterfallColormapSelect}
+                                            class="glass-select block w-full pl-3 pr-10 py-2 text-sm rounded-lg text-gray-200 appearance-none focus:outline-none"
+                                        >
+                                            {#each availableColormaps as colormap}
+                                                <option value={colormap}
+                                                    >{colormap}</option
+                                                >
+                                            {/each}
+                                        </select>
+                                        <div
+                                            class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-400"
                                         >
                                             <svg
+                                                class="fill-current h-4 w-4"
                                                 xmlns="http://www.w3.org/2000/svg"
-                                                class="h-4 w-4 mr-2"
-                                                viewBox="0 0 24 24"
-                                                fill="none"
-                                                stroke="currentColor"
-                                                stroke-width="2"
-                                                stroke-linecap="round"
-                                                stroke-linejoin="round"
+                                                viewBox="0 0 20 20"
                                             >
-                                                {#if icon === "zoom-in"}
-                                                    <circle
-                                                        cx="11"
-                                                        cy="11"
-                                                        r="8"
-                                                    />
-                                                    <line
-                                                        x1="21"
-                                                        y1="21"
-                                                        x2="16.65"
-                                                        y2="16.65"
-                                                    />
-                                                    <line
-                                                        x1="11"
-                                                        y1="8"
-                                                        x2="11"
-                                                        y2="14"
-                                                    />
-                                                    <line
-                                                        x1="8"
-                                                        y1="11"
-                                                        x2="14"
-                                                        y2="11"
-                                                    />
-                                                {:else if icon === "zoom-out"}
-                                                    <circle
-                                                        cx="11"
-                                                        cy="11"
-                                                        r="8"
-                                                    />
-                                                    <line
-                                                        x1="21"
-                                                        y1="21"
-                                                        x2="16.65"
-                                                        y2="16.65"
-                                                    />
-                                                    <line
-                                                        x1="8"
-                                                        y1="11"
-                                                        x2="14"
-                                                        y2="11"
-                                                    />
-                                                {:else if icon === "maximize"}
-                                                    <path
-                                                        d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"
-                                                    />
-                                                {:else if icon === "minimize"}
-                                                    <path
-                                                        d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"
-                                                    />
-                                                {/if}
+                                                <path
+                                                    d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                                                />
                                             </svg>
-                                            <span>{text}</span>
-                                        </button>
-                                    {/each}
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
+                            {/if}
+                            {#if waterfallDisplay || spectrumDisplay}
+                                {#if waterfallDisplay && spectrumDisplay}
+                                    <h3
+                                        class="text-white text-base font-semibold mb-4"
+                                    >
+                                        Display Zoom
+                                    </h3>
+                                {:else if spectrumDisplay && !waterfallDisplay}
+                                    <h3
+                                        class="text-white text-base font-semibold mb-4"
+                                    >
+                                        Spectrum Zoom
+                                    </h3>
+                                {:else if waterfallDisplay && !spectrumDisplay}
+                                    <h3
+                                        class="text-white text-base font-semibold mb-4"
+                                    >
+                                        Waterfall Zoom
+                                    </h3>
+                                {/if}
+                                <div class="flex items-center justify-between">
+                                    <span class="text-gray-300 text-sm w-10"
+                                        >Min</span
+                                    >
+                                    <div class="slider-container w-48 mx-2">
+                                        <input
+                                            type="range"
+                                            bind:value={zoom}
+                                            min="-64"
+                                            max="64"
+                                            step="1"
+                                            class="glass-slider w-full"
+                                            on:input={handleSliderZoom(zoom)}
+                                        />
+                                    </div>
+                                    <span
+                                        class="text-gray-300 text-sm w-10 text-right"
+                                        >Max</span
+                                    >
+                                </div>
+                                <hr class="border-gray-600 my-2" />
 
+                                <div class="w-full mb-6">
+                                    <div
+                                        id="zoom-controls"
+                                        class="grid grid-cols-4 gap-2"
+                                    >
+                                        {#each [{ action: "-", title: "Zoom out", icon: "zoom-out", text: "Out" }, { action: "+", title: "Zoom in ", icon: "zoom-in", text: "In" }, { action: "min", title: "Zoom to min", icon: "minimize", text: "Min" }, { action: "max", title: "Zoom to max", icon: "maximize", text: "Max" }] as { action, title, icon, text }}
+                                            <button
+                                                class="retro-button text-white font-bold h-10 text-sm rounded-md flex items-center justify-center border border-gray-600 shadow-inner transition-all duration-200 ease-in-out bg-gray-700 hover:bg-gray-600"
+                                                on:click={(e) =>
+                                                    handleWaterfallMagnify(
+                                                        e,
+                                                        action,
+                                                    )}
+                                                {title}
+                                            >
+                                                <svg
+                                                    xmlns="http://www.w3.org/2000/svg"
+                                                    class="h-4 w-4 mr-2"
+                                                    viewBox="0 0 24 24"
+                                                    fill="none"
+                                                    stroke="currentColor"
+                                                    stroke-width="2"
+                                                    stroke-linecap="round"
+                                                    stroke-linejoin="round"
+                                                >
+                                                    {#if icon === "zoom-in"}
+                                                        <circle
+                                                            cx="11"
+                                                            cy="11"
+                                                            r="8"
+                                                        />
+                                                        <line
+                                                            x1="21"
+                                                            y1="21"
+                                                            x2="16.65"
+                                                            y2="16.65"
+                                                        />
+                                                        <line
+                                                            x1="11"
+                                                            y1="8"
+                                                            x2="11"
+                                                            y2="14"
+                                                        />
+                                                        <line
+                                                            x1="8"
+                                                            y1="11"
+                                                            x2="14"
+                                                            y2="11"
+                                                        />
+                                                    {:else if icon === "zoom-out"}
+                                                        <circle
+                                                            cx="11"
+                                                            cy="11"
+                                                            r="8"
+                                                        />
+                                                        <line
+                                                            x1="21"
+                                                            y1="21"
+                                                            x2="16.65"
+                                                            y2="16.65"
+                                                        />
+                                                        <line
+                                                            x1="8"
+                                                            y1="11"
+                                                            x2="14"
+                                                            y2="11"
+                                                        />
+                                                    {:else if icon === "maximize"}
+                                                        <path
+                                                            d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"
+                                                        />
+                                                    {:else if icon === "minimize"}
+                                                        <path
+                                                            d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"
+                                                        />
+                                                    {/if}
+                                                </svg>
+                                                <span>{text}</span>
+                                            </button>
+                                        {/each}
+                                    </div>
+                                </div>
+                            {/if}
+                            <h3 class="text-white text-base font-semibold mb-2">
+                                Display Options
+                            </h3>
                             <div class="w-full mb-6">
                                 <!-- START of waterfal control buttons -->
                                 {#if buttons}
@@ -2867,7 +2909,7 @@
                                         d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z"
                                     />
                                 </svg>
-                                Bookmarks
+                                Favorites
                             </button>
 
                             <div
@@ -2892,9 +2934,9 @@
                                             class="flex justify-between items-center mb-4"
                                         >
                                             <h2
-                                                class="text-xl font-bold text-white"
+                                                class="text-base font-bold text-white"
                                             >
-                                                Bookmarks
+                                                Favorites
                                             </h2>
                                             <button
                                                 class="text-gray-400 hover:text-white"
@@ -3235,7 +3277,7 @@
 
                                     <div class="w-full mt-4">
                                         <h3
-                                            class="text-white text-lg font-semibold mb-2"
+                                            class="text-white text-base font-semibold mb-2"
                                         >
                                             Fine Tuning (kHz)
                                         </h3>
@@ -3752,7 +3794,7 @@
                                     <!-- Bandwidth -->
                                     <div>
                                         <h3
-                                            class="text-white text-lg font-semibold mb-2"
+                                            class="text-white text-base font-semibold mb-2"
                                         >
                                             Bandwidth
                                         </h3>
@@ -3799,7 +3841,7 @@
                                     <!-- Tuning Steps -->
                                     <div class="w-full mt-4">
                                         <h3
-                                            class="text-white text-lg font-semibold mb-2"
+                                            class="text-white text-base font-semibold mb-2"
                                         >
                                             Tuning Steps
                                         </h3>
@@ -3853,7 +3895,7 @@
                             class="flex flex-col items-center bg-gray-800 p-6 lg:border lg:border-gray-700 rounded-none rounded-b-lg lg:rounded-none lg:rounded-r-lg"
                         >
                             <h3
-                                class="text-lg font-semibold text-gray-100 mb-6"
+                                class="text-base font-semibold text-gray-100 mb-6"
                             >
                                 Audio
                             </h3>
@@ -3964,7 +4006,7 @@
                             <!-- End of Buffer -->
 
                             <!-- Begin Filter Selection -->
-                            <h3 class="text-white text-lg font-semibold mb-2">
+                            <h3 class="text-white text-base font-semibold mb-2">
                                 Filters
                             </h3>
                             <div class="w-full mb-6">
@@ -4158,8 +4200,15 @@
                             <h2
                                 class="text-xl sm:text-2xl font-semibold text-gray-100 mb-2 sm:mb-4"
                             >
-                                Chat
+                                WebSDR Chat
                             </h2>
+                            <h4
+                                class="text-sm font-semibold text-gray-100 mb-2 sm:mb-4"
+                            >
+                                This chatbox is intended to discuss the
+                                operation of the WebSDR, so please keep the
+                                discussion civil and polite.
+                            </h4>
 
                             <!-- Username Display/Input -->
                             <div
