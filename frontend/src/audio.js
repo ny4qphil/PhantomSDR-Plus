@@ -189,20 +189,20 @@ export default class SpectrumAudio {
         break;
       case 2: // AGC Speed Medium
         this.agcAttackTime = 0.1; // 100ms attack time
-        this.agcReleaseTime = 0.03; // 30ms release time
+        this.agcReleaseTime = 2.5; // 30ms release time
         this.agcLookaheadTime = 0.1; // 100ms lookahead time
         this.agcTargetLevel = 0.5; // Target level (0.5 = -6 dBFS)
         this.agcMaxGain = 1000; // Maximum gain multiplier
         break;
       case 3: // AGC Speed Slow
         this.agcAttackTime = 0.1; // 100ms attack time
-        this.agcReleaseTime = 0.03; // 30ms release time
+        this.agcReleaseTime = 5.0; // 30ms release time
         this.agcLookaheadTime = 0.1; // 100ms lookahead time
         this.agcTargetLevel = 0.5; // Target level (0.5 = -6 dBFS)
         this.agcMaxGain = 1000; // Maximum gain multiplier
         break;
     }
-    console.log("agcEnabled = " + this.agcEnabled + " | " + "AGC Speed = " + newAGCSpeed);
+    // console.log("agcEnabled = " + this.agcEnabled + " | " + "AGC Speed = " + newAGCSpeed);
   }
 
   applyNoiseBlanker(pcmArray) {
@@ -387,7 +387,7 @@ export default class SpectrumAudio {
         this.bandpass.gain.value = 2
         this.highPass.frequency.value = this.ctcss ? 300 : 30
         this.presenceBoost.gain.value = 3
-        this.setLowpass(15000)
+        this.setLowpass(4500)
         break
     }
   }
