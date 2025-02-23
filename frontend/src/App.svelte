@@ -2167,7 +2167,7 @@
                                 class="text-xl sm:text-2xl font-semibold text-gray-100 mb-2 sm:mb-4"
                             >
                                 <span>
-                                    {siteInformation}<a
+                                    {siteInformation}&nbsp;<a
                                         href="https://k7fry.com/grid/?qth={siteGridSquare}"
                                         target="new"
                                         style="color:rgba(0, 225, 255, 0.993)"
