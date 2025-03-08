@@ -13,10 +13,14 @@ AGC::AGC(float desiredLevel, float attackTimeMs, float releaseTimeMs, float look
     gains.resize(5, 1.0f);
 
     max_gain = 1000.0f; // was 500.0f Bas ON5HB
-    
+
     // Hang system
-    hang_time = static_cast<size_t>(0.05f * sample_rate); // Was 500ms hang time, changed to 50ms, Bas ON5HB
+    hang_time = static_cast<size_t>(0.09f * sample_rate); // Was 500ms hang time, changed to 90ms, Bas ON5HB
     hang_threshold = 0.05f; // was 0.5f just as above
+        
+    // Old Hang system
+    //hang_time = static_cast<size_t>(0.05f * sample_rate); // Was 500ms hang time, changed to 50ms, Bas ON5HB
+    //hang_threshold = 0.05f; // was 0.5f just as above
     
     // Dual time constant
     fast_attack_coeff = 1 - exp(-1.0f / (0.5f * 0.001f * sample_rate)); // 5ms fast attack, made 0.5ms attack Bas ON5HB
