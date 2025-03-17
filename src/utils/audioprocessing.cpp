@@ -7,7 +7,14 @@ AGC::AGC(float desiredLevel, float attackTimeMs, float releaseTimeMs, float look
     : desired_level(desiredLevel), sample_rate(sr) {
     look_ahead_samples = static_cast<size_t>(lookAheadTimeMs * sample_rate / 1000.0f);
     attack_coeff = 1 - exp(-1.0f / (attackTimeMs * 0.001f * sample_rate));
-    release_coeff = 1 - exp(-1.0f / (releaseTimeMs * 0.001f * sample_rate));
+    release_coeff = 1 - exp(-1.0f / (releaseTimeMs * 0.002f * sample_rate)); //was 0.001f
+
+        // Old AGC
+// AGC::AGC(float desiredLevel, float attackTimeMs, float releaseTimeMs, float lookAheadTimeMs, float sr)
+   // : desired_level(desiredLevel), sample_rate(sr) {
+   // look_ahead_samples = static_cast<size_t>(lookAheadTimeMs * sample_rate / 1000.0f);
+   // attack_coeff = 1 - exp(-1.0f / (attackTimeMs * 0.001f * sample_rate));
+   // release_coeff = 1 - exp(-1.0f / (releaseTimeMs * 0.001f * sample_rate));
     
     // Initialize multiple gain stages (RF, IF1, IF2, IF3, Audio)
     gains.resize(5, 1.0f);
@@ -15,8 +22,8 @@ AGC::AGC(float desiredLevel, float attackTimeMs, float releaseTimeMs, float look
     max_gain = 1000.0f; // was 500.0f Bas ON5HB
 
     // Hang system
-    hang_time = static_cast<size_t>(0.09f * sample_rate); // Was 500ms hang time, changed to 90ms, Bas ON5HB
-    hang_threshold = 0.05f; // was 0.5f just as above
+    hang_time = static_cast<size_t>(0.2f * sample_rate); // Was 500ms hang time, changed to 90ms, Bas ON5HB // testing 0.2 sec
+    hang_threshold = 0.1f; // was 0.05f
         
     // Old Hang system
     //hang_time = static_cast<size_t>(0.05f * sample_rate); // Was 500ms hang time, changed to 50ms, Bas ON5HB
@@ -28,7 +35,6 @@ AGC::AGC(float desiredLevel, float attackTimeMs, float releaseTimeMs, float look
     // AM time constants
     am_attack_coeff = attack_coeff * 0.1f;
     am_release_coeff = release_coeff * 0.1f;
-
 
     // Initialize Noise Blanker parameters
     nb_enabled = false;
