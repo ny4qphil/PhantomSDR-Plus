@@ -1668,6 +1668,7 @@
     });
 
     function sendMessage() {
+        newMessage = newMessage.replace(/[^\x00-\x7F]/g, ""); // Strips non-ASCII
         if (newMessage.trim() && username.trim()) {
             const messageObject = {
                 cmd: "chat",
