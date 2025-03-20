@@ -4147,7 +4147,7 @@
                                 <button
                                     class="glass-button text-white font-bold rounded-full w-10 h-10 flex items-center justify-center mr-4"
                                     style="background: {squelchEnable
-                                        ? 'rgba(255, 152, 0)'
+                                        ? 'rgba(30, 136, 229)'
                                         : 'rgba(255, 255, 255, 0.05)'}"
                                     on:click={handleSquelchChange}
                                 >
@@ -4178,7 +4178,7 @@
                                 <button
                                     class="glass-button text-white font-bold rounded-full w-10 h-10 flex items-center justify-center mr-4"
                                     style="background: {audioBufferDelayEnabled
-                                        ? 'rgba(16, 185, 129, 0.2)'
+                                        ? 'rgba(30, 136, 229)'
                                         : 'rgba(255, 255, 255, 0.05)'}"
                                     on:click={() =>
                                         handleAudioBufferDelayMove(
