@@ -1201,6 +1201,133 @@
         localStorage.setItem("bookmarks", JSON.stringify(bookmarksToSave));
     }
 
+    // amkbookmarks
+
+    // UPLOAD BOOKMARKS
+
+    let file;
+    let fileInput;
+
+    // Συνάρτηση για την ανάγνωση του αρχείου JSON
+    function uploadBookmarks() {
+        const file = fileInput.files[0]; // Παίρνουμε το επιλεγμένο αρχείο
+        if (!file) {
+            alert("Παρακαλώ επιλέξτε ένα αρχείο.");
+            return;
+        }
+        // Ελέγχουμε αν είναι αρχείο JSON
+        if (file.type !== "application/json") {
+            alert("Παρακαλώ επιλέξτε ένα αρχείο JSON.");
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            try {
+                // Αναγνώριση του περιεχομένου του αρχείου JSON
+                const uploadedBookmarks = JSON.parse(event.target.result);
+                console.log("Uploaded Bookmarks:", uploadedBookmarks);
+
+                // Ανάκτηση των default τιμών από το localStorage
+                const defaultLink = link || "http://default-server.com"; // Παράδειγμα
+                //        const defaultPort = localStorage.getItem("serverPort") || "9002"; // Παράδειγμα
+                console.log("defaultLink:", defaultLink);
+                //        console.log("defaultPort:", defaultPort);
+
+                // Εξαγωγή hostname και port από την URL (αν υπάρχει)
+                const url = new URL(defaultLink);
+                const extractedLink = url.hostname; // Παίρνουμε την διεύθυνση IP ή το hostname
+                const extractedPort = url.port || "9003"; // Παίρνουμε την πόρτα ή το default αν δεν υπάρχει
+                console.log("Extracted Link:", extractedLink);
+                console.log("Extracted Port:", extractedPort);
+
+                // Επεξεργασία των αντικειμένων στο ανεβασμένο JSON
+                const updatedBookmarks = uploadedBookmarks.map((bookmark) => {
+                    // Αντικαθιστούμε την τιμή του πεδίου "link" με τις default τιμές από το localStorage
+                    if (bookmark.link) {
+                        const bookmarkUrl = new URL(bookmark.link);
+                        const link_to_be_checked = bookmarkUrl.hostname; // Παίρνουμε την διεύθυνση IP ή το hostname
+                        if (extractedLink != link_to_be_checked) {
+                            bookmarkUrl.hostname = extractedLink; // Ενημερώνουμε τη διεύθυνση του server
+                            bookmarkUrl.port = extractedPort; // Ενημερώνουμε την πόρτα του server
+                            bookmark.link = bookmarkUrl.toString(); // Ενημερώνουμε το πεδίο link με τη νέα διεύθυνση
+
+                            //              MIN ZOOM (max zoom out) parameters
+                            bookmark.currentWaterfallR =
+                                waterfall.waterfallMaxSize.toString();
+                            bookmark.currentWaterfallL = "1".toString();
+                        }
+                    }
+
+                    return bookmark;
+                });
+
+                // Διαβάζουμε τα υπάρχοντα bookmarks από το localStorage
+                const existingBookmarks =
+                    JSON.parse(localStorage.getItem("bookmarks")) || [];
+
+                // Συγχώνευση των δύο συνόλων δεδομένων
+                const finalBookmarks = [
+                    ...existingBookmarks,
+                    ...updatedBookmarks,
+                ];
+
+                // Αποθήκευση του νέου συνδυασμένου αρχείου στο localStorage
+                localStorage.setItem(
+                    "bookmarks",
+                    JSON.stringify(finalBookmarks),
+                );
+
+                console.log("Final Updated Bookmarks:", finalBookmarks);
+                //        alert("Τα Bookmarks ανέβηκαν και αποθηκεύτηκαν επιτυχώς.");
+            } catch (error) {
+                alert("Σφάλμα κατά την ανάγνωση του αρχείου.");
+            }
+        };
+
+        reader.readAsText(file); // Διαβάζουμε το αρχείο ως κείμενο
+    }
+
+    // END OF UPLOAD BOOKMARKS
+
+    // DOWNLOADLOAD BOOKMARKS
+
+    function downloadBookmarks() {
+        const storedBookmarks = localStorage.getItem("bookmarks");
+        const jsonFile = storedBookmarks;
+
+        // Create a timestamp for the bookmark file to be saved //
+        const bookmarkDate = new Date();
+        const bookmarkYear = bookmarkDate.getFullYear();
+        const bookmarkMonth = bookmarkDate.getMonth() + 1;
+        const bookmarkDay = bookmarkDate.getDate();
+        //
+        const bookmarkHour = bookmarkDate.getHours();
+        const bookmarkMinute = bookmarkDate.getMinutes();
+        const bookmarkSeconds = bookmarkDate.getSeconds();
+        //
+        const bookmarkFullDate =
+            bookmarkYear + "-" + bookmarkDay + "-" + bookmarkMonth;
+        const bookmarkTime =
+            bookmarkHour + "-" + bookmarkMinute + "-" + bookmarkSeconds;
+        const timeStamp = bookmarkFullDate + "_" + bookmarkTime;
+        // Create download link
+        const url = URL.createObjectURL(
+            new Blob([jsonFile], { type: "JSON/json" }),
+        );
+        const a = document.createElement("a");
+        document.body.appendChild(a);
+        a.style.display = "none";
+        a.href = url;
+        a.download = "bookmarks_" + timeStamp + "_.json";
+        a.click();
+        window.URL.revokeObjectURL(url);
+    }
+
+    // END OF DOWNLOADLOAD BOOKMARKS
+
+    //end of amkbookmarks
+
     let showBookmarkPopup = false,
         showModePopup = false,
         showBandPopup = false,
@@ -1668,7 +1795,6 @@
     });
 
     function sendMessage() {
-        newMessage = newMessage.replace(/[^\x00-\x7F]/g, ""); // Strips non-ASCII
         if (newMessage.trim() && username.trim()) {
             const messageObject = {
                 cmd: "chat",
@@ -2910,7 +3036,7 @@
                                         d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z"
                                     />
                                 </svg>
-                                Favorites
+                                SDR Bookmarks
                             </button>
 
                             <div
@@ -2937,7 +3063,7 @@
                                             <h2
                                                 class="text-base font-bold text-white"
                                             >
-                                                Favorites
+                                                SDR Bookmarks
                                             </h2>
                                             <button
                                                 class="text-gray-400 hover:text-white"
@@ -3031,6 +3157,81 @@
                                                 </button>
                                             </div>
                                         </div>
+
+                                        <!-- amkbookmarks -->
+
+                                        <!-- upload bookmark section -->
+
+                                        <div class="mb-6">
+                                            <label
+                                                class="block text-sm font-medium text-gray-300 mb-2"
+                                                >Upload - Download SDR Bookmarks</label
+                                            >
+                                            <div
+                                                class="flex items-center gap-2"
+                                            >
+                                                <!-- Κλικ για να ανοίξει το file input -->
+
+                                                <!-- Κρυφό input τύπου file  -->
+                                                <input
+                                                    type="file"
+                                                    accept="application/json"
+                                                    style="display: none;"
+                                                    on:change={uploadBookmarks}
+                                                    bind:this={fileInput}
+                                                />
+
+                                                <!-- Κουμπί για την ενεργοποίηση του file input  -->
+                                                <button
+                                                    class="glass-button text-white font-bold py-2 px-4 rounded-lg flex items-center"
+                                                    on:click={() =>
+                                                        fileInput.click()}
+                                                >
+                                                    <svg
+                                                        xmlns="http://www.w3.org/2000/svg"
+                                                        class="h-5 w-5 mr-2"
+                                                        viewBox="0 0 20 20"
+                                                        fill="currentColor"
+                                                    >
+                                                        <path
+                                                            d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z"
+                                                        />
+                                                        <path
+                                                            d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z"
+                                                        />
+                                                    </svg>
+                                                    Upload SDR Bookmarks
+                                                </button>
+
+                                                <!-- End of upload bookmark section -->
+
+                                                <!-- download bookmark Section -->
+
+                                                <button
+                                                    class="glass-button text-white font-bold py-2 px-4 rounded-lg flex items-center"
+                                                    on:click={downloadBookmarks}
+                                                >
+                                                    <svg
+                                                        xmlns="http://www.w3.org/2000/svg"
+                                                        class="h-5 w-5 mr-2"
+                                                        viewBox="0 0 20 20"
+                                                        fill="currentColor"
+                                                    >
+                                                        <path
+                                                            d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z"
+                                                        />
+                                                        <path
+                                                            d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z"
+                                                        />
+                                                    </svg>
+                                                    Download Bookmarks
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        <!-- End off Download bookmark Section -->
+
+                                        <!-- end of amkbookmarks -->
 
                                         <!-- Bookmarks List -->
                                         <div
@@ -3903,6 +4104,9 @@
                             <div class="control-group" id="volume-slider">
                                 <button
                                     class="glass-button text-white font-bold rounded-full w-10 h-10 flex items-center justify-center mr-4"
+                                    style="background: {mute
+                                        ? 'rgba(244, 67, 54)'
+                                        : 'rgba(255, 255, 255, 0.05)'}"
                                     on:click={handleMuteChange}
                                 >
                                     <svg
@@ -3943,7 +4147,7 @@
                                 <button
                                     class="glass-button text-white font-bold rounded-full w-10 h-10 flex items-center justify-center mr-4"
                                     style="background: {squelchEnable
-                                        ? 'rgba(16, 185, 129, 0.2)'
+                                        ? 'rgba(255, 152, 0)'
                                         : 'rgba(255, 255, 255, 0.05)'}"
                                     on:click={handleSquelchChange}
                                 >
