@@ -3165,7 +3165,7 @@
                                         <div class="mb-6">
                                             <label
                                                 class="block text-sm font-medium text-gray-300 mb-2"
-                                                >Upload - Download SDR Bookmarks</label
+                                                >Import - Export SDR Bookmarks</label
                                             >
                                             <div
                                                 class="flex items-center gap-2"
@@ -3200,7 +3200,7 @@
                                                             d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z"
                                                         />
                                                     </svg>
-                                                    Upload SDR Bookmarks
+                                                    Import SDR Bookmarks
                                                 </button>
 
                                                 <!-- End of upload bookmark section -->
@@ -3224,7 +3224,7 @@
                                                             d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z"
                                                         />
                                                     </svg>
-                                                    Download SDR Bookmarks
+                                                    Export SDR Bookmarks
                                                 </button>
                                             </div>
                                         </div>
