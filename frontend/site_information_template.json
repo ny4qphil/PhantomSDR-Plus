@@ -10,6 +10,9 @@
 	"siteNote": "A note about the site",
 	"siteSDRBaseFrequency": SDR_receiver_base_frequency,
 	"siteSDRBandwidth": SDR_bandwidth,
+        "siteSquelchEnabled": false,
+        "siteSquelchLevel": -65,
+        "siteCTCSSSupressedEnabled": false,
 	"siteRegion": site_ITU_Region,
 	"siteChatEnabled": true
 }
