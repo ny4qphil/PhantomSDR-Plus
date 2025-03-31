@@ -46,6 +46,9 @@
         siteNote,
         siteSDRBaseFrequency,
         siteSDRBandwidth,
+        siteSquelchEnabled,
+        siteSquelchLevel,
+        siteCTCSSSupressedEnabled,
         siteRegion,
         siteChatEnabled,
         siteCity,
@@ -464,6 +467,17 @@
     }
 
     function SetMode(mode) {
+        if (siteCTCSSSupressedEnabled && initialSDRLoad) {
+            handleCTCSSChange();
+            console.log("CTCSS Enabled");
+        }
+
+        if (siteSquelchEnabled && initialSDRLoad) {
+            handleSquelchChange();
+            handleSquelchMove();
+            console.log("Squelch Enabled");
+        }
+
         if (mode == "CW-U" || mode == "CW-L") {
             mode = "CW";
         }
@@ -472,6 +486,7 @@
 
         handleDemodulationChange(null, true);
         updateLink();
+        initialSDRLoad = false;
     }
 
     function setModePopup(mode) {
@@ -675,8 +690,14 @@
 
     let mute = false;
     let volume = 50;
-    let squelchEnable;
-    let squelch = -50;
+    let squelchEnabled = false;
+    let squelch = siteSquelchLevel;
+    let NREnabled = false;
+    let NBEnabled = false;
+    let ANEnabled = false;
+    let CTCSSSupressEnabled = false;
+    let initialSDRLoad = true;
+    let agcEnabled = false;
     let power = 0;
     let powerPeak = 0;
     const numberOfDots = 35;
@@ -873,8 +894,8 @@
     }
 
     function handleSquelchChange() {
-        squelchEnable = !squelchEnable;
-        audio.setSquelch(squelchEnable);
+        squelchEnabled = !squelchEnabled;
+        audio.setSquelch(squelchEnabled);
     }
 
     function handleSquelchMove() {
@@ -887,12 +908,6 @@
             sendMessage();
         }
     }
-
-    let NREnabled = false;
-    let NBEnabled = false;
-    let ANEnabled = false;
-    let CTCSSSupressEnabled = false;
-    let agcEnabled = false;
 
     function handleNRChange() {
         NREnabled = !NREnabled;
@@ -1043,7 +1058,7 @@
             // This section was added to store more settings in the bookmark //
             volume: volume,
             squelch: squelch,
-            squelchEnable: squelchEnable,
+            squelchEnabled: squelchEnabled,
             audioBufferDelay: audioBufferDelay,
             audioBufferDelayEnabled: audioBufferDelayEnabled,
             NREnabled: NREnabled,
@@ -1091,8 +1106,8 @@
         // Set Squelch
         audio.setSquelch(false);
         squelch = bookmark.squelch;
-        squelchEnable = bookmark.squelchEnable;
-        audio.setSquelch(squelchEnable);
+        squelchEnabled = bookmark.squelchEnabled;
+        audio.setSquelch(squelchEnabled);
         audio.setSquelchThreshold(squelch);
 
         // Begin code to store and restore additional //
@@ -1208,51 +1223,50 @@
     let file;
     let fileInput;
 
-    // Συνάρτηση για την ανάγνωση του αρχείου JSON
+    // Function to handle the reading of the JSON or CSV file
     function uploadBookmarks() {
-        const file = fileInput.files[0]; // Παίρνουμε το επιλεγμένο αρχείο
+        const file = fileInput.files[0]; // Get the selected file
         if (!file) {
-            alert("Παρακαλώ επιλέξτε ένα αρχείο.");
-            return;
-        }
-        // Ελέγχουμε αν είναι αρχείο JSON
-        if (file.type !== "application/json") {
-            alert("Παρακαλώ επιλέξτε ένα αρχείο JSON.");
+            alert("Please select a file.");
             return;
         }
 
+        const fileExtension = file.name.split(".").pop().toLowerCase();
+        if (fileExtension === "json") {
+            // If the file is a JSON
+            processJSON(file);
+        } else if (fileExtension === "csv") {
+            // If the file is a CSV
+            processCSV(file);
+        } else {
+            alert("Please select a JSON or CSV file.");
+        }
+    }
+    // Function to process JSON files
+    function processJSON(file) {
         const reader = new FileReader();
         reader.onload = (event) => {
             try {
-                // Αναγνώριση του περιεχομένου του αρχείου JSON
                 const uploadedBookmarks = JSON.parse(event.target.result);
-                console.log("Uploaded Bookmarks:", uploadedBookmarks);
+                console.log("Uploaded JSON Bookmarks:", uploadedBookmarks);
 
-                // Ανάκτηση των default τιμών από το localStorage
-                const defaultLink = link || "http://default-server.com"; // Παράδειγμα
-                //        const defaultPort = localStorage.getItem("serverPort") || "9002"; // Παράδειγμα
-                console.log("defaultLink:", defaultLink);
-                //        console.log("defaultPort:", defaultPort);
-
-                // Εξαγωγή hostname και port από την URL (αν υπάρχει)
+                const defaultLink = link || "http://default-server.com"; // Example
                 const url = new URL(defaultLink);
-                const extractedLink = url.hostname; // Παίρνουμε την διεύθυνση IP ή το hostname
-                const extractedPort = url.port || "9003"; // Παίρνουμε την πόρτα ή το default αν δεν υπάρχει
+                const extractedLink = url.hostname;
+                const extractedPort = url.port || "9003"; // Example
+
                 console.log("Extracted Link:", extractedLink);
                 console.log("Extracted Port:", extractedPort);
 
-                // Επεξεργασία των αντικειμένων στο ανεβασμένο JSON
                 const updatedBookmarks = uploadedBookmarks.map((bookmark) => {
-                    // Αντικαθιστούμε την τιμή του πεδίου "link" με τις default τιμές από το localStorage
                     if (bookmark.link) {
                         const bookmarkUrl = new URL(bookmark.link);
-                        const link_to_be_checked = bookmarkUrl.hostname; // Παίρνουμε την διεύθυνση IP ή το hostname
-                        if (extractedLink != link_to_be_checked) {
-                            bookmarkUrl.hostname = extractedLink; // Ενημερώνουμε τη διεύθυνση του server
-                            bookmarkUrl.port = extractedPort; // Ενημερώνουμε την πόρτα του server
-                            bookmark.link = bookmarkUrl.toString(); // Ενημερώνουμε το πεδίο link με τη νέα διεύθυνση
+                        const link_to_be_checked = bookmarkUrl.hostname;
+                        if (extractedLink !== link_to_be_checked) {
+                            bookmarkUrl.hostname = extractedLink;
+                            bookmarkUrl.port = extractedPort;
+                            bookmark.link = bookmarkUrl.toString();
 
-                            //              MIN ZOOM (max zoom out) parameters
                             bookmark.currentWaterfallR =
                                 waterfall.waterfallMaxSize.toString();
                             bookmark.currentWaterfallL = "1".toString();
@@ -1262,30 +1276,107 @@
                     return bookmark;
                 });
 
-                // Διαβάζουμε τα υπάρχοντα bookmarks από το localStorage
                 const existingBookmarks =
                     JSON.parse(localStorage.getItem("bookmarks")) || [];
-
-                // Συγχώνευση των δύο συνόλων δεδομένων
                 const finalBookmarks = [
                     ...existingBookmarks,
                     ...updatedBookmarks,
                 ];
-
-                // Αποθήκευση του νέου συνδυασμένου αρχείου στο localStorage
                 localStorage.setItem(
                     "bookmarks",
                     JSON.stringify(finalBookmarks),
                 );
 
                 console.log("Final Updated Bookmarks:", finalBookmarks);
-                //        alert("Τα Bookmarks ανέβηκαν και αποθηκεύτηκαν επιτυχώς.");
+                //alert("The Bookmarks have been uploaded and saved successfully. Please reload the webpage!");
             } catch (error) {
-                alert("Σφάλμα κατά την ανάγνωση του αρχείου.");
+                alert("Error reading the file.");
             }
         };
 
-        reader.readAsText(file); // Διαβάζουμε το αρχείο ως κείμενο
+        reader.readAsText(file);
+    }
+
+    // Function to process CSV files
+    function processCSV(file) {
+        const rightEdge = waterfall.waterfallMaxSize;
+        const reader = new FileReader();
+        const defaultLink = link || "http://default-server.com"; // Example
+        const url = new URL(defaultLink);
+        const extractedLink = url.hostname;
+        const extractedPort = url.port || "9003"; // Example
+
+        reader.onload = (event) => {
+            try {
+                const csvData = event.target.result;
+                // Split by LF (Line Feed) to separate rows in the CSV
+                const rows = csvData
+                    .split("\n")
+                    .filter((row) => row.trim() !== ""); // Split by LF
+                console.log("Raw CSV data after splitting by LF:", rows);
+                // Skip the header row manually, as it's the first line
+                rows.shift();
+                console.log("Raw CSV data after stripping the header:", rows);
+
+                const bookmarksFromCSV = rows.map((row) => {
+                    const columns = row.split(","); // Split by comma for columns
+                    //        console.log("Column CSV data after splitting by commas:", columns);
+
+                    // Extract necessary fields (freq, mode, label)
+                    const frequency = parseFloat(columns[0].trim() * 1000);
+                    const mode = columns[2].trim();
+                    const name = columns[3].trim(); // Using label as name
+                    //        console.log("name:", name);
+                    return {
+                        name: name || frequency, // Default name if label is empty
+                        link: `http://${extractedLink}:${extractedPort}/?frequency=${frequency}&modulation=${mode}`,
+                        frequency: frequency,
+                        demodulation: mode,
+                        volume: 50, // default
+                        squelch: -50, // default
+                        audioBufferDelay: 1, // default
+                        audioBufferDelayEnabled: false, // default
+                        NREnabled: false, // default
+                        ANEnabled: false, // default
+                        NBEnabled: false, // default
+                        CTCSSSupressEnabled: false, // default
+                        currentTuneStep: 9000, // default
+                        min_waterfall: -30, // default
+                        max_waterfall: 110, // default
+                        brightness: 130, // default
+                        currentWaterfallR: rightEdge, // default
+                        currentWaterfallL: 1, // default
+                        currentColormap: "custom", // default
+                        waterfallDisplay: true, // default
+                        spectrumDisplay: false, // default
+                        currentBandwidth: 0, // default
+                        staticBandwidthEnabled: false, // default
+                    };
+                });
+                console.log("bookmarksFromCSV:", bookmarksFromCSV);
+                // Merge the bookmarks from the CSV with existing ones
+                const existingBookmarks =
+                    JSON.parse(localStorage.getItem("bookmarks")) || [];
+                const finalBookmarks = [
+                    ...existingBookmarks,
+                    ...bookmarksFromCSV,
+                ];
+                localStorage.setItem(
+                    "bookmarks",
+                    JSON.stringify(finalBookmarks),
+                );
+
+                console.log(
+                    "Final Updated Bookmarks from CSV:",
+                    finalBookmarks,
+                );
+                //alert("The Bookmarks from CSV have been uploaded and saved successfully. Please reload the webpage!");
+            } catch (error) {
+                alert("Error reading the CSV file.");
+            }
+        };
+
+        reader.readAsText(file);
     }
 
     // END OF UPLOAD BOOKMARKS
@@ -3165,7 +3256,10 @@
                                         <div class="mb-6">
                                             <label
                                                 class="block text-sm font-medium text-gray-300 mb-2"
-                                                >Import - Export SDR Bookmarks</label
+                                                >Import / Export SDR Bookmarks.
+                                                If you don't see them, please
+                                                refresh the webpage (or press
+                                                F5)!</label
                                             >
                                             <div
                                                 class="flex items-center gap-2"
@@ -3175,7 +3269,7 @@
                                                 <!-- Κρυφό input τύπου file  -->
                                                 <input
                                                     type="file"
-                                                    accept="application/json"
+                                                    accept=".json, .csv, application/json"
                                                     style="display: none;"
                                                     on:change={uploadBookmarks}
                                                     bind:this={fileInput}
@@ -3411,7 +3505,7 @@
                                                 class="px-1 py-0.5 flex items-center justify-center w-10 h-5 relative overflow-hidden"
                                             >
                                                 <span
-                                                    class="text-xs font-mono {squelchEnable
+                                                    class="text-xs font-mono {squelchEnabled
                                                         ? `text-orange-500`
                                                         : `text-orange-500 opacity-20 relative z-10`}"
                                                     >SQ</span
@@ -4146,7 +4240,7 @@
                             <div class="control-group mt-4" id="squelch-slider">
                                 <button
                                     class="glass-button text-white font-bold rounded-full w-10 h-10 flex items-center justify-center mr-4"
-                                    style="background: {squelchEnable
+                                    style="background: {squelchEnabled
                                         ? 'rgba(37, 99, 235)'
                                         : 'rgba(255, 255, 255, 0.05)'}"
                                     on:click={handleSquelchChange}
@@ -4393,181 +4487,183 @@
                         </div>
                     </div>
                     <!-- Audio Ends -->
-
-                    <div
-                        class="flex flex-col rounded p-2 justify-center"
-                        id="chat-column"
-                    >
+                    {#if siteChatEnabled}
                         <div
-                            class="p-3 sm:p-5 flex flex-col bg-gray-800 border border-gray-700 rounded-lg w-full mb-8"
-                            id="chat-box"
+                            class="flex flex-col rounded p-2 justify-center"
+                            id="chat-column"
                         >
-                            <h2
-                                class="text-xl sm:text-2xl font-semibold text-gray-100 mb-2 sm:mb-4"
-                            >
-                                WebSDR Chat
-                            </h2>
-                            <h4
-                                class="text-sm font-semibold text-gray-100 mb-2 sm:mb-4"
-                            >
-                                This chatbox is intended to discuss the
-                                operation of the WebSDR, so please keep the
-                                discussion civil and polite.
-                            </h4>
-
-                            <!-- Username Display/Input -->
                             <div
-                                class="mb-2 sm:mb-4 flex flex-wrap items-center"
+                                class="p-3 sm:p-5 flex flex-col bg-gray-800 border border-gray-700 rounded-lg w-full mb-8"
+                                id="chat-box"
                             >
-                                <span
-                                    class="text-white text-xs sm:text-sm mr-2 mb-2 sm:mb-0"
-                                    >Chatting as:</span
+                                <h2
+                                    class="text-xl sm:text-2xl font-semibold text-gray-100 mb-2 sm:mb-4"
                                 >
-                                {#if showUsernameInput}
-                                    <input
-                                        class="glass-input text-white py-1 px-2 rounded-lg outline-none text-xs sm:text-sm flex-grow mr-2 mb-2 sm:mb-0"
-                                        bind:value={username}
-                                        placeholder="Enter your name/callsign"
-                                        on:keydown={(e) =>
-                                            e.key === "Enter" && saveUsername()}
-                                    />
-                                    <button
-                                        class="glass-button text-white py-1 px-3 mb-2 lg:mb-0 rounded-lg text-xs sm:text-sm"
-                                        on:click={saveUsername}
-                                    >
-                                        Save
-                                    </button>
-                                {:else}
+                                    WebSDR Chat
+                                </h2>
+                                <h4
+                                    class="text-sm font-semibold text-gray-100 mb-2 sm:mb-4"
+                                >
+                                    This chatbox is intended to discuss the
+                                    operation of the WebSDR, so please keep the
+                                    discussion civil and polite.
+                                </h4>
+
+                                <!-- Username Display/Input -->
+                                <div
+                                    class="mb-2 sm:mb-4 flex flex-wrap items-center"
+                                >
                                     <span
-                                        class="glass-username text-white text-xs sm:text-sm px-3 py-1 rounded-lg mr-2 mb-2 sm:mb-0"
+                                        class="text-white text-xs sm:text-sm mr-2 mb-2 sm:mb-0"
+                                        >Chatting as:</span
                                     >
-                                        {username || "Anonymous"}
-                                    </span>
-                                    <button
-                                        class="glass-button text-white py-1 px-3 mb-2 lg:mb-0 rounded-lg text-xs sm:text-sm"
-                                        on:click={editUsername}
-                                    >
-                                        Edit
-                                    </button>
-                                {/if}
-                            </div>
+                                    {#if showUsernameInput}
+                                        <input
+                                            class="glass-input text-white py-1 px-2 rounded-lg outline-none text-xs sm:text-sm flex-grow mr-2 mb-2 sm:mb-0"
+                                            bind:value={username}
+                                            placeholder="Enter your name/callsign"
+                                            on:keydown={(e) =>
+                                                e.key === "Enter" &&
+                                                saveUsername()}
+                                        />
+                                        <button
+                                            class="glass-button text-white py-1 px-3 mb-2 lg:mb-0 rounded-lg text-xs sm:text-sm"
+                                            on:click={saveUsername}
+                                        >
+                                            Save
+                                        </button>
+                                    {:else}
+                                        <span
+                                            class="glass-username text-white text-xs sm:text-sm px-3 py-1 rounded-lg mr-2 mb-2 sm:mb-0"
+                                        >
+                                            {username || "Anonymous"}
+                                        </span>
+                                        <button
+                                            class="glass-button text-white py-1 px-3 mb-2 lg:mb-0 rounded-lg text-xs sm:text-sm"
+                                            on:click={editUsername}
+                                        >
+                                            Edit
+                                        </button>
+                                    {/if}
+                                </div>
 
-                            <!-- Chat Messages -->
-                            <div
-                                class="bg-gray-900 rounded-lg p-2 sm:p-3 mb-2 sm:mb-4 h-48 sm:h-64 overflow-y-auto custom-scrollbar"
-                                bind:this={chatMessages}
-                            >
-                                {#each $messages as { id, text } (id)}
-                                    {@const formattedMessage =
-                                        formatFrequencyMessage(text)}
-                                    <div
-                                        class="mb-2 sm:mb-3 text-left"
-                                        in:fly={{
-                                            y: 20,
-                                            duration: 300,
-                                            easing: quintOut,
-                                        }}
-                                    >
+                                <!-- Chat Messages -->
+                                <div
+                                    class="bg-gray-900 rounded-lg p-2 sm:p-3 mb-2 sm:mb-4 h-48 sm:h-64 overflow-y-auto custom-scrollbar"
+                                    bind:this={chatMessages}
+                                >
+                                    {#each $messages as { id, text } (id)}
+                                        {@const formattedMessage =
+                                            formatFrequencyMessage(text)}
                                         <div
-                                            class="inline-block bg-gray-800 rounded-lg p-2 max-w-full"
+                                            class="mb-2 sm:mb-3 text-left"
+                                            in:fly={{
+                                                y: 20,
+                                                duration: 300,
+                                                easing: quintOut,
+                                            }}
                                         >
-                                            <p
-                                                class="text-white text-xs sm:text-sm break-words"
+                                            <div
+                                                class="inline-block bg-gray-800 rounded-lg p-2 max-w-full"
                                             >
-                                                <span
-                                                    class="font-semibold text-blue-300"
-                                                    >{formattedMessage.username}</span
+                                                <p
+                                                    class="text-white text-xs sm:text-sm break-words"
                                                 >
-                                                <span
-                                                    class="text-xs text-gray-400 ml-2"
-                                                    >{formattedMessage.timestamp}</span
-                                                >
-                                            </p>
-                                            <p
-                                                class="text-white text-xs sm:text-sm break-words mt-1"
-                                            >
-                                                {#if formattedMessage.isFormatted}
-                                                    {@html renderParts(
-                                                        formattedMessage.beforeFreq,
-                                                    )}
-                                                    <a
-                                                        href="#"
-                                                        class="text-blue-300 hover:underline"
-                                                        on:click|preventDefault={() =>
-                                                            handleFrequencyClick(
-                                                                formattedMessage.frequency,
-                                                                formattedMessage.demodulation,
-                                                            )}
+                                                    <span
+                                                        class="font-semibold text-blue-300"
+                                                        >{formattedMessage.username}</span
                                                     >
-                                                        {(
-                                                            formattedMessage.frequency /
-                                                            1000
-                                                        ).toFixed(3)} kHz ({formattedMessage.demodulation})
-                                                    </a>
-                                                    {@html renderParts(
-                                                        formattedMessage.afterFreq,
-                                                    )}
-                                                {:else}
-                                                    {@html renderParts(
-                                                        formattedMessage.parts,
-                                                    )}
-                                                {/if}
-                                            </p>
+                                                    <span
+                                                        class="text-xs text-gray-400 ml-2"
+                                                        >{formattedMessage.timestamp}</span
+                                                    >
+                                                </p>
+                                                <p
+                                                    class="text-white text-xs sm:text-sm break-words mt-1"
+                                                >
+                                                    {#if formattedMessage.isFormatted}
+                                                        {@html renderParts(
+                                                            formattedMessage.beforeFreq,
+                                                        )}
+                                                        <a
+                                                            href="#"
+                                                            class="text-blue-300 hover:underline"
+                                                            on:click|preventDefault={() =>
+                                                                handleFrequencyClick(
+                                                                    formattedMessage.frequency,
+                                                                    formattedMessage.demodulation,
+                                                                )}
+                                                        >
+                                                            {(
+                                                                formattedMessage.frequency /
+                                                                1000
+                                                            ).toFixed(3)} kHz ({formattedMessage.demodulation})
+                                                        </a>
+                                                        {@html renderParts(
+                                                            formattedMessage.afterFreq,
+                                                        )}
+                                                    {:else}
+                                                        {@html renderParts(
+                                                            formattedMessage.parts,
+                                                        )}
+                                                    {/if}
+                                                </p>
+                                            </div>
                                         </div>
-                                    </div>
-                                {/each}
-                            </div>
+                                    {/each}
+                                </div>
 
-                            <!-- Message Input and Buttons -->
-                            <div
-                                class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2"
-                            >
-                                <input
-                                    class="glass-input text-white py-2 px-3 rounded-lg outline-none text-xs sm:text-sm flex-grow"
-                                    bind:value={newMessage}
-                                    on:keydown={handleEnterKey}
-                                    placeholder="Type a message..."
-                                />
-                                <div class="flex space-x-2">
-                                    <button
-                                        class="glass-button text-white font-semibold py-2 px-4 rounded-lg flex items-center justify-center text-xs sm:text-sm flex-grow sm:flex-grow-0"
-                                        on:click={sendMessage}
-                                    >
-                                        <svg
-                                            xmlns="http://www.w3.org/2000/svg"
-                                            class="h-4 w-4 mr-2"
-                                            viewBox="0 0 20 20"
-                                            fill="currentColor"
+                                <!-- Message Input and Buttons -->
+                                <div
+                                    class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2"
+                                >
+                                    <input
+                                        class="glass-input text-white py-2 px-3 rounded-lg outline-none text-xs sm:text-sm flex-grow"
+                                        bind:value={newMessage}
+                                        on:keydown={handleEnterKey}
+                                        placeholder="Type a message..."
+                                    />
+                                    <div class="flex space-x-2">
+                                        <button
+                                            class="glass-button text-white font-semibold py-2 px-4 rounded-lg flex items-center justify-center text-xs sm:text-sm flex-grow sm:flex-grow-0"
+                                            on:click={sendMessage}
                                         >
-                                            <path
-                                                d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"
-                                            />
-                                        </svg>
-                                        Send
-                                    </button>
-                                    <button
-                                        class="glass-button text-white font-semibold py-2 px-4 rounded-lg flex items-center justify-center text-xs sm:text-sm flex-grow sm:flex-grow-0"
-                                        on:click={pasteFrequency}
-                                    >
-                                        <svg
-                                            xmlns="http://www.w3.org/2000/svg"
-                                            class="h-4 w-4 mr-2"
-                                            viewBox="0 0 20 20"
-                                            fill="currentColor"
+                                            <svg
+                                                xmlns="http://www.w3.org/2000/svg"
+                                                class="h-4 w-4 mr-2"
+                                                viewBox="0 0 20 20"
+                                                fill="currentColor"
+                                            >
+                                                <path
+                                                    d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"
+                                                />
+                                            </svg>
+                                            Send
+                                        </button>
+                                        <button
+                                            class="glass-button text-white font-semibold py-2 px-4 rounded-lg flex items-center justify-center text-xs sm:text-sm flex-grow sm:flex-grow-0"
+                                            on:click={pasteFrequency}
                                         >
-                                            <path
-                                                d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z"
-                                            />
-                                            <path
-                                                d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z"
-                                            />
-                                        </svg>
-                                        Paste Freq
-                                    </button>
+                                            <svg
+                                                xmlns="http://www.w3.org/2000/svg"
+                                                class="h-4 w-4 mr-2"
+                                                viewBox="0 0 20 20"
+                                                fill="currentColor"
+                                            >
+                                                <path
+                                                    d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z"
+                                                />
+                                                <path
+                                                    d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z"
+                                                />
+                                            </svg>
+                                            Paste Freq
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    {/if}
                 </div>
             </div>
             <footer class="mt-4 mb-4 text-center text-gray-400 text-sm">
