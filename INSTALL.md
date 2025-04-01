@@ -14,7 +14,7 @@ and the forum to get this squared away before moving forward.
 
 ### Building
 ```
-apt install build-essential cmake pkg-config meson libfftw3-dev libwebsocketpp-dev libflac++-dev zlib1g-dev libzstd-dev libboost-all-dev libopus-dev libliquid-dev git psmisc
+apt install build-essential cmake pkg-config meson libfftw3-dev libwebsocketpp-dev libflac++-dev libusb-1.0-0-dev zlib1g-dev libzstd-dev libboost-all-dev libopus-dev libliquid-dev git psmisc
 ```
 ### Note concerning OpenCL :
 After you get OpenCL support working, do not forget to enable that in your TOML file. Another place we see errors often is people 
