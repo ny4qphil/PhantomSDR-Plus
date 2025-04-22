@@ -3928,6 +3928,10 @@
                                                                             kHz
                                                                         {:else if newbandwidth == 5000}5.0
                                                                             kHz
+                                                                        {:else if newbandwidth == 6000}6.0
+                                                                            kHz
+                                                                        {:else if newbandwidth == 9000}9.0
+                                                                            kHz
                                                                         {:else if newbandwidth == 10000}10.0
                                                                             kHz
                                                                         {:else if newbandwidth == 12000}12.0
