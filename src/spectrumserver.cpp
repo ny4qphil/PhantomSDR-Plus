@@ -128,7 +128,9 @@ broadcast_server::broadcast_server(
         default_m =
             (double)(default_frequency - basefreq) * fft_result_size / sps;
     }
+
     int offsets_3 = (3000LL) * fft_result_size / sps;
+    int offsets_4 = (4500LL) * fft_result_size / sps;
     int offsets_5 = (5000LL) * fft_result_size / sps;
     int offsets_96 = (96000LL) * fft_result_size / sps;
 
@@ -138,8 +140,8 @@ broadcast_server::broadcast_server(
         default_r = default_m;
     } else if (default_mode_str == "AM") {
         default_mode = AM;
-        default_l = default_m - offsets_5;
-        default_r = default_m + offsets_5;
+        default_l = default_m - offsets_4;
+        default_r = default_m + offsets_4;
     } else if (default_mode_str == "FM") {
         default_mode = FM;
         default_l = default_m - offsets_5;
