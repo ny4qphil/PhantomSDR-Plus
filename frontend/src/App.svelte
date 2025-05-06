@@ -1887,6 +1887,7 @@
 
     function sendMessage() {
         newMessage = newMessage.replace(/[^\x00-\x7F]/g, ""); // Strips non-ASCII
+        newMessage = stripText(newMessage);
         if (newMessage.trim() && username.trim()) {
             const messageObject = {
                 cmd: "chat",
@@ -1898,6 +1899,13 @@
             scrollToBottom();
         }
     }
+
+function stripText(s) {
+    let badStrings = ['777', 'chmod', '.sh', 'chown', 'tftp'];
+    let fixedStrings = new RegExp('\\b(' + badStrings.join('|') + ')\\b', 'g');
+    return (s || '').replace(fixedStrings, '').replace(/[ ]{2,}/, ' ');
+}
+
 
     function pasteFrequency() {
         const frequency = frequencyInputComponent.getFrequency();
