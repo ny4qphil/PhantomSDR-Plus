@@ -32,6 +32,7 @@ int ZstdEncoder::send(const void *buffer, size_t bytes, uint64_t frame_num,
     ZSTD_inBuffer data = {cbor.data(), cbor.size(), 0};
     ZSTD_outBuffer packet_out = {zstd_packet.data(), zstd_packet.size(), 0};
     ZSTD_compressStream2(stream, &packet_out, &data, ZSTD_e_flush);
+    ZSTD_compressStream2(stream, &packet_out, &data, ZSTD_e_end);
     sender.send_binary_packet(hdl, packet_out.dst, packet_out.pos);
     return 0;
 }
