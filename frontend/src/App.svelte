@@ -1886,7 +1886,7 @@
     });
 
     function sendMessage() {
-        newMessage = newMessage.replace(/[^\x00-\x7F]/g, ""); // Strips non-ASCII
+        newMessage = newMessage.replace(/[\u{33F0}-\u{FFFF}]/gu, ""); // Strips new version ON5HB - Unicode
         newMessage = stripText(newMessage);
         if (newMessage.trim() && username.trim()) {
             const messageObject = {
