@@ -93,9 +93,11 @@ Do not forget to disable opencl if you didn't install it, it's recommened you do
 Bas came up with an easy fix for attackers that a couple of users were having to deal with. It is to add this to the start-script.
 ### First delete any record already there
 ```
-iptables -D INPUT -m string --algo bm --string "%3C%" -j DROP
+iptables -D INPUT -m string --algo kmp --string "%3C%" -j DROP
+iptables -D INPUT -m string --algo kmp --string "device.rsp" -j DROP
 ```
 ### then add the entry
 ```
-iptables -A INPUT -m string --algo bm --string "%3C%" -j DROP
+iptables -A INPUT -m string --algo kmp --string "%3C%" -j DROP
+iptables -A INPUT -m string --algo kmp --string "device.rsp" -j DROP
 ```
