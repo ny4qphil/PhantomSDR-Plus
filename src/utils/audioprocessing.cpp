@@ -19,7 +19,7 @@ AGC::AGC(float desiredLevel, float attackTimeMs, float releaseTimeMs, float look
     // Initialize multiple gain stages (RF, IF1, IF2, IF3, Audio)
     gains.resize(5, 1.0f);
 
-    max_gain = 1000.0f; // was 500.0f Bas ON5HB
+    max_gain = 800.0f; // was 500.0f Bas ON5HB
 
     // Hang system
     hang_time = static_cast<size_t>(0.2f * sample_rate); // Was 500ms hang time, changed to 90ms, Bas ON5HB // testing 0.2 sec
@@ -33,15 +33,15 @@ AGC::AGC(float desiredLevel, float attackTimeMs, float releaseTimeMs, float look
     fast_attack_coeff = 1 - exp(-1.0f / (0.5f * 0.001f * sample_rate)); // 5ms fast attack, made 0.5ms attack Bas ON5HB
     
     // AM time constants
-    am_attack_coeff = attack_coeff * 0.1f;
-    am_release_coeff = release_coeff * 0.1f;
+    am_attack_coeff = attack_coeff * 0.1f; // was 0.1
+    am_release_coeff = release_coeff * 0.1f; //was 0.1
 
     // Initialize Noise Blanker parameters
     nb_enabled = false;
-    nb_fft_size = 512;
-    nb_overlap = 256;
-    nb_average_windows = 32;
-    nb_threshold = 95.f;
+    nb_fft_size = 2048; //was 512
+    nb_overlap = 256; //was 256
+    nb_average_windows = 32; //was 32
+    nb_threshold = 95.0f; //was 95
     
     nb_buffer.resize(nb_fft_size);
     nb_spectrum_history.resize(nb_average_windows, std::vector<float>(nb_fft_size / 2));
