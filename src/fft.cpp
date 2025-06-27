@@ -9,8 +9,8 @@
 // Main FFT loop to process input samples
 void broadcast_server::fft_task() {
 
-    // Attempt to import FFTW wisdom
-    if (!fftwf_import_wisdom_from_filename("fftw_wisdom")) {
+    // Attempt to import FFTW wisdom - Changed name to make clear.
+    if (!fftwf_import_wisdom_from_filename("phantom_fftw_wisdom")) {
         std::cout << "No FFTW wisdom file found. Planning from scratch. This may take long on the first time but will then be fast." << std::endl;
     }
 
@@ -28,13 +28,13 @@ void broadcast_server::fft_task() {
 
     // FFT planning
     if (is_real) {
-        fft->plan_r2c(FFTW_MEASURE | FFTW_DESTROY_INPUT);
+        fft->plan_r2c(FFTW_ESTIMATE | FFTW_DESTROY_INPUT); //ESTIMATE no need for MEASURE - Bas ON5HB
     } else {
         fft->plan_c2c(FFT::FORWARD, FFTW_MEASURE | FFTW_DESTROY_INPUT);
     }
     
     // Export FFTW wisdom after planning
-    if (!fftwf_export_wisdom_to_filename("fftw_wisdom")) {
+    if (!fftwf_export_wisdom_to_filename("phantom_fftw_wisdom")) {
         std::cout << "Failed to export FFTW wisdom." << std::endl;
     }
 
