@@ -22,19 +22,18 @@ void broadcast_server::on_open(connection_hdl hdl) {
         on_open_events(hdl);
     } else if (path == "/chat") {
         on_open_chat(hdl);
-    
     } else {
         on_open_unknown(hdl);
     }
 }
 
 void broadcast_server::on_open_unknown(connection_hdl hdl) {
-    server::connection_ptr con = m_server.get_con_from_hdl(hdl);
-    con->set_close_handler([](connection_hdl) {}); // No-op
+     server::connection_ptr con = m_server.get_con_from_hdl(hdl);
+     con->set_close_handler([](connection_hdl) {}); // No-op
 
-    // Immediately close
-    websocketpp::lib::error_code ec;
-    m_server.close(hdl, websocketpp::close::status::going_away, "", ec);
+     // Immediately close
+     websocketpp::lib::error_code ec;
+     m_server.close(hdl, websocketpp::close::status::going_away, "", ec);
 }
 
 void broadcast_server::send_basic_info(connection_hdl hdl) {
@@ -193,12 +192,17 @@ std::vector<std::future<void>> broadcast_server::signal_loop() {
     for (auto &[slice, data] : signal_slices) {
         auto &[l_idx, r_idx] = slice;
         // If the client is slow, avoid unnecessary buffering and drop the
-        // audio
+        // audio value was 50000 -> Changed to 1000
         auto con = m_server.get_con_from_hdl(data->hdl);
-        if (con->get_buffered_amount() > 200000) {
-            printf("Dropping Audio due to buffering slow client\n");
-            continue;
-        }
+        //if (con->get_buffered_amount() > 1000) {
+        //    printf("Dropping Audio due to buffering slow client\n");
+        //    continue;
+        //}
+
+	//Fixed version, no need to output - Bas ON5HB
+	if (con->get_buffered_amount() > 1000) { continue; }
+
+
         // Equivalent to
         // data->send_audio(&fft_buffer[(l_idx + base_idx) % fft_result_size],
         // frame_num);
@@ -245,12 +249,12 @@ broadcast_server::waterfall_loop(int8_t *fft_power_quantized) {
         for (auto &[slice, data] : waterfall_slices[i]) {
             auto &[l_idx, r_idx] = slice;
             // If the client is slow, avoid unnecessary buffering and
-            // drop the packet
+            // drop the packet - changed from 50000 to 100000
             auto con = m_server.get_con_from_hdl(data->hdl);
-            if (con->get_buffered_amount() > 200000) {
-                printf("Dropping Waterfall due to buffering slow client\n");
-                continue;
-            }
+
+	    // Fixed version,no need to output - Bas ON5HB
+            if (con->get_buffered_amount() > 10000) { continue; }
+
             // Equivalent to
             // data->send_waterfall(&fft_power_quantized[l_idx],frame_num);
             futures.emplace_back(
