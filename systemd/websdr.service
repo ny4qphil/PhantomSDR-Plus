@@ -1,0 +1,15 @@
+[Unit]
+Description=PhantomSDRPlus WebSDR
+Requires=network-online.target
+After=receiver.service
+
+[Service]
+PIDFile=/run/websdr.pid
+ExecStart=/opt/PhantomSDR-Plus/start-websdr.sh
+Type=exec
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+Alias=websdr.service
