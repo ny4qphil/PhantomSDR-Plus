@@ -19,7 +19,7 @@ if [ $? -eq 0 ]; then
     echo "Packages installed successfully."
     # Build the main application with Meson
     echo "Building the main application..."
-    meson build --optimization=3
+    meson build 
     # Use just 2 cores to compile with -J2 else tiny systems like an RPi4 with 2GB won't finish compiling.
     meson compile -j2 -C build
     if [ $? -ne 0 ]; then

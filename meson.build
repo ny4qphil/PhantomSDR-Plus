@@ -2,17 +2,14 @@ project(
     'spectrumdistributor',
     'cpp',
     default_options : [
-        'optimization=3',
-        #'b_lto=true',
+        'optimization=0',
         #'b_sanitize=address'
     ]
 )
 
 add_project_arguments('-march=native', language: 'cpp')
 add_project_arguments('-ggdb3', language: 'cpp')
-add_project_arguments(['-std=c++23','-Wall','-Wextra','-Wpedantic'], language: 'cpp')
-
-
+add_project_arguments(['-std=c++23','-Ofast','-Wall','-Wextra','-Wpedantic'], language: 'cpp')
 
 #add_project_link_arguments(['-rdynamic', '-no-pie'], language: 'cpp')
 
