@@ -5,7 +5,7 @@ otherusers=1 # Send where other users are listening, 0 to disable
 threads=2
 
 [websdr]
-register_online=true # If the SDR should be registered on https://sdr-list.xyz then put it to true
+register_online=false # If the SDR should be registered on https://sdr-list.xyz then put it to true
 name="Heppen Wideband Websdr" # Name that is shown on https://sdr-list.xyz
 antenna="54m Longwire" # Antenna that is shown on https://sdr-list.xyz
 grid_locator="JO21oc" # 4 or 6 length Grid Locatlr shown on https://sdr-list.xyz and for the Distance of FT8 Signals
