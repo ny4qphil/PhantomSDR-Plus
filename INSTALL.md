@@ -94,8 +94,6 @@ Then to start those services, enter :
 systemctl start receiver && systemctl start websdr
 ```
 
-If all goes well, you are ready to start your receiver and WebSDR instances and publish your Phantom+ WebSDR.
-
 If you have trouble, hit the forum and we will help all we can.
 
 https://www.phantomsdr.fun/
