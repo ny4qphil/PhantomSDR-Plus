@@ -88,11 +88,11 @@ Bas came up with an easy fix for attackers that a couple of users were having to
 To enable those services, enter :
 ```
 systemctl enable receiver && systemctl enable websdr
-'''
+```
 Then to start those services, enter :
 ```
 systemctl start receiver && systemctl start websdr
-'''
+```
 
 If all goes well, you are ready to start your receiver and WebSDR instances and publish your Phantom+ WebSDR.
 
